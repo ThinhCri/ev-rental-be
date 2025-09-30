@@ -9,3 +9,4 @@ namespace EV_RENTAL_SYSTEM.Models.Enums
         B2
     }
 }
+

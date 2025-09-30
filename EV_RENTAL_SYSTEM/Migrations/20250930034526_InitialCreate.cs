@@ -7,7 +7,25 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EV_RENTAL_SYSTEM.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Initial Database Migration
+    /// 
+    /// CÁCH HOẠT ĐỘNG:
+    /// - Tạo toàn bộ database schema
+    /// - Tạo tất cả tables và relationships
+    /// - Seed data cơ bản (Roles, LicenseTypes)
+    /// 
+    /// CHO TEAM:
+    /// - KHÔNG cần xóa migration này
+    /// - Chạy: dotnet ef database update
+    /// - Data seeding sẽ tự động chạy sau migration
+    /// 
+    /// TABLES ĐƯỢC TẠO:
+    /// - Role, User, License, LicenseType
+    /// - Brand, Vehicle, Station, LicensePlate
+    /// - Order, Contract, Payment, Transaction
+    /// - Complaint, Maintenance, ProcessStep
+    /// </summary>
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />

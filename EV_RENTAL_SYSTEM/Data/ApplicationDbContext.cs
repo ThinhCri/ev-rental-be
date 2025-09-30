@@ -3,6 +3,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EV_RENTAL_SYSTEM.Data
 {
+    /// <summary>
+    /// Application Database Context
+    /// 
+    /// CÁCH HOẠT ĐỘNG:
+    /// - Định nghĩa tất cả entities và relationships
+    /// - Có data seeding trong OnModelCreating
+    /// - Migration tự động chạy khi app start
+    /// 
+    /// CHO TEAM:
+    /// - Khi thay đổi model, tạo migration: dotnet ef migrations add <Name>
+    /// - Chạy migration: dotnet ef database update
+    /// - Data seeding sẽ tự động chạy sau migration
+    /// 
+    /// ENTITIES:
+    /// - User, Role, License, LicenseType
+    /// - Vehicle, Brand, Station, LicensePlate
+    /// - Order, Contract, Payment, Transaction
+    /// - Complaint, Maintenance, ProcessStep
+    /// </summary>
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
