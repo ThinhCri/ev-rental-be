@@ -173,21 +173,107 @@ Configure JWT settings in `appsettings.json`:
 
 ## Getting Started
 
-1. **Install Dependencies**
+### Prerequisites
+
+Before running this project, make sure you have the following installed:
+
+- **.NET 8 SDK** - Download from [Microsoft's official site](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **SQL Server** - Either:
+  - SQL Server Express (free) - Download from [Microsoft's official site](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+  - SQL Server LocalDB (included with Visual Studio)
+  - SQL Server Developer Edition (free for development)
+
+### Setup Instructions
+
+1. **Clone the Repository**
+   ```bash
+   git clone <your-github-repo-url>
+   cd EV_RENTAL_SYSTEM
+   ```
+
+2. **Install Dependencies**
    ```bash
    dotnet restore
    ```
 
-2. **Update Database**
-   The application will automatically create the database and tables on first run.
+3. **Configure Database Connection**
+   
+   Update the connection string in `appsettings.json` or `appsettings.Development.json`:
+   
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=EV_Rental_System;Trusted_Connection=true;TrustServerCertificate=true;"
+     }
+   }
+   ```
+   
+   **For SQL Server Express:**
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=EV_Rental_System;Trusted_Connection=true;TrustServerCertificate=true;"
+     }
+   }
+   ```
 
-3. **Run the Application**
+4. **Build the Project**
+   ```bash
+   dotnet build
+   ```
+
+5. **Run the Application**
    ```bash
    dotnet run
    ```
 
-4. **Access Swagger UI**
-   Navigate to `https://localhost:7000/swagger` (or the port shown in the console)
+6. **Access Swagger UI**
+   Navigate to `https://localhost:7181/swagger` (or the port shown in the console)
+
+### First Run
+
+When you run the application for the first time:
+
+1. The application will automatically:
+   - Create the database if it doesn't exist
+   - Run any pending migrations
+   - Seed initial data (roles, license types)
+
+2. You should see console output like:
+   ```
+   Database is up to date.
+   Now listening on: https://localhost:7181
+   Now listening on: http://localhost:5228
+   Application started. Press Ctrl+C to shut down.
+   ```
+
+3. If you see any database errors, make sure:
+   - SQL Server is running
+   - Connection string is correct
+   - You have permission to create databases
+
+### Troubleshooting
+
+**Common Issues:**
+
+1. **"Cannot connect to database"**
+   - Check if SQL Server is running
+   - Verify connection string
+   - Make sure SQL Server allows TCP/IP connections
+
+2. **"Login failed for user"**
+   - Use Windows Authentication in connection string
+   - Or create a SQL Server user with appropriate permissions
+
+3. **"Database already exists" errors**
+   - The application handles this automatically
+   - If you see migration errors, the database might be in an inconsistent state
+   - Consider dropping and recreating the database
+
+4. **Port already in use**
+   - The application will show which ports it's using
+   - Make sure no other application is using those ports
+   - You can change ports in `launchSettings.json`
 
 ## Testing with Swagger
 

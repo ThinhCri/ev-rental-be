@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250928095729_InitialCreate")]
+    [Migration("20250929121543_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -176,8 +176,9 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("License_number");
 
-                    b.Property<int>("LicenseTypeId")
-                        .HasColumnType("int")
+                    b.Property<string>("LicenseTypeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("License_type_Id");
 
                     b.Property<int>("UserId")
@@ -238,12 +239,9 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.LicenseType", b =>
                 {
-                    b.Property<int>("LicenseTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                    b.Property<string>("LicenseTypeId")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("License_type_Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LicenseTypeId"));
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
@@ -262,31 +260,31 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     b.HasData(
                         new
                         {
-                            LicenseTypeId = 1,
+                            LicenseTypeId = "A1",
                             Description = "Motorcycle up to 125cc",
                             TypeName = "A1"
                         },
                         new
                         {
-                            LicenseTypeId = 2,
+                            LicenseTypeId = "A2",
                             Description = "Motorcycle up to 175cc",
                             TypeName = "A2"
                         },
                         new
                         {
-                            LicenseTypeId = 3,
+                            LicenseTypeId = "A",
                             Description = "Unlimited motorcycle",
                             TypeName = "A"
                         },
                         new
                         {
-                            LicenseTypeId = 4,
+                            LicenseTypeId = "B1",
                             Description = "Car up to 9 seats",
                             TypeName = "B1"
                         },
                         new
                         {
-                            LicenseTypeId = 5,
+                            LicenseTypeId = "B2",
                             Description = "Unlimited car",
                             TypeName = "B2"
                         });

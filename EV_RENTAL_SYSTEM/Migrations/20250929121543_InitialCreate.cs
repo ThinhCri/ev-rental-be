@@ -30,8 +30,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                 name: "LicenseType",
                 columns: table => new
                 {
-                    License_type_Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    License_type_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Type_name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
@@ -173,7 +172,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     License_number = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Expiry_date = table.Column<DateTime>(type: "date", nullable: false),
                     User_Id = table.Column<int>(type: "int", nullable: false),
-                    License_type_Id = table.Column<int>(type: "int", nullable: false),
+                    License_type_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     License_ImageUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
@@ -399,11 +398,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                 columns: new[] { "License_type_Id", "Description", "Type_name" },
                 values: new object[,]
                 {
-                    { 1, "Motorcycle up to 125cc", "A1" },
-                    { 2, "Motorcycle up to 175cc", "A2" },
-                    { 3, "Unlimited motorcycle", "A" },
-                    { 4, "Car up to 9 seats", "B1" },
-                    { 5, "Unlimited car", "B2" }
+                    { "A", "Unlimited motorcycle", "A" },
+                    { "A1", "Motorcycle up to 125cc", "A1" },
+                    { "A2", "Motorcycle up to 175cc", "A2" },
+                    { "B1", "Car up to 9 seats", "B1" },
+                    { "B2", "Unlimited car", "B2" }
                 });
 
             migrationBuilder.InsertData(

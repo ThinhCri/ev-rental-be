@@ -115,6 +115,7 @@ builder.Services.AddSwaggerGen(c =>
         Format = "date",
         Example = new Microsoft.OpenApi.Any.OpenApiString("1990-01-15")
     });
+    
 });
 
 // CORS
@@ -150,11 +151,48 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure database is created
+// Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Database.EnsureCreated();
+    try
+    {
+        // Kiểm tra xem database có tồn tại không
+        if (context.Database.CanConnect())
+        {
+            // Database đã tồn tại, chỉ migrate nếu cần
+            var pendingMigrations = context.Database.GetPendingMigrations();
+            if (pendingMigrations.Any())
+            {
+                context.Database.Migrate();
+                Console.WriteLine("Database migration completed successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Database is up to date.");
+            }
+        }
+        else
+        {
+            // Database chưa tồn tại, tạo mới
+            context.Database.EnsureCreated();
+            Console.WriteLine("Database created successfully.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error during database setup: {ex.Message}");
+        // Fallback to EnsureCreated if migration fails
+        try
+        {
+            context.Database.EnsureCreated();
+            Console.WriteLine("Database created using EnsureCreated fallback.");
+        }
+        catch (Exception fallbackEx)
+        {
+            Console.WriteLine($"Fallback also failed: {fallbackEx.Message}");
+        }
+    }
 }
 
 app.Run();

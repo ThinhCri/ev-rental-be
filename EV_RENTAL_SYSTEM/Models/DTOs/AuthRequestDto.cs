@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using EV_RENTAL_SYSTEM.Attributes;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {

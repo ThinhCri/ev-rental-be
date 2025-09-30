@@ -1,6 +1,8 @@
 using EV_RENTAL_SYSTEM.Services.Interfaces;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
 
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
@@ -15,9 +17,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
         public FileService(IWebHostEnvironment environment, ILogger<FileService> logger)
         {
-            _environment = environment;
-            _logger = logger;
-            _uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "licenses");
+            _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            
+            // Sử dụng ContentRootPath thay vì WebRootPath để tránh null
+            var contentRootPath = _environment.ContentRootPath ?? Directory.GetCurrentDirectory();
+            _uploadPath = Path.Combine(contentRootPath, "wwwroot", "uploads", "licenses");
             
             // Tạo thư mục upload nếu chưa có
             if (!Directory.Exists(_uploadPath))
@@ -78,7 +83,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 // Chuyển đổi URL thành đường dẫn file thực
                 var relativePath = filePath.TrimStart('/');
-                var fullPath = Path.Combine(_environment.WebRootPath, relativePath);
+                var contentRootPath = _environment.ContentRootPath ?? Directory.GetCurrentDirectory();
+                var fullPath = Path.Combine(contentRootPath, "wwwroot", relativePath);
 
                 if (File.Exists(fullPath))
                 {
@@ -131,14 +137,14 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         /// </summary>
         /// <param name="file">File ảnh cần kiểm tra</param>
         /// <returns>Kết quả kiểm tra</returns>
-        public async Task<(bool IsValid, string ErrorMessage)> ValidateLicenseImageAsync(IFormFile file)
+        public Task<(bool IsValid, string ErrorMessage)> ValidateLicenseImageAsync(IFormFile file)
         {
             try
             {
                 // 1. Kiểm tra file cơ bản
                 if (!IsValidImageFile(file))
                 {
-                    return (false, "File ảnh không hợp lệ. Chỉ chấp nhận file JPG, PNG, JPEG và kích thước tối đa 5MB");
+                    return Task.FromResult((false, "File ảnh không hợp lệ. Chỉ chấp nhận file JPG, PNG, JPEG và kích thước tối đa 5MB"));
                 }
 
                 // 2. Kiểm tra tên file có chứa từ khóa liên quan đến bằng lái xe không
@@ -152,36 +158,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     // Không trả về lỗi, chỉ warning
                 }
 
-                // 3. Kiểm tra kích thước ảnh (tối thiểu 300x200 pixels)
-                using (var stream = file.OpenReadStream())
-                {
-                    using (var image = await SixLabors.ImageSharp.Image.LoadAsync(stream))
-                    {
-                        if (image.Width < 300 || image.Height < 200)
-                        {
-                            return (false, "Ảnh quá nhỏ. Kích thước tối thiểu 300x200 pixels");
-                        }
-
-                        if (image.Width > 4000 || image.Height > 4000)
-                        {
-                            return (false, "Ảnh quá lớn. Kích thước tối đa 4000x4000 pixels");
-                        }
-
-                        // Kiểm tra tỷ lệ khung hình (không quá vuông hoặc quá dài)
-                        var aspectRatio = (double)image.Width / image.Height;
-                        if (aspectRatio < 0.5 || aspectRatio > 3.0)
-                        {
-                            return (false, "Tỷ lệ khung hình không phù hợp. Ảnh bằng lái xe thường có tỷ lệ 1:1.4 đến 1:2.5");
-                        }
-                    }
-                }
-
-                return (true, "Ảnh bằng lái xe hợp lệ");
+                // Bỏ kiểm tra kích thước ảnh theo yêu cầu
+                return Task.FromResult((true, "Ảnh bằng lái xe hợp lệ"));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error validating license image: {FileName}", file.FileName);
-                return (false, "Lỗi khi kiểm tra ảnh. Vui lòng thử lại");
+                return Task.FromResult((false, "Lỗi khi kiểm tra ảnh. Vui lòng thử lại"));
             }
         }
     }
