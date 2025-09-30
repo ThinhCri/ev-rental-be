@@ -1,0 +1,209 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "EV Rental System API",
+    "description": "API for Electric Vehicle Rental System",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "ConfirmPassword",
+                  "Email",
+                  "FullName",
+                  "LicenseExpiryDate",
+                  "LicenseImage",
+                  "LicenseNumber",
+                  "LicenseTypeId",
+                  "Password",
+                  "Phone"
+                ],
+                "type": "object",
+                "properties": {
+                  "FullName": {
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "Email": {
+                    "maxLength": 255,
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "Password": {
+                    "maxLength": 255,
+                    "minLength": 6,
+                    "type": "string"
+                  },
+                  "ConfirmPassword": {
+                    "type": "string"
+                  },
+                  "Phone": {
+                    "maxLength": 20,
+                    "type": "string",
+                    "format": "tel"
+                  },
+                  "Birthday": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "LicenseImage": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "LicenseNumber": {
+                    "maxLength": 50,
+                    "type": "string"
+                  },
+                  "LicenseExpiryDate": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "LicenseTypeId": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              },
+              "encoding": {
+                "FullName": {
+                  "style": "form"
+                },
+                "Email": {
+                  "style": "form"
+                },
+                "Password": {
+                  "style": "form"
+                },
+                "ConfirmPassword": {
+                  "style": "form"
+                },
+                "Phone": {
+                  "style": "form"
+                },
+                "Birthday": {
+                  "style": "form"
+                },
+                "LicenseImage": {
+                  "style": "form"
+                },
+                "LicenseNumber": {
+                  "style": "form"
+                },
+                "LicenseExpiryDate": {
+                  "style": "form"
+                },
+                "LicenseTypeId": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Auth/validate": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LoginRequestDto": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "minLength": 6,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "apiKey",
+        "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}

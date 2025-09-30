@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "uj8RNAR6Y1M=",
+  "dgSpecHash": "TSxGs4AMqCQ=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Administrator\\Desktop\\BE\\RentalCar\\RentalCar\\RentalCar.csproj",
+  "projectFilePath": "C:\\Users\\Administrator\\Desktop\\EV_RENTAL_SYSTEM\\RentalCar.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.20\\microsoft.windowsdesktop.app.ref.8.0.20.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.20\\microsoft.netcore.app.ref.8.0.20.nupkg.sha512",
+    "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.20\\microsoft.windowsdesktop.app.ref.8.0.20.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.20\\microsoft.aspnetcore.app.ref.8.0.20.nupkg.sha512",
     "C:\\Users\\Administrator\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.20\\microsoft.netcore.app.host.win-x64.8.0.20.nupkg.sha512"
   ],

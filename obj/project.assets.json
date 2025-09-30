@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Administrator\\Desktop\\BE\\RentalCar\\RentalCar\\RentalCar.csproj",
+      "projectUniqueName": "C:\\Users\\Administrator\\Desktop\\EV_RENTAL_SYSTEM\\RentalCar.csproj",
       "projectName": "RentalCar",
-      "projectPath": "C:\\Users\\Administrator\\Desktop\\BE\\RentalCar\\RentalCar\\RentalCar.csproj",
+      "projectPath": "C:\\Users\\Administrator\\Desktop\\EV_RENTAL_SYSTEM\\RentalCar.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Administrator\\Desktop\\BE\\RentalCar\\RentalCar\\obj\\",
+      "outputPath": "C:\\Users\\Administrator\\Desktop\\EV_RENTAL_SYSTEM\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
