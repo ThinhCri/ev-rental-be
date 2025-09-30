@@ -171,64 +171,59 @@ Configure JWT settings in `appsettings.json`:
 }
 ```
 
-## Getting Started
+## 🚀 QUICK START - CHO TEAM MEMBERS
 
-### Prerequisites
+### ⚡ Setup Tự Động (Khuyến nghị)
 
-Before running this project, make sure you have the following installed:
+**Chỉ cần chạy 1 lệnh duy nhất:**
 
-- **.NET 8 SDK** - Download from [Microsoft's official site](https://dotnet.microsoft.com/download/dotnet/8.0)
-- **SQL Server** - Either:
-  - SQL Server Express (free) - Download from [Microsoft's official site](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-  - SQL Server LocalDB (included with Visual Studio)
-  - SQL Server Developer Edition (free for development)
+```powershell
+.\setup.ps1
+```
 
-### Setup Instructions
+Script này sẽ tự động:
+- ✅ Restore packages
+- ✅ Build project  
+- ✅ Xử lý database (xóa cũ, tạo mới)
+- ✅ Chạy migration
+- ✅ Data seeding (tạo data mẫu)
+- ✅ Kiểm tra kết quả
 
-1. **Clone the Repository**
+### 📋 Prerequisites
+
+Trước khi chạy, đảm bảo đã cài đặt:
+
+- **.NET 8 SDK** - [Download](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **SQL Server** - [Download SQL Server Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+- **PowerShell** (có sẵn trên Windows)
+
+### 🔧 Setup Thủ Công (Nếu cần)
+
+1. **Clone Repository**
    ```bash
    git clone <your-github-repo-url>
    cd EV_RENTAL_SYSTEM
    ```
 
-2. **Install Dependencies**
+2. **Chạy Setup Script**
+   ```powershell
+   .\setup.ps1
+   ```
+
+3. **Hoặc Setup Thủ Công:**
    ```bash
    dotnet restore
-   ```
-
-3. **Configure Database Connection**
-   
-   Update the connection string in `appsettings.json` or `appsettings.Development.json`:
-   
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=EV_Rental_System;Trusted_Connection=true;TrustServerCertificate=true;"
-     }
-   }
-   ```
-   
-   **For SQL Server Express:**
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=EV_Rental_System;Trusted_Connection=true;TrustServerCertificate=true;"
-     }
-   }
-   ```
-
-4. **Build the Project**
-   ```bash
    dotnet build
-   ```
-
-5. **Run the Application**
-   ```bash
+   dotnet ef database drop --force
+   dotnet ef database update
    dotnet run
    ```
 
-6. **Access Swagger UI**
-   Navigate to `https://localhost:7181/swagger` (or the port shown in the console)
+### 🌐 Truy Cập Ứng Dụng
+
+- **Swagger UI:** http://localhost:5228/swagger
+- **API Base URL:** http://localhost:5228/api
+- **Lưu ý:** Sử dụng HTTP (port 5228), không phải HTTPS
 
 ### First Run
 
@@ -252,28 +247,47 @@ When you run the application for the first time:
    - Connection string is correct
    - You have permission to create databases
 
-### Troubleshooting
+### 🛠️ Troubleshooting
 
-**Common Issues:**
+**Lỗi Thường Gặp:**
 
-1. **"Cannot connect to database"**
-   - Check if SQL Server is running
-   - Verify connection string
-   - Make sure SQL Server allows TCP/IP connections
+1. **❌ "There is already an object named 'Brand' in the database"**
+   ```bash
+   # Giải pháp: Chạy setup script
+   .\setup.ps1
+   # Hoặc thủ công:
+   dotnet ef database drop --force
+   dotnet ef database update
+   ```
 
-2. **"Login failed for user"**
-   - Use Windows Authentication in connection string
-   - Or create a SQL Server user with appropriate permissions
+2. **❌ "Failed to fetch" khi gọi API**
+   - Sử dụng HTTP: `http://localhost:5228` thay vì HTTPS
+   - Kiểm tra ứng dụng đã chạy: `dotnet run`
+   - Test trên Swagger UI: http://localhost:5228/swagger
 
-3. **"Database already exists" errors**
-   - The application handles this automatically
-   - If you see migration errors, the database might be in an inconsistent state
-   - Consider dropping and recreating the database
+3. **❌ "Cannot connect to database"**
+   - Kiểm tra SQL Server đang chạy
+   - Cập nhật connection string trong `appsettings.json`
+   - Sử dụng Windows Authentication
 
-4. **Port already in use**
-   - The application will show which ports it's using
-   - Make sure no other application is using those ports
-   - You can change ports in `launchSettings.json`
+4. **❌ "Login failed for user"**
+   - Sử dụng Windows Authentication trong connection string
+   - Hoặc tạo SQL Server user với quyền phù hợp
+
+5. **❌ "Port already in use"**
+   - Ứng dụng sử dụng port 5228 (HTTP) và 7181 (HTTPS)
+   - Kiểm tra không có ứng dụng nào khác sử dụng port này
+   - Thay đổi port trong `launchSettings.json` nếu cần
+
+6. **❌ "PowerShell execution policy"**
+   ```powershell
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+
+**💡 Mẹo:**
+- Luôn sử dụng `.\setup.ps1` để tránh lỗi database
+- Test API trên Swagger UI thay vì Postman/curl
+- Sử dụng HTTP thay vì HTTPS để tránh lỗi certificate
 
 ## Testing with Swagger
 

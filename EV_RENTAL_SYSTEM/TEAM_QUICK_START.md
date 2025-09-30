@@ -1,94 +1,58 @@
-# 🚀 Team Quick Start Guide
+# 🚀 TEAM QUICK START GUIDE
 
-## 📋 Cách setup project lần đầu
+## ⚡ Setup Nhanh (30 giây)
 
-### **Bước 1: Clone repository**
-```bash
-git clone <repository-url>
+```powershell
+# 1. Clone project
+git clone <your-repo-url>
 cd EV_RENTAL_SYSTEM
-```
 
-### **Bước 2: Chạy migration**
-```bash
-dotnet ef database update
-```
+# 2. Chạy setup script (tự động làm mọi thứ)
+.\setup.ps1
 
-### **Bước 3: Chạy app**
-```bash
+# 3. Chạy ứng dụng
 dotnet run
 ```
 
-### **Bước 4: Data tự động xuất hiện! 🎉**
+## 🌐 Truy Cập
 
-## 📊 Data sẽ được tạo tự động
+- **Swagger UI:** http://localhost:5228/swagger
+- **API:** http://localhost:5228/api
 
-Khi chạy `dotnet run`, console sẽ hiển thị:
-```
-✓ Database migration completed successfully.
-Starting data seeding...
-✓ Roles seeded successfully
-✓ License Types seeded successfully  
-✓ Brands seeded successfully
-✓ Stations seeded successfully
-✓ Process Steps seeded successfully
-✓ Sample Vehicles seeded successfully
-✓ Sample License Plates seeded successfully
-✓ Data seeding completed successfully.
-```
+## 🔧 Nếu Gặp Lỗi
 
-## 🔍 Cách kiểm tra data
-
-### **1. Qua Swagger UI:**
-- Mở: `https://localhost:7000/swagger`
-- Test các API endpoints
-- Sẽ thấy data đã được tạo
-
-### **2. Qua Database:**
-```sql
--- Kiểm tra trong SQL Server Management Studio
-SELECT * FROM Role;
-SELECT * FROM LicenseType; 
-SELECT * FROM Brand;
-SELECT * FROM Station;
-SELECT * FROM Vehicle;
-SELECT * FROM LicensePlate;
-```
-
-## 🔄 Cách pull code mới
-
-### **Khi có code mới:**
-```bash
-git pull origin main
-dotnet ef database update  # Chạy migration mới (nếu có)
-dotnet run                # Chạy app + data seeding
-```
-
-## ⚠️ Troubleshooting
-
-### **Nếu data không xuất hiện:**
-1. Kiểm tra console log có lỗi gì không
-2. Kiểm tra database connection
-3. Reset database: `dotnet ef database drop && dotnet ef database update`
-
-### **Nếu migration lỗi:**
-1. Xem chi tiết: `dotnet ef database update --verbose`
-2. Rollback: `dotnet ef database update 0`
-3. Chạy lại: `dotnet ef database update`
-
-## 📝 Lưu ý quan trọng
-
-- ✅ **KHÔNG cần xóa migration cũ**
-- ✅ **Data seeding an toàn** - chỉ thêm data chưa có
-- ✅ **Tự động** - không cần làm gì thêm
-- ✅ **Nhất quán** - mọi người có data giống nhau
-
-## 🎯 Kết luận
-
-**Chỉ cần 3 lệnh là có data ngay!**
-```bash
-git clone <repo>
+### Lỗi Database
+```powershell
+dotnet ef database drop --force
 dotnet ef database update
-dotnet run
 ```
 
-**Data sẽ tự động xuất hiện!** 🎉
+### Lỗi PowerShell
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Lỗi API "Failed to fetch"
+- Sử dụng HTTP: `http://localhost:5228` (không phải HTTPS)
+- Test trên Swagger UI thay vì Postman
+
+## 📝 Test API
+
+1. Mở http://localhost:5228/swagger
+2. Test `/api/Auth/register` với form-data
+3. Upload file ảnh bằng lái xe
+4. Test `/api/Auth/login`
+
+## 🎯 Lưu Ý Quan Trọng
+
+- ✅ Luôn dùng `.\setup.ps1` khi clone project mới
+- ✅ Sử dụng HTTP (port 5228) thay vì HTTPS
+- ✅ Test API trên Swagger UI
+- ✅ API register cần upload file ảnh
+
+## 🆘 Cần Giúp Đỡ?
+
+Nếu vẫn gặp lỗi, hãy:
+1. Chạy `.\setup.ps1` lại
+2. Kiểm tra SQL Server đang chạy
+3. Kiểm tra connection string trong `appsettings.json`
