@@ -4,6 +4,7 @@ using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
@@ -107,6 +108,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         /// <returns>Kết quả đăng ký</returns>
         public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto registerRequest)
         {
+            // Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
+            var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
                 // 1. Kiểm tra email đã tồn tại trong database chưa
@@ -131,33 +134,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // 3. Tạo user mới với thông tin từ request
-                var user = new User
+                // 3. VALIDATION TRƯỚC KHI LƯU USER - Kiểm tra tất cả thông tin license trước
+            // Kiểm tra loại bằng lái xe có tồn tại trong database không
+            var licenseTypeName = registerRequest.LicenseTypeId.ToString();
+            var licenseType = await _unitOfWork.LicenseTypes.GetByNameAsync(licenseTypeName);
+            if (licenseType == null)
+            {
+                return new AuthResponseDto
                 {
-                    FullName = registerRequest.FullName,
-                    Email = registerRequest.Email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password), // Hash password trước khi lưu
-                    Birthday = registerRequest.Birthday,
-                    Status = "Active", // Mặc định active
-                    RoleId = evRenterRole.RoleId, // Gán role EV Renter
-                    CreatedAt = DateTime.UtcNow
+                    Success = false,
+                    Message = "Loại bằng lái xe không tồn tại."
                 };
-
-                // 4. Lưu user vào database
-                await _unitOfWork.Users.AddAsync(user);
-                await _unitOfWork.SaveChangesAsync();
-
-                // 5. Xử lý thông tin bằng lái xe (bắt buộc)
-                // Kiểm tra loại bằng lái xe có tồn tại không
-                var licenseType = await _unitOfWork.LicenseTypes.GetByIdAsync(registerRequest.LicenseTypeId);
-                if (licenseType == null)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "Loại bằng lái xe không tồn tại."
-                    };
-                }
+            }
 
                 // Kiểm tra ảnh bằng lái xe có hợp lệ không
                 var imageValidation = await _fileService.ValidateLicenseImageAsync(registerRequest.LicenseImage);
@@ -191,33 +179,52 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Upload ảnh bằng lái xe
+                // 4. Tạo user mới với thông tin từ request
+                var user = new User
+                {
+                    FullName = registerRequest.FullName,
+                    Email = registerRequest.Email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password), // Hash password trước khi lưu
+                    Birthday = registerRequest.Birthday,
+                    Status = "Active", // Mặc định active
+                    RoleId = evRenterRole.RoleId, // Gán role EV Renter
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // 5. Lưu user vào database
+                await _unitOfWork.Users.AddAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                // 6. Upload ảnh bằng lái xe
                 var licenseImageUrl = await _fileService.UploadCccdImageAsync(registerRequest.LicenseImage, user.UserId);
 
-                // Tạo license record
+                // 7. Tạo license record
                 var license = new License
                 {
                     LicenseNumber = registerRequest.LicenseNumber,
                     ExpiryDate = registerRequest.LicenseExpiryDate,
                     UserId = user.UserId,
-                    LicenseTypeId = registerRequest.LicenseTypeId,
+                    LicenseTypeId = licenseTypeName, // Convert enum to string
                     LicenseImageUrl = licenseImageUrl
                 };
 
                 await _unitOfWork.Licenses.AddAsync(license);
                 await _unitOfWork.SaveChangesAsync();
 
-                // 6. Tạo JWT token để user có thể đăng nhập ngay
+                // 8. Commit transaction - tất cả dữ liệu đã được lưu thành công
+                await transaction.CommitAsync();
+
+                // 9. Tạo JWT token để user có thể đăng nhập ngay
                 var token = _jwtService.GenerateToken(user);
                 
-                // 7. Map user entity sang DTO để trả về
+                // 10. Map user entity sang DTO để trả về
                 var userDto = _mapper.Map<UserDto>(user);
                 userDto.RoleName = evRenterRole.RoleName;
 
-                // 8. Ghi log đăng ký thành công
+                // 11. Ghi log đăng ký thành công
                 _logger.LogInformation("New user registered with email: {Email}", user.Email);
 
-                // 9. Trả về kết quả đăng ký thành công
+                // 12. Trả về kết quả đăng ký thành công
                 return new AuthResponseDto
                 {
                     Success = true,
@@ -228,6 +235,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
             catch (Exception ex)
             {
+                // Rollback transaction nếu có lỗi xảy ra
+                await _unitOfWork.RollbackTransactionAsync();
+                
                 // Ghi log lỗi và trả về thông báo lỗi
                 _logger.LogError(ex, "Error occurred during registration for email: {Email}", registerRequest.Email);
                 return new AuthResponseDto
@@ -235,6 +245,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Success = false,
                     Message = "An error occurred during registration. Please try again."
                 };
+            }
+            finally
+            {
+                // Dispose transaction
+                transaction?.Dispose();
             }
         }
 

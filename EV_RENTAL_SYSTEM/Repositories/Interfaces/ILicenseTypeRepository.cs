@@ -13,6 +13,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         /// <param name="id">ID của loại bằng lái xe</param>
         /// <returns>Loại bằng lái xe hoặc null</returns>
         Task<LicenseType?> GetByIdAsync(int id);
+
+        /// <summary>
+        /// Lấy loại bằng lái xe theo tên
+        /// </summary>
+        /// <param name="name">Tên loại bằng lái xe</param>
+        /// <returns>Loại bằng lái xe hoặc null</returns>
+        Task<LicenseType?> GetByNameAsync(string name);
     }
 }
 

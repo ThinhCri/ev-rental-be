@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using EV_RENTAL_SYSTEM.Models.Enums;
 using EV_RENTAL_SYSTEM.Attributes;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -57,7 +58,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime LicenseExpiryDate { get; set; }
 
         [Required(ErrorMessage = "Loại bằng lái xe là bắt buộc")]
-        public string LicenseTypeId { get; set; } = string.Empty;
+        public LicenseTypeEnum LicenseTypeId { get; set; }
     }
 
 

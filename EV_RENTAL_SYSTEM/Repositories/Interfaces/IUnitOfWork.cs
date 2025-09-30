@@ -1,4 +1,5 @@
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
 {
@@ -9,7 +10,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         ILicenseTypeRepository LicenseTypes { get; }
         ILicenseRepository Licenses { get; }
         Task<int> SaveChangesAsync();
-        Task BeginTransactionAsync();
+        Task<IDbContextTransaction> BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
     }

@@ -23,6 +23,17 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.LicenseTypes.FindAsync(id);
         }
+
+        /// <summary>
+        /// Lấy loại bằng lái xe theo tên
+        /// </summary>
+        /// <param name="name">Tên loại bằng lái xe</param>
+        /// <returns>Loại bằng lái xe hoặc null</returns>
+        public async Task<LicenseType?> GetByNameAsync(string name)
+        {
+            return await _context.LicenseTypes
+                .FirstOrDefaultAsync(lt => lt.TypeName == name);
+        }
     }
 }
 

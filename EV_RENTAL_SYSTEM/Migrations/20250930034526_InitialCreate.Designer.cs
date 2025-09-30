@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250929121543_InitialCreate")]
+    [Migration("20250930034526_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

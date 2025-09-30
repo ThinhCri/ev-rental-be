@@ -1,5 +1,7 @@
+using EV_RENTAL_SYSTEM.Attributes;
 using EV_RENTAL_SYSTEM.Data;
 using EV_RENTAL_SYSTEM.Mappings;
+using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Repositories.Implementations;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Implementations;
@@ -115,6 +117,7 @@ builder.Services.AddSwaggerGen(c =>
         Format = "date",
         Example = new Microsoft.OpenApi.Any.OpenApiString("1990-01-15")
     });
+    
     
 });
 
