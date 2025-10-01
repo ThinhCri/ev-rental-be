@@ -71,6 +71,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string Message { get; set; } = string.Empty; // Thông báo kết quả
         public string? Token { get; set; } // JWT token (nếu thành công)
         public UserDto? User { get; set; } // Thông tin user (nếu thành công)
+        public Dictionary<string, string[]> Errors { get; set; }
     }
 
     /// <summary>

@@ -26,6 +26,11 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(50)]
         public string? Country { get; set; }
 
+        public int? Total_vehicle { get; set; }
+
+        [MaxLength(100)]
+        public string? Ward { get; set; }
+
         // Navigation properties
         public virtual ICollection<LicensePlate> LicensePlates { get; set; } = new List<LicensePlate>();
     }

@@ -20,7 +20,7 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(50)]
         public string? Province { get; set; }
 
-        [Column("Registration_date", TypeName = "date")]
+        [Column("Registration_date")]
         public DateTime? RegistrationDate { get; set; }
 
         [MaxLength(50)]
@@ -28,6 +28,13 @@ namespace EV_RENTAL_SYSTEM.Models
 
         [Column("Station_Id")]
         public int StationId { get; set; }
+
+        [Column("Kilometers_driven", TypeName = "decimal(10,2)")]
+        public decimal? KilometersDriven { get; set; }
+
+        [MaxLength(50)]
+        [Column("Plate_number", TypeName = "varchar(50)")]
+        public string? PlateNumber { get; set; }
 
         // Navigation properties
         [ForeignKey("VehicleId")]

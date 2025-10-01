@@ -1,3 +1,6 @@
 wwwroot\uploads\licenses\license_1_40bf3564-5f77-4dda-bd10-dff825b01e96.jpg
 wwwroot\uploads\licenses\license_2_64a2d47d-63b4-455f-8a2d-8128fec6fed1.png
 wwwroot\uploads\licenses\license_3_e4fb0816-48fa-4389-813b-c945d4e9f84c.png
+wwwroot\uploads\licenses\license_15_043895c6-073f-479b-a05b-97d28c3b4aaf.png
+wwwroot\uploads\licenses\license_18_2e685f0f-e162-493e-b92b-3b380bec275b.jpg
+wwwroot\uploads\licenses\license_29_45fe1a86-48d7-406f-9e81-e1604af2f553.jpg

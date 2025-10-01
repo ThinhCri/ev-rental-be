@@ -33,7 +33,9 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(50)]
         public string? Status { get; set; }
 
-        public string Phone { get; set; } 
+        [Column("Phone")]
+        [MaxLength(30)]
+        public string? Phone { get; set; }
 
         [Column("Role_Id")]
         public int RoleId { get; set; }

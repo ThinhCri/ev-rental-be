@@ -20,18 +20,21 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Brand_Id")]
         public int BrandId { get; set; }
 
-        [MaxLength(50)]
-        [Column("Vehicle_type")]
-        public string? VehicleType { get; set; }
-
-        [MaxLength(255)]
+        [MaxLength(510)]
         public string? Description { get; set; }
-
-        [Column("Daily_rate", TypeName = "decimal(10,2)")]
-        public decimal? DailyRate { get; set; }
 
         [Column("Seat_number")]
         public int? SeatNumber { get; set; }
+
+        [MaxLength(255)]
+        [Column("vehicle_img")]
+        public string? VehicleImage { get; set; }
+
+        [Column("price_per_day")]
+        public int? PricePerDay { get; set; }
+
+        [MaxLength(10)]
+        public string? Battery { get; set; }
 
         // Navigation properties
         [ForeignKey("BrandId")]

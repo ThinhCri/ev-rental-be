@@ -115,7 +115,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Email already exists."
+                        Message = "Email already exists.",
+                       
                     };
                 }
 
@@ -149,19 +150,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Users.AddAsync(user);
                 await _unitOfWork.SaveChangesAsync(); // cần để có UserId cho upload và FK
 
-                // 5. Xử lý thông tin bằng lái xe (bắt buộc)
-                // Kiểm tra loại bằng lái xe có tồn tại không
-                var licenseType = await _unitOfWork.LicenseTypes.GetByIdAsync(registerRequest.LicenseTypeId);
-                if (licenseType == null)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = "Loại bằng lái xe không tồn tại."
-                    };
-                }
-
-             
+              
                 // Kiểm tra số bằng lái xe đã tồn tại chưa
                 var existingLicense = await _unitOfWork.Licenses.GetByLicenseNumberAsync(registerRequest.LicenseNumber);
                 if (existingLicense != null)
@@ -169,7 +158,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Số bằng lái xe đã được sử dụng bởi tài khoản khác."
+                        Message = "License number already exists",
+                       
                     };
                 }
 

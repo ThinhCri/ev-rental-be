@@ -17,6 +17,8 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(255)]
         public string? Terms { get; set; }
 
+        public int? Step_order { get; set; }
+
         // Navigation properties
         public virtual ICollection<ContractProcessing> ContractProcessings { get; set; } = new List<ContractProcessing>();
     }
