@@ -1,7 +1,10 @@
 using EV_RENTAL_SYSTEM.Models.DTOs;
+using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using AutoMapper;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
@@ -14,11 +17,15 @@ namespace EV_RENTAL_SYSTEM.Controllers
     {
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _authService = authService;
             _logger = logger;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -80,7 +87,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// </summary>
         /// <returns>Xác nhận đăng xuất thành công</returns>
         [HttpPost("logout")]
-        [Authorize] // Yêu cầu JWT token hợp lệ
+        [Authorize(Policy = "AuthenticatedUser")] // Yêu cầu JWT token hợp lệ
         public async Task<IActionResult> Logout()
         {
             try
@@ -124,7 +131,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// </summary>
         /// <returns>Kết quả kiểm tra token</returns>
         [HttpGet("validate")]
-        [Authorize] // Yêu cầu JWT token hợp lệ
+        [Authorize(Policy = "AuthenticatedUser")] // Yêu cầu JWT token hợp lệ
         public async Task<IActionResult> ValidateToken()
         {
             // Lấy token từ header Authorization
@@ -145,6 +152,48 @@ namespace EV_RENTAL_SYSTEM.Controllers
 
             // Token hợp lệ
             return Ok(new { message = "Token is valid" });
+        }
+
+        /// <summary>
+        /// API lấy thông tin user hiện tại
+        /// </summary>
+        /// <returns>Thông tin user hiện tại</returns>
+        [HttpGet("me")]
+        [Authorize(Policy = "AuthenticatedUser")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                // Lấy User ID từ JWT token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return Unauthorized(new { message = "Invalid token" });
+                }
+
+                // Lấy thông tin user từ database
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                // Map user entity sang DTO
+                var userDto = _mapper.Map<UserDto>(user);
+                userDto.RoleName = user.Role.RoleName;
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "User information retrieved successfully",
+                    Data = userDto
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving current user");
+                return StatusCode(500, new { message = "An error occurred while retrieving user information" });
+            }
         }
 
     }

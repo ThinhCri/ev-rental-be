@@ -42,6 +42,11 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
         [DateOnlyValidation(ErrorMessage = "Ngày sinh phải có định dạng yyyy-MM-dd (ví dụ: 1990-01-15)")]
         public DateTime? Birthday { get; set; }
 
@@ -81,6 +86,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int UserId { get; set; } // ID user
         public string FullName { get; set; } = string.Empty; // Họ tên
         public string Email { get; set; } = string.Empty; // Email
+        public string PhoneNumber { get; set; } = string.Empty; // Số điện thoại
         public DateTime? Birthday { get; set; } // Ngày sinh
         public DateTime CreatedAt { get; set; } // Ngày tạo tài khoản
         public string? Status { get; set; } // Trạng thái tài khoản

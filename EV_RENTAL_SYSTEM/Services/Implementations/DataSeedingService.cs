@@ -43,6 +43,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         public async Task SeedDataAsync()
         {
             await SeedRolesAsync();
+            await SeedAdminUsersAsync();
+            await SeedStaffUsersAsync();
             await SeedLicenseTypesAsync();
             await SeedBrandsAsync();
             await SeedStationsAsync();
@@ -197,7 +199,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         BrandId = hondaBrand.BrandId, 
                         VehicleType = "Electric Motorcycle", 
                         Description = "Electric scooter with 50km range", 
-                        DailyRate = 150000, 
+                        PricePerDay = 150000, 
                         SeatNumber = 2 
                     },
                     new Vehicle 
@@ -207,7 +209,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         BrandId = yamahaBrand.BrandId, 
                         VehicleType = "Electric Motorcycle", 
                         Description = "Compact electric scooter", 
-                        DailyRate = 120000, 
+                        PricePerDay = 120000, 
                         SeatNumber = 2 
                     },
                     // Electric Cars
@@ -218,7 +220,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         BrandId = teslaBrand.BrandId, 
                         VehicleType = "Electric Car", 
                         Description = "Premium electric sedan with autopilot", 
-                        DailyRate = 2500000, 
+                        PricePerDay = 2500000, 
                         SeatNumber = 5 
                     },
                     new Vehicle 
@@ -228,7 +230,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         BrandId = teslaBrand.BrandId, 
                         VehicleType = "Electric SUV", 
                         Description = "Electric SUV with 7 seats", 
-                        DailyRate = 3000000, 
+                        PricePerDay = 3000000, 
                         SeatNumber = 7 
                     }
                 };
@@ -293,6 +295,140 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 _context.LicensePlates.AddRange(licensePlates);
                 await _context.SaveChangesAsync();
                 Console.WriteLine("✓ Sample License Plates seeded successfully");
+            }
+        }
+
+        /// <summary>
+        /// Tạo tài khoản admin mẫu
+        /// </summary>
+        public async Task SeedAdminUsersAsync()
+        {
+            if (!await _context.Users.AnyAsync(u => u.Email == "admin@evrental.com"))
+            {
+                // Lấy role Admin
+                var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
+                if (adminRole == null)
+                {
+                    Console.WriteLine("❌ Admin role not found. Please run SeedRolesAsync first.");
+                    return;
+                }
+
+                var adminUsers = new List<User>
+                {
+                    new User
+                    {
+                        FullName = "System Administrator",
+                        Email = "admin@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                        PhoneNumber = "0123456789",
+                        Birthday = new DateTime(1990, 1, 1),
+                        Status = "Active",
+                        RoleId = adminRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        FullName = "Station Manager",
+                        Email = "manager@evrental.com", 
+                        Password = BCrypt.Net.BCrypt.HashPassword("Manager123!"),
+                        PhoneNumber = "0987654321",
+                        Birthday = new DateTime(1985, 5, 15),
+                        Status = "Active",
+                        RoleId = adminRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                _context.Users.AddRange(adminUsers);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("✓ Admin users seeded successfully");
+                Console.WriteLine("📧 Admin Email: admin@evrental.com | Password: Admin123!");
+                Console.WriteLine("📧 Manager Email: manager@evrental.com | Password: Manager123!");
+            }
+        }
+
+        /// <summary>
+        /// Tạo tài khoản staff mẫu
+        /// </summary>
+        public async Task SeedStaffUsersAsync()
+        {
+            if (!await _context.Users.AnyAsync(u => u.Email == "staff1@evrental.com"))
+            {
+                // Lấy role Station Staff
+                var staffRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Station Staff");
+                if (staffRole == null)
+                {
+                    Console.WriteLine("❌ Station Staff role not found. Please run SeedRolesAsync first.");
+                    return;
+                }
+
+                var staffUsers = new List<User>
+                {
+                    new User
+                    {
+                        FullName = "Nguyễn Văn A",
+                        Email = "staff1@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
+                        PhoneNumber = "0123456780",
+                        Birthday = new DateTime(1992, 3, 15),
+                        Status = "Active",
+                        RoleId = staffRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        FullName = "Trần Thị B",
+                        Email = "staff2@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
+                        PhoneNumber = "0123456781",
+                        Birthday = new DateTime(1988, 7, 22),
+                        Status = "Active",
+                        RoleId = staffRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        FullName = "Lê Văn C",
+                        Email = "staff3@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
+                        PhoneNumber = "0123456782",
+                        Birthday = new DateTime(1995, 11, 8),
+                        Status = "Active",
+                        RoleId = staffRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        FullName = "Phạm Thị D",
+                        Email = "staff4@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
+                        PhoneNumber = "0123456783",
+                        Birthday = new DateTime(1990, 9, 12),
+                        Status = "Active",
+                        RoleId = staffRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new User
+                    {
+                        FullName = "Hoàng Văn E",
+                        Email = "staff5@evrental.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
+                        PhoneNumber = "0123456784",
+                        Birthday = new DateTime(1987, 4, 25),
+                        Status = "Active",
+                        RoleId = staffRole.RoleId,
+                        CreatedAt = DateTime.UtcNow
+                    }
+                };
+
+                _context.Users.AddRange(staffUsers);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("✓ Staff users seeded successfully");
+                Console.WriteLine("📧 Staff 1 Email: staff1@evrental.com | Password: Staff123!");
+                Console.WriteLine("📧 Staff 2 Email: staff2@evrental.com | Password: Staff123!");
+                Console.WriteLine("📧 Staff 3 Email: staff3@evrental.com | Password: Staff123!");
+                Console.WriteLine("📧 Staff 4 Email: staff4@evrental.com | Password: Staff123!");
+                Console.WriteLine("📧 Staff 5 Email: staff5@evrental.com | Password: Staff123!");
             }
         }
     }

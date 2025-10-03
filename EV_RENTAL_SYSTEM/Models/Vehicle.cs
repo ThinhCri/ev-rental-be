@@ -27,11 +27,28 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(255)]
         public string? Description { get; set; }
 
-        [Column("Daily_rate", TypeName = "decimal(10,2)")]
-        public decimal? DailyRate { get; set; }
+        [Column("Price_per_day", TypeName = "decimal(10,2)")]
+        public decimal? PricePerDay { get; set; }
 
         [Column("Seat_number")]
         public int? SeatNumber { get; set; }
+
+        [MaxLength(500)]
+        [Column("Vehicle_image")]
+        public string? VehicleImage { get; set; }
+
+        [Column("Battery", TypeName = "decimal(5,2)")]
+        public decimal? Battery { get; set; } // Dung lượng pin (kWh)
+
+        [Column("Charging_time", TypeName = "decimal(4,1)")]
+        public decimal? ChargingTime { get; set; } // Thời gian sạc (giờ)
+
+        [Column("Range_km")]
+        public int? RangeKm { get; set; } // Tầm hoạt động (km)
+
+        [MaxLength(50)]
+        [Column("Status")]
+        public string? Status { get; set; } // Trạng thái xe (Good, Maintenance, etc.)
 
         // Navigation properties
         [ForeignKey("BrandId")]

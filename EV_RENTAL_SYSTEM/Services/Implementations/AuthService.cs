@@ -122,6 +122,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
+                // 1.1. Kiểm tra số điện thoại đã tồn tại trong database chưa
+                if (await _unitOfWork.Users.PhoneNumberExistsAsync(registerRequest.PhoneNumber))
+                {
+                    return new AuthResponseDto
+                    {
+                        Success = false,
+                        Message = "Số điện thoại đã được sử dụng bởi tài khoản khác."
+                    };
+                }
+
                 // 2. Lấy role "EV Renter" từ database (role mặc định cho người đăng ký)
                 var evRenterRole = await _unitOfWork.Roles.GetByNameAsync("EV Renter");
                 if (evRenterRole == null)
@@ -185,6 +195,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     FullName = registerRequest.FullName,
                     Email = registerRequest.Email,
                     Password = BCrypt.Net.BCrypt.HashPassword(registerRequest.Password), // Hash password trước khi lưu
+                    PhoneNumber = registerRequest.PhoneNumber,
                     Birthday = registerRequest.Birthday,
                     Status = "Active", // Mặc định active
                     RoleId = evRenterRole.RoleId, // Gán role EV Renter

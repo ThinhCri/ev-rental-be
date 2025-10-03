@@ -24,6 +24,12 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(255)]
         public string Password { get; set; } = string.Empty;
 
+        [Required]
+        [MaxLength(20)]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [Column("Phone_number")]
+        public string PhoneNumber { get; set; } = string.Empty;
+
         [Column(TypeName = "date")]
         public DateTime? Birthday { get; set; }
 

@@ -4,6 +4,7 @@ using EV_RENTAL_SYSTEM.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251003123446_AddPhoneNumberToUser")]
+    partial class AddPhoneNumberToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -615,17 +618,13 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
 
-                    b.Property<decimal?>("Battery")
-                        .HasColumnType("decimal(5,2)")
-                        .HasColumnName("Battery");
-
                     b.Property<int>("BrandId")
                         .HasColumnType("int")
                         .HasColumnName("Brand_Id");
 
-                    b.Property<decimal?>("ChargingTime")
-                        .HasColumnType("decimal(4,1)")
-                        .HasColumnName("Charging_time");
+                    b.Property<decimal?>("DailyRate")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("Daily_rate");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
@@ -640,27 +639,9 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Model_year");
 
-                    b.Property<decimal?>("PricePerDay")
-                        .HasColumnType("decimal(10,2)")
-                        .HasColumnName("Price_per_day");
-
-                    b.Property<int?>("RangeKm")
-                        .HasColumnType("int")
-                        .HasColumnName("Range_km");
-
                     b.Property<int?>("SeatNumber")
                         .HasColumnType("int")
                         .HasColumnName("Seat_number");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Status");
-
-                    b.Property<string>("VehicleImage")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Vehicle_image");
 
                     b.Property<string>("VehicleType")
                         .HasMaxLength(50)

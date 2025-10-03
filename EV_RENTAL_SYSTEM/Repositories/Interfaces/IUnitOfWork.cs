@@ -9,6 +9,8 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         IRoleRepository Roles { get; }
         ILicenseTypeRepository LicenseTypes { get; }
         ILicenseRepository Licenses { get; }
+        IVehicleRepository Vehicles { get; }
+        IBrandRepository Brands { get; }
         Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task CommitTransactionAsync();

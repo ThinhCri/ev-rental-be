@@ -16,12 +16,16 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             Roles = new RoleRepository(_context);
             LicenseTypes = new LicenseTypeRepository(_context);
             Licenses = new LicenseRepository(_context);
+            Vehicles = new VehicleRepository(_context);
+            Brands = new BrandRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
         public IRoleRepository Roles { get; private set; }
         public ILicenseTypeRepository LicenseTypes { get; private set; }
         public ILicenseRepository Licenses { get; private set; }
+        public IVehicleRepository Vehicles { get; private set; }
+        public IBrandRepository Brands { get; private set; }
 
         public async Task<int> SaveChangesAsync()
         {

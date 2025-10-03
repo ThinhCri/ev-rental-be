@@ -68,6 +68,11 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
+
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber)
+        {
+            return await _context.Users.AnyAsync(u => u.PhoneNumber == phoneNumber);
+        }
     }
 }
 
