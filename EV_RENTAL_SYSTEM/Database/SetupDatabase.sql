@@ -201,6 +201,33 @@ INSERT INTO Station (Station_name, Street, District, Province, Country) VALUES
 ('Station 7', '101 Tran Hung Dao', 'My Tho', 'Tien Giang', 'Vietnam'),
 ('Station 8', '202 Cach Mang Thang 8', 'Ninh Kieu', 'Can Tho', 'Vietnam');
 
+-- Tesla
+INSERT INTO Vehicle (Model, Model_year, Brand_Id, Description, Seat_number, vehicle_img, price_per_day, Battery) VALUES
+('Model 3', 2023, 1, 'Tesla Model 3, 5-seat electric sedan with Level 2 autopilot', 5, '/uploads/vehicles/tesla_model3.jpg', 1200000, 100),
+('Model Y', 2023, 1, 'Tesla Model Y, 5-seat electric crossover with long-range battery', 5, '/uploads/vehicles/tesla_modely.jpg', 1300000, 100),
+('BYD Dolphin', 2023, 2, 'Compact electric hatchback, economical and city-friendly', 5, '/uploads/vehicles/byd_dolphin.jpg', 800000, 100),
+('BYD Atto 3', 2023, 2, 'Mid-size electric SUV with smart technology', 5, '/uploads/vehicles/byd_atto3.jpg', 1000000, 100),
+('VF8', 2023, 3, 'VinFast VF8, 5-seat electric SUV with built-in virtual assistant', 5, '/uploads/vehicles/vf8.jpg', 1000000, 100),
+('VF9', 2023, 3, 'VinFast VF9, 7-seat electric SUV with large battery and extended range', 7, '/uploads/vehicles/vf9.jpg', 1400000, 100),
+('NIO ES6', 2022, 4, 'Luxury electric SUV with premium interior', 5, '/uploads/vehicles/nio_es6.jpg', 1500000, 100),
+('NIO ET7', 2023, 4, 'Luxury electric sedan with Level 3 autonomous driving', 5, '/uploads/vehicles/nio_et7.jpg', 1700000, 100),
+('Ioniq 5', 2023, 5, 'Hyundai Ioniq 5, 5-seat crossover EV with 350kW ultra-fast charging', 5, '/uploads/vehicles/ioniq5.jpg', 1100000, 100),
+('Kona Electric', 2022, 5, 'Compact electric SUV, practical for urban driving', 5, '/uploads/vehicles/kona_electric.jpg', 900000, 100);
+
+
+INSERT INTO LicensePlate (License_plate_Id, Status, Vehicle_Id, Condition, Station_Id, Kilometers_driven, Plate_number) VALUES
+(1, 'Active', 1, 'New', 1, 1200.5, '51H-123.45'),
+(2, 'Rent', 2, 'Good', 2, 3500.0, '51K-456.78'),
+(3, 'Repair', 3, 'Needs Maintenance', 3, 5200.3, '61A-789.12'),
+(4, 'Active', 4, 'Good', 4, 2100.0, '61B-234.56'),
+(5, 'Rent', 5, 'Good', 5, 7800.0, '60A-111.22'),
+(6, 'Active', 6, 'New', 6, 950.0, '72B-333.44'),
+(7, 'Repair', 7, 'Needs Maintenance', 7, 10400.8, '63A-555.66'),
+(8, 'Active', 8, 'Good', 8, 3300.0, '65B-777.88'),
+(9, 'Rent', 9, 'Good', 1, 4700.6, '51F-999.00'),
+(10, 'Active', 10, 'New', 2, 600.0, '51G-888.11');
+
+
 
 
 
