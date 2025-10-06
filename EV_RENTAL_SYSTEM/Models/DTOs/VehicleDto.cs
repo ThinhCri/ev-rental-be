@@ -19,9 +19,10 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int? SeatNumber { get; set; }
         public string? VehicleImage { get; set; }
         public decimal? Battery { get; set; } // Dung lượng pin (kWh)
-        public decimal? ChargingTime { get; set; } // Thời gian sạc (giờ)
         public int? RangeKm { get; set; } // Tầm hoạt động (km)
         public string? Status { get; set; } // Trạng thái xe
+        public int? StationId { get; set; } // ID trạm xe đang đậu
+        public string? StationName { get; set; } // Tên trạm xe đang đậu
         public bool IsAvailable { get; set; } = true; // Trạng thái có sẵn để thuê
         public int AvailableLicensePlates { get; set; } = 0; // Số biển số có sẵn
     }
@@ -59,14 +60,14 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
         public decimal? Battery { get; set; }
 
-        [Range(0, 99.9, ErrorMessage = "Thời gian sạc phải từ 0 đến 99.9 giờ")]
-        public decimal? ChargingTime { get; set; }
 
         [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
         public int? RangeKm { get; set; }
 
         [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
         public string? Status { get; set; }
+
+        public int? StationId { get; set; } // ID trạm xe đang đậu
     }
 
     /// <summary>
@@ -102,14 +103,14 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
         public decimal? Battery { get; set; }
 
-        [Range(0, 99.9, ErrorMessage = "Thời gian sạc phải từ 0 đến 99.9 giờ")]
-        public decimal? ChargingTime { get; set; }
 
         [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
         public int? RangeKm { get; set; }
 
         [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
         public string? Status { get; set; }
+
+        public int? StationId { get; set; } // ID trạm xe đang đậu
     }
 
     /// <summary>

@@ -14,3 +14,10 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<bool> NameExistsAsync(string name);
     }
 }
+
+
+
+
+
+
+

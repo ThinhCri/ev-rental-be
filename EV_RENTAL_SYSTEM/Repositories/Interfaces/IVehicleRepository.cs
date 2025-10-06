@@ -14,16 +14,14 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<bool> ExistsAsync(int id);
 
         // Advanced queries
-        Task<IEnumerable<Vehicle>> GetByBrandIdAsync(int brandId);
-        Task<IEnumerable<Vehicle>> GetByVehicleTypeAsync(string vehicleType);
         Task<IEnumerable<Vehicle>> GetAvailableVehiclesAsync();
-        Task<IEnumerable<Vehicle>> SearchVehiclesAsync(VehicleSearchDto searchDto);
-        Task<(IEnumerable<Vehicle> vehicles, int totalCount)> GetVehiclesWithPaginationAsync(VehicleSearchDto searchDto);
+        Task<IEnumerable<Vehicle>> GetByStationIdAsync(int stationId);
         
         // Business logic queries
-        Task<IEnumerable<Vehicle>> GetVehiclesByPriceRangeAsync(decimal minPrice, decimal maxPrice);
-        Task<IEnumerable<Vehicle>> GetVehiclesBySeatRangeAsync(int minSeats, int maxSeats);
         Task<bool> IsVehicleAvailableAsync(int vehicleId);
         Task<int> GetAvailableVehicleCountAsync();
     }
 }
+
+
+

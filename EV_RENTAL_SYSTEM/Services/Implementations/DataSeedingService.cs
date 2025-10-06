@@ -6,26 +6,26 @@ using Microsoft.EntityFrameworkCore;
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
     /// <summary>
-    /// Data Seeding Service - Tự động tạo data mẫu cho ứng dụng
+    /// Data Seeding Service - Automatically creates sample data for the application
     /// 
-    /// CÁCH HOẠT ĐỘNG:
-    /// - Chạy tự động khi app khởi động
-    /// - Chỉ thêm data nếu chưa có (an toàn)
-    /// - Tạo data nhất quán cho tất cả team members
+    /// HOW IT WORKS:
+    /// - Runs automatically when app starts
+    /// - Only adds data if not already exists (safe)
+    /// - Creates consistent data for all team members
     /// 
-    /// CHO TEAM:
-    /// - Khi clone code về, chỉ cần chạy: dotnet run
-    /// - Data sẽ tự động được tạo, không cần làm gì thêm
-    /// - Nếu muốn thêm data mới, sửa file này và commit
+    /// FOR TEAM:
+    /// - When cloning code, just run: dotnet run
+    /// - Data will be created automatically, no additional setup needed
+    /// - To add new data, modify this file and commit
     /// 
-    /// DATA ĐƯỢC TẠO:
+    /// DATA CREATED:
     /// - Roles: Admin, Station Staff, EV Renter
     /// - License Types: A1, A2, A, B1, B2
     /// - Brands: Honda, Yamaha, Tesla, BMW, Mercedes, etc.
-    /// - Stations: 4 stations ở HCM
-    /// - Process Steps: 10 bước xử lý contract
-    /// - Sample Vehicles: Xe máy điện và ô tô điện
-    /// - Sample License Plates: Biển số mẫu
+    /// - Stations: 4 stations in HCM
+    /// - Process Steps: 10 contract processing steps
+    /// - Sample Vehicles: Electric motorcycles and cars
+    /// - Sample License Plates: Sample license plates
     /// </summary>
     public class DataSeedingService : IDataSeedingService
     {
@@ -117,43 +117,110 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 var stations = new List<Station>
                 {
+                    // Ho Chi Minh City Stations
                     new Station 
                     { 
-                        StationName = "Station 1 - District 1", 
-                        Street = "123 Main Street", 
+                        StationName = "HCM Central Station", 
+                        Street = "123 Nguyen Hue Boulevard", 
                         District = "District 1", 
                         Province = "Ho Chi Minh City", 
                         Country = "Vietnam" 
                     },
                     new Station 
                     { 
-                        StationName = "Station 2 - District 3", 
-                        Street = "456 Le Loi", 
+                        StationName = "HCM Business District Station", 
+                        Street = "456 Le Loi Street", 
                         District = "District 3", 
                         Province = "Ho Chi Minh City", 
                         Country = "Vietnam" 
                     },
                     new Station 
                     { 
-                        StationName = "Station 3 - District 1", 
-                        Street = "789 Nguyen Hue", 
-                        District = "District 1", 
+                        StationName = "HCM Binh Thanh Station", 
+                        Street = "789 Cach Mang Thang 8 Street", 
+                        District = "Binh Thanh", 
                         Province = "Ho Chi Minh City", 
                         Country = "Vietnam" 
                     },
                     new Station 
                     { 
-                        StationName = "Station 4 - Binh Thanh", 
-                        Street = "321 Cach Mang Thang 8", 
-                        District = "Binh Thanh", 
+                        StationName = "HCM New Urban Station", 
+                        Street = "321 Nguyen Van Linh Boulevard", 
+                        District = "District 7", 
                         Province = "Ho Chi Minh City", 
+                        Country = "Vietnam" 
+                    },
+                    // Binh Duong Stations
+                    new Station 
+                    { 
+                        StationName = "BD Industrial Station", 
+                        Street = "123 Nguyen Thi Minh Khai Street", 
+                        District = "Thu Dau Mot", 
+                        Province = "Binh Duong", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "BD Gateway Station", 
+                        Street = "456 National Highway 1A", 
+                        District = "Di An", 
+                        Province = "Binh Duong", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "BD Tech Park Station", 
+                        Street = "789 Provincial Road 743", 
+                        District = "Tan Uyen", 
+                        Province = "Binh Duong", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "BD Manufacturing Station", 
+                        Street = "321 National Highway 13", 
+                        District = "Ben Cat", 
+                        Province = "Binh Duong", 
+                        Country = "Vietnam" 
+                    },
+                    // Da Nang Stations
+                    new Station 
+                    { 
+                        StationName = "DN City Center Station", 
+                        Street = "123 Le Duan Street", 
+                        District = "Hai Chau", 
+                        Province = "Da Nang", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "DN Airport Station", 
+                        Street = "456 Dien Bien Phu Street", 
+                        District = "Thanh Khe", 
+                        Province = "Da Nang", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "DN Beach Station", 
+                        Street = "789 Vo Nguyen Giap Street", 
+                        District = "Son Tra", 
+                        Province = "Da Nang", 
+                        Country = "Vietnam" 
+                    },
+                    new Station 
+                    { 
+                        StationName = "DN University Station", 
+                        Street = "321 Nguyen Van Linh Street", 
+                        District = "Cam Le", 
+                        Province = "Da Nang", 
                         Country = "Vietnam" 
                     }
                 };
 
                 _context.Stations.AddRange(stations);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Stations seeded successfully");
+                Console.WriteLine("✓ Stations seeded successfully (HCM, BD, DN)");
             }
         }
 
@@ -188,56 +255,92 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var hondaBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Honda");
                 var yamahaBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Yamaha");
                 var teslaBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Tesla");
+                var bmwBrand = await _context.Brands.FirstAsync(b => b.BrandName == "BMW");
+                var mercedesBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Mercedes");
+                var suzukiBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Suzuki");
 
-                var vehicles = new List<Vehicle>
+                var stations = await _context.Stations.ToListAsync();
+                var hcmStations = stations.Where(s => s.Province == "Ho Chi Minh City").ToList();
+                var bdStations = stations.Where(s => s.Province == "Binh Duong").ToList();
+                var dnStations = stations.Where(s => s.Province == "Da Nang").ToList();
+
+                var vehicles = new List<Vehicle>();
+
+                // Ho Chi Minh City Vehicles (10 vehicles)
+                for (int i = 1; i <= 10; i++)
                 {
-                    // Electric Motorcycles
-                    new Vehicle 
+                    var station = hcmStations[(i - 1) % hcmStations.Count];
+                    var brand = i % 3 == 0 ? teslaBrand : (i % 2 == 0 ? hondaBrand : yamahaBrand);
+                    var isCar = i % 3 == 0;
+                    
+                    vehicles.Add(new Vehicle 
                     { 
-                        Model = "Honda PCX Electric", 
+                        Model = isCar ? $"Tesla Model {(i % 2 == 0 ? "3" : "Y")}" : $"Honda PCX Electric {i}",
                         ModelYear = 2024, 
-                        BrandId = hondaBrand.BrandId, 
-                        VehicleType = "Electric Motorcycle", 
-                        Description = "Electric scooter with 50km range", 
-                        PricePerDay = 150000, 
-                        SeatNumber = 2 
-                    },
-                    new Vehicle 
+                        BrandId = brand.BrandId, 
+                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
+                        Description = isCar ? $"Premium electric vehicle with autopilot - HCM Branch" : $"Electric scooter with 50km range - HCM Branch",
+                        PricePerDay = isCar ? 2500000 : 150000, 
+                        SeatNumber = isCar ? 5 : 2,
+                        Battery = isCar ? 75.0m : 2.5m,
+                        ChargingTime = isCar ? 8.0m : 4.0m,
+                        RangeKm = isCar ? 500 : 50,
+                        Status = "Good",
+                        StationId = station.StationId
+                    });
+                }
+
+                // Binh Duong Vehicles (10 vehicles)
+                for (int i = 1; i <= 10; i++)
+                {
+                    var station = bdStations[(i - 1) % bdStations.Count];
+                    var brand = i % 3 == 0 ? bmwBrand : (i % 2 == 0 ? suzukiBrand : yamahaBrand);
+                    var isCar = i % 4 == 0;
+                    
+                    vehicles.Add(new Vehicle 
                     { 
-                        Model = "Yamaha E-Vino", 
+                        Model = isCar ? $"BMW iX{i}" : $"Yamaha E-Vino {i}",
                         ModelYear = 2024, 
-                        BrandId = yamahaBrand.BrandId, 
-                        VehicleType = "Electric Motorcycle", 
-                        Description = "Compact electric scooter", 
-                        PricePerDay = 120000, 
-                        SeatNumber = 2 
-                    },
-                    // Electric Cars
-                    new Vehicle 
+                        BrandId = brand.BrandId, 
+                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
+                        Description = isCar ? $"Luxury electric SUV - BD Branch" : $"Compact electric scooter - BD Branch",
+                        PricePerDay = isCar ? 3000000 : 120000, 
+                        SeatNumber = isCar ? 5 : 2,
+                        Battery = isCar ? 80.0m : 2.0m,
+                        ChargingTime = isCar ? 10.0m : 3.5m,
+                        RangeKm = isCar ? 600 : 45,
+                        Status = "Good",
+                        StationId = station.StationId
+                    });
+                }
+
+                // Da Nang Vehicles (10 vehicles)
+                for (int i = 1; i <= 10; i++)
+                {
+                    var station = dnStations[(i - 1) % dnStations.Count];
+                    var brand = i % 3 == 0 ? mercedesBrand : (i % 2 == 0 ? hondaBrand : suzukiBrand);
+                    var isCar = i % 3 == 0;
+                    
+                    vehicles.Add(new Vehicle 
                     { 
-                        Model = "Tesla Model 3", 
+                        Model = isCar ? $"Mercedes EQS {i}" : $"Suzuki Burgman Electric {i}",
                         ModelYear = 2024, 
-                        BrandId = teslaBrand.BrandId, 
-                        VehicleType = "Electric Car", 
-                        Description = "Premium electric sedan with autopilot", 
-                        PricePerDay = 2500000, 
-                        SeatNumber = 5 
-                    },
-                    new Vehicle 
-                    { 
-                        Model = "Tesla Model Y", 
-                        ModelYear = 2024, 
-                        BrandId = teslaBrand.BrandId, 
-                        VehicleType = "Electric SUV", 
-                        Description = "Electric SUV with 7 seats", 
-                        PricePerDay = 3000000, 
-                        SeatNumber = 7 
-                    }
-                };
+                        BrandId = brand.BrandId, 
+                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
+                        Description = isCar ? $"Luxury electric sedan - DN Branch" : $"Electric maxi scooter - DN Branch",
+                        PricePerDay = isCar ? 3500000 : 180000, 
+                        SeatNumber = isCar ? 5 : 2,
+                        Battery = isCar ? 90.0m : 3.0m,
+                        ChargingTime = isCar ? 12.0m : 5.0m,
+                        RangeKm = isCar ? 700 : 60,
+                        Status = "Good",
+                        StationId = station.StationId
+                    });
+                }
 
                 _context.Vehicles.AddRange(vehicles);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Sample Vehicles seeded successfully");
+                Console.WriteLine("✓ Sample Vehicles seeded successfully (30 vehicles across 3 branches)");
             }
         }
 
@@ -248,53 +351,43 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var vehicles = await _context.Vehicles.ToListAsync();
                 var stations = await _context.Stations.ToListAsync();
 
-                var licensePlates = new List<LicensePlate>
+                var licensePlates = new List<LicensePlate>();
+                var random = new Random();
+
+                // Generate license plates for all 30 vehicles
+                for (int i = 0; i < vehicles.Count; i++)
                 {
-                    new LicensePlate 
+                    var vehicle = vehicles[i];
+                    var station = stations.First(s => s.StationId == vehicle.StationId);
+                    
+                    // Generate license plate based on province
+                    string provinceCode = station.Province switch
+                    {
+                        "Ho Chi Minh City" => "51A",
+                        "Binh Duong" => "61A", 
+                        "Da Nang" => "43A",
+                        _ => "51A"
+                    };
+
+                    var plateNumber = $"{provinceCode}-{10000 + i:00000}";
+                    var statuses = new[] { "Available", "Available", "Available", "Maintenance", "Rented" };
+                    var conditions = new[] { "Excellent", "Good", "Good", "Fair" };
+                    
+                    licensePlates.Add(new LicensePlate 
                     { 
-                        LicensePlateId = "51A-12345", 
-                        Status = "Available", 
-                        VehicleId = vehicles[0].VehicleId, 
-                        Province = "Ho Chi Minh City", 
-                        RegistrationDate = DateTime.Now.AddDays(-30), 
-                        Condition = "Excellent", 
-                        StationId = stations[0].StationId 
-                    },
-                    new LicensePlate 
-                    { 
-                        LicensePlateId = "51A-67890", 
-                        Status = "Available", 
-                        VehicleId = vehicles[1].VehicleId, 
-                        Province = "Ho Chi Minh City", 
-                        RegistrationDate = DateTime.Now.AddDays(-25), 
-                        Condition = "Good", 
-                        StationId = stations[1].StationId 
-                    },
-                    new LicensePlate 
-                    { 
-                        LicensePlateId = "51A-11111", 
-                        Status = "Available", 
-                        VehicleId = vehicles[2].VehicleId, 
-                        Province = "Ho Chi Minh City", 
-                        RegistrationDate = DateTime.Now.AddDays(-20), 
-                        Condition = "Excellent", 
-                        StationId = stations[0].StationId 
-                    },
-                    new LicensePlate 
-                    { 
-                        LicensePlateId = "51A-22222", 
-                        Status = "Maintenance", 
-                        VehicleId = vehicles[3].VehicleId, 
-                        Province = "Ho Chi Minh City", 
-                        RegistrationDate = DateTime.Now.AddDays(-15), 
-                        Condition = "Good", 
-                        StationId = stations[2].StationId 
-                    }
-                };
+                        LicensePlateId = plateNumber, 
+                        Status = statuses[random.Next(statuses.Length)], 
+                        VehicleId = vehicle.VehicleId, 
+                        Province = station.Province, 
+                        RegistrationDate = DateTime.Now.AddDays(-random.Next(1, 90)), 
+                        Condition = conditions[random.Next(conditions.Length)], 
+                        StationId = station.StationId 
+                    });
+                }
 
                 _context.LicensePlates.AddRange(licensePlates);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Sample License Plates seeded successfully");
+                Console.WriteLine("✓ Sample License Plates seeded successfully (30 plates)");
             }
         }
 

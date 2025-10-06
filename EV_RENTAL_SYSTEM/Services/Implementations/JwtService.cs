@@ -34,14 +34,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Tạo claims (thông tin lưu trong token)
+            // Tạo claims tối giản để token ngắn hơn
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()), // ID user
-                new Claim(ClaimTypes.Email, user.Email), // Email user
-                new Claim(ClaimTypes.Name, user.FullName), // Tên đầy đủ
-                new Claim(ClaimTypes.Role, user.Role.RoleName), // Role (Admin, Staff, EV Renter)
-                new Claim("UserId", user.UserId.ToString()) // User ID (custom claim)
+                new Claim("uid", user.UserId.ToString()), // User ID (ngắn hơn)
+                new Claim(ClaimTypes.Role, user.Role.RoleName), // Role (sử dụng ClaimTypes.Role)
+                new Claim("role", user.Role.RoleName), // Role (backup)
+                new Claim("email", user.Email) // Email
             };
 
             // Tạo JWT token với các thông tin trên
@@ -106,7 +105,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
-            var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "UserId");
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "uid");
             return int.Parse(userIdClaim?.Value ?? "0");
         }
 
@@ -119,7 +118,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
-            var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+            var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "email");
             return emailClaim?.Value ?? string.Empty;
         }
     }

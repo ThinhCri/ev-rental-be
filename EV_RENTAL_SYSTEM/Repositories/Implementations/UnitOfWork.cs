@@ -18,6 +18,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             Licenses = new LicenseRepository(_context);
             Vehicles = new VehicleRepository(_context);
             Brands = new BrandRepository(_context);
+            Orders = new OrderRepository(_context);
+            Stations = new StationRepository(_context);
+            Payments = new PaymentRepository(_context);
+            Transactions = new TransactionRepository(_context);
+            LicensePlates = new LicensePlateRepository(_context);
+            OrderLicensePlates = new OrderLicensePlateRepository(_context);
+            Contracts = new ContractRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
@@ -26,6 +33,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         public ILicenseRepository Licenses { get; private set; }
         public IVehicleRepository Vehicles { get; private set; }
         public IBrandRepository Brands { get; private set; }
+        public IOrderRepository Orders { get; private set; }
+        public IStationRepository Stations { get; private set; }
+        public IPaymentRepository Payments { get; private set; }
+        public ITransactionRepository Transactions { get; private set; }
+        public ILicensePlateRepository LicensePlates { get; private set; }
+        public IOrderLicensePlateRepository OrderLicensePlates { get; private set; }
+        public IContractRepository Contracts { get; private set; }
 
         public async Task<int> SaveChangesAsync()
         {

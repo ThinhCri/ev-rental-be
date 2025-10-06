@@ -7,36 +7,43 @@ using Microsoft.Extensions.Logging;
 
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
-    public class VehicleService : IVehicleService
+    public class VehicleService : BaseService, IVehicleService
     {
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IBrandRepository _brandRepository;
         private readonly IMapper _mapper;
-        private readonly ILogger<VehicleService> _logger;
 
         public VehicleService(
             IVehicleRepository vehicleRepository,
             IBrandRepository brandRepository,
             IMapper mapper,
-            ILogger<VehicleService> logger)
+            ILogger<VehicleService> logger) : base(logger)
         {
             _vehicleRepository = vehicleRepository;
             _brandRepository = brandRepository;
             _mapper = mapper;
-            _logger = logger;
         }
 
         public async Task<VehicleResponseDto> GetByIdAsync(int id)
         {
             try
             {
+                if (!ValidateId(id, nameof(id)))
+                {
+                    return new VehicleResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid vehicle ID"
+                    };
+                }
+
                 var vehicle = await _vehicleRepository.GetByIdAsync(id);
                 if (vehicle == null)
                 {
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy xe với ID này."
+                        Message = "Vehicle not found"
                     };
                 }
 
@@ -47,17 +54,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = true,
-                    Message = "Lấy thông tin xe thành công.",
+                    Message = "Vehicle information retrieved successfully",
                     Data = vehicleDto
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while getting vehicle with ID: {Id}", id);
+                _logger.LogError(ex, "Error retrieving vehicle with ID: {VehicleId}", id);
                 return new VehicleResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy thông tin xe."
+                    Message = "Error retrieving vehicle information"
                 };
             }
         }
@@ -80,7 +87,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách xe thành công.",
+                    Message = "Vehicles retrieved successfully",
                     Data = vehicleDtos,
                     TotalCount = vehicleDtos.Count
                 };
@@ -107,7 +114,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Thương hiệu không tồn tại."
+                        Message = "Brand not found"
                     };
                 }
 
@@ -129,7 +136,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = true,
-                    Message = "Tạo xe mới thành công.",
+                    Message = "Vehicle created successfully",
                     Data = vehicleDto
                 };
             }
@@ -166,7 +173,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Thương hiệu không tồn tại."
+                        Message = "Brand not found"
                     };
                 }
 
@@ -193,7 +200,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = true,
-                    Message = "Cập nhật thông tin xe thành công.",
+                    Message = "Vehicle updated successfully",
                     Data = vehicleDto
                 };
             }
@@ -242,7 +249,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = true,
-                    Message = "Xóa xe thành công."
+                    Message = "Vehicle deleted successfully"
                 };
             }
             catch (Exception ex)
@@ -256,44 +263,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        public async Task<VehicleListResponseDto> SearchVehiclesAsync(VehicleSearchDto searchDto)
-        {
-            try
-            {
-                var (vehicles, totalCount) = await _vehicleRepository.GetVehiclesWithPaginationAsync(searchDto);
-                var vehicleDtos = new List<VehicleDto>();
-
-                foreach (var vehicle in vehicles)
-                {
-                    var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
-                    vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
-                    vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                    vehicleDtos.Add(vehicleDto);
-                }
-
-                var totalPages = (int)Math.Ceiling((double)totalCount / searchDto.PageSize);
-
-                return new VehicleListResponseDto
-                {
-                    Success = true,
-                    Message = "Tìm kiếm xe thành công.",
-                    Data = vehicleDtos,
-                    TotalCount = totalCount,
-                    PageNumber = searchDto.PageNumber,
-                    PageSize = searchDto.PageSize,
-                    TotalPages = totalPages
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while searching vehicles");
-                return new VehicleListResponseDto
-                {
-                    Success = false,
-                    Message = "Đã xảy ra lỗi khi tìm kiếm xe."
-                };
-            }
-        }
 
         public async Task<VehicleListResponseDto> GetAvailableVehiclesAsync()
         {
@@ -329,11 +298,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        public async Task<VehicleListResponseDto> GetVehiclesByBrandAsync(int brandId)
+        public async Task<VehicleListResponseDto> GetVehiclesByStationAsync(int stationId)
         {
             try
             {
-                var vehicles = await _vehicleRepository.GetByBrandIdAsync(brandId);
+                var vehicles = await _vehicleRepository.GetByStationIdAsync(stationId);
                 var vehicleDtos = new List<VehicleDto>();
 
                 foreach (var vehicle in vehicles)
@@ -347,120 +316,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách xe theo thương hiệu thành công.",
+                    Message = "Lấy danh sách xe theo trạm thành công.",
                     Data = vehicleDtos,
                     TotalCount = vehicleDtos.Count
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while getting vehicles by brand ID: {BrandId}", brandId);
+                _logger.LogError(ex, "Error occurred while getting vehicles by station ID: {StationId}", stationId);
                 return new VehicleListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo thương hiệu."
-                };
-            }
-        }
-
-        public async Task<VehicleListResponseDto> GetVehiclesByTypeAsync(string vehicleType)
-        {
-            try
-            {
-                var vehicles = await _vehicleRepository.GetByVehicleTypeAsync(vehicleType);
-                var vehicleDtos = new List<VehicleDto>();
-
-                foreach (var vehicle in vehicles)
-                {
-                    var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
-                    vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
-                    vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                    vehicleDtos.Add(vehicleDto);
-                }
-
-                return new VehicleListResponseDto
-                {
-                    Success = true,
-                    Message = "Lấy danh sách xe theo loại thành công.",
-                    Data = vehicleDtos,
-                    TotalCount = vehicleDtos.Count
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting vehicles by type: {VehicleType}", vehicleType);
-                return new VehicleListResponseDto
-                {
-                    Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo loại."
-                };
-            }
-        }
-
-        public async Task<VehicleListResponseDto> GetVehiclesByPriceRangeAsync(decimal minPrice, decimal maxPrice)
-        {
-            try
-            {
-                var vehicles = await _vehicleRepository.GetVehiclesByPriceRangeAsync(minPrice, maxPrice);
-                var vehicleDtos = new List<VehicleDto>();
-
-                foreach (var vehicle in vehicles)
-                {
-                    var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
-                    vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
-                    vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                    vehicleDtos.Add(vehicleDto);
-                }
-
-                return new VehicleListResponseDto
-                {
-                    Success = true,
-                    Message = "Lấy danh sách xe theo khoảng giá thành công.",
-                    Data = vehicleDtos,
-                    TotalCount = vehicleDtos.Count
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting vehicles by price range: {MinPrice} - {MaxPrice}", minPrice, maxPrice);
-                return new VehicleListResponseDto
-                {
-                    Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo khoảng giá."
-                };
-            }
-        }
-
-        public async Task<VehicleListResponseDto> GetVehiclesBySeatRangeAsync(int minSeats, int maxSeats)
-        {
-            try
-            {
-                var vehicles = await _vehicleRepository.GetVehiclesBySeatRangeAsync(minSeats, maxSeats);
-                var vehicleDtos = new List<VehicleDto>();
-
-                foreach (var vehicle in vehicles)
-                {
-                    var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
-                    vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
-                    vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                    vehicleDtos.Add(vehicleDto);
-                }
-
-                return new VehicleListResponseDto
-                {
-                    Success = true,
-                    Message = "Lấy danh sách xe theo số ghế thành công.",
-                    Data = vehicleDtos,
-                    TotalCount = vehicleDtos.Count
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while getting vehicles by seat range: {MinSeats} - {MaxSeats}", minSeats, maxSeats);
-                return new VehicleListResponseDto
-                {
-                    Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo số ghế."
+                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo trạm."
                 };
             }
         }

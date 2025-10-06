@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace EV_RENTAL_SYSTEM.Controllers
 {
     /// <summary>
-    /// Controller xử lý các API liên quan đến loại bằng lái xe
+    /// License type management controller
     /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
-    public class LicenseTypeController : ControllerBase
+    public class LicenseTypeController : BaseController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<LicenseTypeController> _logger;
@@ -20,9 +18,9 @@ namespace EV_RENTAL_SYSTEM.Controllers
         }
 
         /// <summary>
-        /// API lấy danh sách tất cả loại bằng lái xe
+        /// Get all license types endpoint
         /// </summary>
-        /// <returns>Danh sách loại bằng lái xe</returns>
+        /// <returns>List of license types</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllLicenseTypes()
         {
@@ -37,29 +35,20 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     Description = lt.Description
                 }).ToList();
 
-                return Ok(new
-                {
-                    Success = true,
-                    Message = "License types retrieved successfully",
-                    Data = result
-                });
+                return SuccessResponse(result, "License types retrieved successfully");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while retrieving license types");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving license types"
-                });
+                return ErrorResponse("An error occurred while retrieving license types", 500);
             }
         }
 
         /// <summary>
-        /// API lấy thông tin loại bằng lái xe theo ID
+        /// Get license type by ID endpoint
         /// </summary>
-        /// <param name="id">ID của loại bằng lái xe</param>
-        /// <returns>Thông tin loại bằng lái xe</returns>
+        /// <param name="id">License type ID</param>
+        /// <returns>License type information</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetLicenseTypeById(int id)
         {
@@ -83,21 +72,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     Description = licenseType.Description
                 };
 
-                return Ok(new
-                {
-                    Success = true,
-                    Message = "License type retrieved successfully",
-                    Data = result
-                });
+                return SuccessResponse(result, "License type retrieved successfully");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while retrieving license type with ID: {Id}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "An error occurred while retrieving license type"
-                });
+                return ErrorResponse("An error occurred while retrieving license type", 500);
             }
         }
     }

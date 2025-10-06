@@ -6,6 +6,7 @@ using EV_RENTAL_SYSTEM.Repositories.Implementations;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Implementations;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -38,36 +39,21 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IDataSeedingService, DataSeedingService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IStationService, StationService>();
+builder.Services.AddScoped<IRentalService, RentalService>();
+builder.Services.AddScoped<IRevenueService, RevenueService>();
 
-// JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"];
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)),
-        ValidateIssuer = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidateAudience = true,
-        ValidAudience = jwtSettings["Audience"],
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
+// Custom JWT Authentication (không cần Bearer prefix)
+builder.Services.AddAuthentication("CustomJwt")
+    .AddScheme<AuthenticationSchemeOptions, CustomJwtAuthenticationHandler>("CustomJwt", options => { });
 
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Admin", "Station Staff"));
+    options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Admin", "Station Staff", "Staff"));
     options.AddPolicy("AuthenticatedUser", policy => policy.RequireAuthenticatedUser());
 });
 
@@ -91,13 +77,12 @@ builder.Services.AddSwaggerGen(c =>
     });
     
     // Add JWT Authentication to Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition("JWT", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Description = "JWT Authorization header. Example: \"Authorization: {token}\" (no Bearer prefix needed)",
         Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.ApiKey
     });
     
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -108,7 +93,7 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id = "JWT"
                 }
             },
             new string[] {}

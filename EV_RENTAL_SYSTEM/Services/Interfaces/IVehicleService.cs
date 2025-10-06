@@ -12,12 +12,8 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<VehicleResponseDto> DeleteAsync(int id);
 
         // Advanced operations
-        Task<VehicleListResponseDto> SearchVehiclesAsync(VehicleSearchDto searchDto);
         Task<VehicleListResponseDto> GetAvailableVehiclesAsync();
-        Task<VehicleListResponseDto> GetVehiclesByBrandAsync(int brandId);
-        Task<VehicleListResponseDto> GetVehiclesByTypeAsync(string vehicleType);
-        Task<VehicleListResponseDto> GetVehiclesByPriceRangeAsync(decimal minPrice, decimal maxPrice);
-        Task<VehicleListResponseDto> GetVehiclesBySeatRangeAsync(int minSeats, int maxSeats);
+        Task<VehicleListResponseDto> GetVehiclesByStationAsync(int stationId);
         
         // Business logic
         Task<bool> IsVehicleAvailableAsync(int vehicleId);
@@ -25,3 +21,6 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<VehicleResponseDto> ToggleAvailabilityAsync(int vehicleId);
     }
 }
+
+
+

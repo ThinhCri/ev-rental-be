@@ -31,9 +31,10 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.SeatNumber, opt => opt.MapFrom(src => src.SeatNumber))
                 .ForMember(dest => dest.VehicleImage, opt => opt.MapFrom(src => src.VehicleImage))
                 .ForMember(dest => dest.Battery, opt => opt.MapFrom(src => src.Battery))
-                .ForMember(dest => dest.ChargingTime, opt => opt.MapFrom(src => src.ChargingTime))
                 .ForMember(dest => dest.RangeKm, opt => opt.MapFrom(src => src.RangeKm))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.StationId, opt => opt.MapFrom(src => src.StationId))
+                .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.Station != null ? src.Station.StationName : null))
                 .ForMember(dest => dest.IsAvailable, opt => opt.Ignore()) // Will be set manually
                 .ForMember(dest => dest.AvailableLicensePlates, opt => opt.Ignore()); // Will be set manually
 
@@ -46,6 +47,68 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.VehicleId, opt => opt.Ignore())
                 .ForMember(dest => dest.Brand, opt => opt.Ignore())
                 .ForMember(dest => dest.LicensePlates, opt => opt.Ignore());
+
+            // Station mappings
+            CreateMap<Station, StationDto>()
+                .ForMember(dest => dest.StationId, opt => opt.MapFrom(src => src.StationId))
+                .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.StationName))
+                .ForMember(dest => dest.Street, opt => opt.MapFrom(src => src.Street))
+                .ForMember(dest => dest.District, opt => opt.MapFrom(src => src.District))
+                .ForMember(dest => dest.Province, opt => opt.MapFrom(src => src.Province))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.FullAddress, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.VehicleCount, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.AvailableVehicleCount, opt => opt.Ignore()); // Will be set manually
+
+            CreateMap<CreateStationDto, Station>()
+                .ForMember(dest => dest.StationId, opt => opt.Ignore())
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.Vehicles, opt => opt.Ignore());
+
+            CreateMap<UpdateStationDto, Station>()
+                .ForMember(dest => dest.StationId, opt => opt.Ignore())
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.Vehicles, opt => opt.Ignore());
+
+            // Order mappings
+            CreateMap<Order, RentalDto>()
+                .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.OrderId))
+                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate))
+                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+                .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email))
+                .ForMember(dest => dest.Vehicles, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Contracts, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.TotalDays, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.DailyRate, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.DepositAmount, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.RentalFee, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.ExtraFee, opt => opt.Ignore()); // Will be set manually
+
+            CreateMap<CreateRentalDto, Order>()
+                .ForMember(dest => dest.OrderId, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore()) // Will be calculated
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "Pending"))
+                .ForMember(dest => dest.UserId, opt => opt.Ignore()) // Will be set from token
+                .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderLicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Contracts, opt => opt.Ignore());
+
+            CreateMap<UpdateRentalDto, Order>()
+                .ForMember(dest => dest.OrderId, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderDate, opt => opt.Ignore())
+                .ForMember(dest => dest.TotalAmount, opt => opt.Ignore())
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderLicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Contracts, opt => opt.Ignore());
         }
     }
 }
