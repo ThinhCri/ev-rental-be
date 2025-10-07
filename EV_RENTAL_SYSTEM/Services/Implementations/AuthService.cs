@@ -15,19 +15,22 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
         private readonly IFileService _fileService;
+        private readonly ICloudService _cloudService;
 
         public AuthService(
             IUnitOfWork unitOfWork,
             IJwtService jwtService,
             IMapper mapper,
             ILogger<AuthService> logger,
-            IFileService fileService)
+            IFileService fileService,
+            ICloudService cloudService)
         {
             _unitOfWork = unitOfWork;
             _jwtService = jwtService;
             _mapper = mapper;
             _logger = logger;
             _fileService = fileService;
+            _cloudService = cloudService;
         }
 
         /// <summary>
@@ -206,8 +209,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Users.AddAsync(user);
                 await _unitOfWork.SaveChangesAsync();
 
-                // 6. Upload ảnh bằng lái xe
-                var licenseImageUrl = await _fileService.UploadCccdImageAsync(registerRequest.LicenseImage, user.UserId);
+                // 6. Upload ảnh bằng lái xe lên cloud
+                var licenseImageUrl = await _cloudService.UploadLicenseImageAsync(registerRequest.LicenseImage);
 
                 // 7. Tạo license record
                 var license = new License

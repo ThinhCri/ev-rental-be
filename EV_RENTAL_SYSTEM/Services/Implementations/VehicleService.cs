@@ -12,16 +12,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IBrandRepository _brandRepository;
         private readonly IMapper _mapper;
+        private readonly ICloudService _cloudService;
 
         public VehicleService(
             IVehicleRepository vehicleRepository,
             IBrandRepository brandRepository,
             IMapper mapper,
-            ILogger<VehicleService> logger) : base(logger)
+            ILogger<VehicleService> logger,
+            ICloudService cloudService) : base(logger)
         {
             _vehicleRepository = vehicleRepository;
             _brandRepository = brandRepository;
             _mapper = mapper;
+            _cloudService = cloudService;
         }
 
         public async Task<VehicleResponseDto> GetByIdAsync(int id)
@@ -118,9 +121,29 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
+                // Upload ảnh lên cloud nếu có
+                string? vehicleImageUrl = null;
+                if (createDto.VehicleImageFile != null)
+                {
+                    try
+                    {
+                        vehicleImageUrl = await _cloudService.UploadImageAsync(createDto.VehicleImageFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading vehicle image");
+                        return new VehicleResponseDto
+                        {
+                            Success = false,
+                            Message = "Lỗi khi upload ảnh xe. Vui lòng thử lại."
+                        };
+                    }
+                }
+
                 // Tạo vehicle entity
                 var vehicle = _mapper.Map<Vehicle>(createDto);
                 vehicle.Brand = brand;
+                vehicle.VehicleImage = vehicleImageUrl;
 
                 // Lưu vào database
                 var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
@@ -177,14 +200,43 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
+                // Xử lý upload ảnh mới nếu có
+                if (updateDto.VehicleImageFile != null)
+                {
+                    try
+                    {
+                        // Xóa ảnh cũ nếu có
+                        if (!string.IsNullOrEmpty(existingVehicle.VehicleImage))
+                        {
+                            await _cloudService.DeleteImageAsync(existingVehicle.VehicleImage);
+                        }
+
+                        // Upload ảnh mới
+                        var newImageUrl = await _cloudService.UploadImageAsync(updateDto.VehicleImageFile);
+                        existingVehicle.VehicleImage = newImageUrl;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading vehicle image for update");
+                        return new VehicleResponseDto
+                        {
+                            Success = false,
+                            Message = "Lỗi khi upload ảnh xe. Vui lòng thử lại."
+                        };
+                    }
+                }
+
                 // Cập nhật thông tin
                 existingVehicle.Model = updateDto.Model;
                 existingVehicle.ModelYear = updateDto.ModelYear;
                 existingVehicle.BrandId = updateDto.BrandId;
-                existingVehicle.VehicleType = updateDto.VehicleType;
                 existingVehicle.Description = updateDto.Description;
                 existingVehicle.PricePerDay = updateDto.PricePerDay;
                 existingVehicle.SeatNumber = updateDto.SeatNumber;
+                existingVehicle.Battery = updateDto.Battery;
+                existingVehicle.RangeKm = updateDto.RangeKm;
+                existingVehicle.Status = updateDto.Status;
+                existingVehicle.StationId = updateDto.StationId;
 
                 // Lưu vào database
                 var updatedVehicle = await _vehicleRepository.UpdateAsync(existingVehicle);
@@ -232,6 +284,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 // Kiểm tra xe có đang được sử dụng không (có order đang active)
                 // TODO: Thêm logic kiểm tra order active
+
+                // Xóa ảnh khỏi cloud nếu có
+                if (!string.IsNullOrEmpty(vehicle.VehicleImage))
+                {
+                    try
+                    {
+                        await _cloudService.DeleteImageAsync(vehicle.VehicleImage);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to delete vehicle image from cloud for vehicle ID: {VehicleId}", id);
+                        // Không dừng quá trình xóa nếu không xóa được ảnh
+                    }
+                }
 
                 // Xóa xe
                 var result = await _vehicleRepository.DeleteAsync(id);

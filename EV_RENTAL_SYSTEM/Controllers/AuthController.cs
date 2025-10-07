@@ -231,7 +231,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                         orderDto.LicensePlateId = licensePlate.LicensePlateId;
                         orderDto.VehicleModel = licensePlate.Vehicle?.Model;
                         orderDto.VehicleBrand = licensePlate.Vehicle?.Brand?.BrandName;
-                        orderDto.VehicleType = licensePlate.Vehicle?.VehicleType;
+                        orderDto.VehicleType = null;
                         orderDto.StationName = licensePlate.Station?.StationName;
                         orderDto.StationAddress = $"{licensePlate.Station?.Street}, {licensePlate.Station?.District}, {licensePlate.Station?.Province}";
                     }

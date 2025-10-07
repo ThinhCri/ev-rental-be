@@ -16,7 +16,9 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.Birthday, opt => opt.MapFrom(src => src.Birthday))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName))
+                .ForMember(dest => dest.DriverLicenseNumber, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseNumber : null))
+                .ForMember(dest => dest.DriverLicenseImage, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseImageUrl : null));
 
             // Vehicle mappings
             CreateMap<Vehicle, VehicleDto>()
@@ -25,7 +27,6 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear))
                 .ForMember(dest => dest.BrandId, opt => opt.MapFrom(src => src.BrandId))
                 .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.BrandName))
-                .ForMember(dest => dest.VehicleType, opt => opt.MapFrom(src => src.VehicleType))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.PricePerDay, opt => opt.MapFrom(src => src.PricePerDay))
                 .ForMember(dest => dest.SeatNumber, opt => opt.MapFrom(src => src.SeatNumber))
@@ -41,12 +42,14 @@ namespace EV_RENTAL_SYSTEM.Mappings
             CreateMap<CreateVehicleDto, Vehicle>()
                 .ForMember(dest => dest.VehicleId, opt => opt.Ignore())
                 .ForMember(dest => dest.Brand, opt => opt.Ignore())
-                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore());
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.VehicleImage, opt => opt.Ignore()); // Will be set manually after upload
 
             CreateMap<UpdateVehicleDto, Vehicle>()
                 .ForMember(dest => dest.VehicleId, opt => opt.Ignore())
                 .ForMember(dest => dest.Brand, opt => opt.Ignore())
-                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore());
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
+                .ForMember(dest => dest.VehicleImage, opt => opt.Ignore()); // Will be set manually after upload
 
             // Station mappings
             CreateMap<Station, StationDto>()

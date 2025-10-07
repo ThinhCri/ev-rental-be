@@ -61,7 +61,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// <returns>Vehicle creation result</returns>
         [HttpPost]
         [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> CreateVehicle([FromBody] CreateVehicleDto createDto)
+        public async Task<IActionResult> CreateVehicle([FromForm] CreateVehicleDto createDto)
         {
             var validationError = ValidateModelState();
             if (validationError != null) return validationError;
@@ -84,7 +84,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// <returns>Update result</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
-        public async Task<IActionResult> UpdateVehicle(int id, [FromBody] UpdateVehicleDto updateDto)
+        public async Task<IActionResult> UpdateVehicle(int id, [FromForm] UpdateVehicleDto updateDto)
         {
             var validationError = ValidateModelState();
             if (validationError != null) return validationError;

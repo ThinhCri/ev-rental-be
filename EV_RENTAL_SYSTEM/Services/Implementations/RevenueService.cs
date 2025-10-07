@@ -182,44 +182,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                var orders = await _unitOfWork.Orders.GetAllAsync();
-                var ordersList = orders.ToList();
-
-                // Áp dụng filter
-                if (filter.StartDate.HasValue)
-                    ordersList = ordersList.Where(o => o.OrderDate >= filter.StartDate.Value).ToList();
-                if (filter.EndDate.HasValue)
-                    ordersList = ordersList.Where(o => o.OrderDate <= filter.EndDate.Value).ToList();
-
-                // Lấy tất cả vehicle types
-                var vehicleTypes = ordersList
-                    .SelectMany(o => o.OrderLicensePlates)
-                    .Select(olp => olp.LicensePlate.Vehicle?.VehicleType)
-                    .Where(vt => !string.IsNullOrEmpty(vt))
-                    .Distinct()
-                    .ToList();
-
-                var vehicleTypeRevenue = new List<VehicleTypeRevenueDto>();
-
-                foreach (var vehicleType in vehicleTypes)
-                {
-                    var typeOrders = ordersList.Where(o => 
-                        o.OrderLicensePlates.Any(olp => olp.LicensePlate.Vehicle?.VehicleType == vehicleType)).ToList();
-                    
-                    var revenue = typeOrders.Where(o => o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
-                    var orderCount = typeOrders.Count;
-                    var averageOrderValue = orderCount > 0 ? revenue / orderCount : 0;
-
-                    vehicleTypeRevenue.Add(new VehicleTypeRevenueDto
-                    {
-                        VehicleType = vehicleType,
-                        Revenue = revenue,
-                        OrderCount = orderCount,
-                        AverageOrderValue = averageOrderValue
-                    });
-                }
-
-                return ServiceResponse<List<VehicleTypeRevenueDto>>.SuccessResult(vehicleTypeRevenue, "Vehicle type revenue retrieved successfully.");
+                // VehicleType has been removed; return empty breakdown
+                return ServiceResponse<List<VehicleTypeRevenueDto>>.SuccessResult(new List<VehicleTypeRevenueDto>(), "Vehicle type revenue not applicable.");
             }
             catch (Exception ex)
             {
@@ -259,7 +223,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         VehicleId = vehicle.VehicleId,
                         Model = vehicle.Model,
                         BrandName = vehicle.Brand?.BrandName ?? "Unknown",
-                        VehicleType = vehicle.VehicleType,
                         RentalCount = rentalCount,
                         TotalRevenue = totalRevenue,
                         AverageRevenue = averageRevenue

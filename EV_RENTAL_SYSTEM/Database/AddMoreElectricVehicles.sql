@@ -3,13 +3,19 @@ USE EV_Rental_System;
 GO
 
 -- Insert additional electric vehicle brands
-INSERT INTO Brand (Brand_name) VALUES 
-('VinFast'),
-('BYD'),
-('NIO'),
-('Rivian'),
-('Polestar')
-WHERE NOT EXISTS (SELECT 1 FROM Brand WHERE Brand_name IN ('VinFast', 'BYD', 'NIO', 'Rivian', 'Polestar'));
+INSERT INTO Brand (Brand_name)
+SELECT v.Brand_name
+FROM (VALUES
+    ('VinFast'),
+    ('BYD'),
+    ('NIO'),
+    ('Rivian'),
+    ('Polestar')
+) AS v(Brand_name)
+WHERE NOT EXISTS (
+    SELECT 1 FROM Brand b WHERE b.Brand_name = v.Brand_name
+);
+
 
 -- Get station IDs
 DECLARE @HCMStation1 INT = (SELECT Station_Id FROM Station WHERE Station_name LIKE '%HCM Central%');

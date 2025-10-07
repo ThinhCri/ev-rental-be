@@ -400,27 +400,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     if (searchDto.BrandId.HasValue && vehicle.BrandId != searchDto.BrandId.Value)
                         continue;
 
-                    if (!string.IsNullOrEmpty(searchDto.VehicleType) && vehicle.VehicleType != searchDto.VehicleType)
-                        continue;
-
-                    if (searchDto.MinSeatNumber.HasValue && vehicle.SeatNumber < searchDto.MinSeatNumber.Value)
-                        continue;
-
-                    if (searchDto.MaxSeatNumber.HasValue && vehicle.SeatNumber > searchDto.MaxSeatNumber.Value)
-                        continue;
-
-                    if (searchDto.MinPricePerDay.HasValue && vehicle.PricePerDay < searchDto.MinPricePerDay.Value)
-                        continue;
-
-                    if (searchDto.MaxPricePerDay.HasValue && vehicle.PricePerDay > searchDto.MaxPricePerDay.Value)
-                        continue;
-
                     var availableVehicle = new AvailableVehicleDto
                     {
                         VehicleId = vehicle.VehicleId,
                         Model = vehicle.Model,
                         BrandName = vehicle.Brand?.BrandName ?? "",
-                        VehicleType = vehicle.VehicleType,
                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,
@@ -670,7 +654,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         VehicleId = vehicle.VehicleId,
                         Model = vehicle.Model,
                         BrandName = vehicle.Brand?.BrandName ?? "",
-                        VehicleType = vehicle.VehicleType,
                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,

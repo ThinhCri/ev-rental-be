@@ -1,6 +1,7 @@
 using EV_RENTAL_SYSTEM.Attributes;
 using EV_RENTAL_SYSTEM.Data;
 using EV_RENTAL_SYSTEM.Mappings;
+using EV_RENTAL_SYSTEM.Models;
 using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Repositories.Implementations;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
@@ -32,6 +33,10 @@ builder.Services.AddScoped<ILicenseTypeRepository, LicenseTypeRepository>();
 builder.Services.AddScoped<ILicenseRepository, LicenseRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+
+// Cloudinary Configuration
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+builder.Services.AddScoped<ICloudService, CloudinaryService>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();

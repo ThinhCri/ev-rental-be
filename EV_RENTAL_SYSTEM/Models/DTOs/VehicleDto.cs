@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Http;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {
@@ -13,7 +14,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int? ModelYear { get; set; }
         public int BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
-        public string? VehicleType { get; set; }
         public string? Description { get; set; }
         public decimal? PricePerDay { get; set; }
         public int? SeatNumber { get; set; }
@@ -42,8 +42,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Required(ErrorMessage = "Thương hiệu là bắt buộc")]
         public int BrandId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Loại xe không được quá 50 ký tự")]
-        public string? VehicleType { get; set; }
 
         [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
         public string? Description { get; set; }
@@ -54,8 +52,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Range(1, 50, ErrorMessage = "Số ghế phải từ 1 đến 50")]
         public int? SeatNumber { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Tên file ảnh không được quá 500 ký tự")]
-        public string? VehicleImage { get; set; }
+        public IFormFile? VehicleImageFile { get; set; }
 
         [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
         public decimal? Battery { get; set; }
@@ -85,8 +82,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Required(ErrorMessage = "Thương hiệu là bắt buộc")]
         public int BrandId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Loại xe không được quá 50 ký tự")]
-        public string? VehicleType { get; set; }
 
         [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
         public string? Description { get; set; }
@@ -97,8 +92,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Range(1, 50, ErrorMessage = "Số ghế phải từ 1 đến 50")]
         public int? SeatNumber { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Tên file ảnh không được quá 500 ký tự")]
-        public string? VehicleImage { get; set; }
+        public IFormFile? VehicleImageFile { get; set; }
 
         [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
         public decimal? Battery { get; set; }
@@ -144,7 +138,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     {
         public string? Model { get; set; }
         public int? BrandId { get; set; }
-        public string? VehicleType { get; set; }
         public decimal? MinPricePerDay { get; set; }
         public decimal? MaxPricePerDay { get; set; }
         public int? MinSeatNumber { get; set; }

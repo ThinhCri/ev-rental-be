@@ -270,20 +270,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 for (int i = 1; i <= 10; i++)
                 {
                     var station = hcmStations[(i - 1) % hcmStations.Count];
-                    var brand = i % 3 == 0 ? teslaBrand : (i % 2 == 0 ? hondaBrand : yamahaBrand);
-                    var isCar = i % 3 == 0;
+					var brand = i % 3 == 0 ? teslaBrand : (i % 2 == 0 ? hondaBrand : yamahaBrand);
+					var isCar = true;
                     
                     vehicles.Add(new Vehicle 
                     { 
-                        Model = isCar ? $"Tesla Model {(i % 2 == 0 ? "3" : "Y")}" : $"Honda PCX Electric {i}",
+						Model = $"Tesla Model {(i % 2 == 0 ? "3" : "Y")}",
                         ModelYear = 2024, 
                         BrandId = brand.BrandId, 
-                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
-                        Description = isCar ? $"Premium electric vehicle with autopilot - HCM Branch" : $"Electric scooter with 50km range - HCM Branch",
-                        PricePerDay = isCar ? 2500000 : 150000, 
-                        SeatNumber = isCar ? 5 : 2,
-                        Battery = isCar ? 75.0m : 2.5m,
-                        ChargingTime = isCar ? 8.0m : 4.0m,
+						Description = $"Premium electric vehicle with autopilot - HCM Branch",
+						PricePerDay = 2500000, 
+						SeatNumber = 5,
+						Battery = isCar ? 75.0m : 2.5m,
                         RangeKm = isCar ? 500 : 50,
                         Status = "Good",
                         StationId = station.StationId
@@ -294,20 +292,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 for (int i = 1; i <= 10; i++)
                 {
                     var station = bdStations[(i - 1) % bdStations.Count];
-                    var brand = i % 3 == 0 ? bmwBrand : (i % 2 == 0 ? suzukiBrand : yamahaBrand);
-                    var isCar = i % 4 == 0;
+					var brand = i % 3 == 0 ? bmwBrand : (i % 2 == 0 ? suzukiBrand : yamahaBrand);
+					var isCar = true;
                     
                     vehicles.Add(new Vehicle 
                     { 
-                        Model = isCar ? $"BMW iX{i}" : $"Yamaha E-Vino {i}",
+						Model = $"BMW iX{i}",
                         ModelYear = 2024, 
                         BrandId = brand.BrandId, 
-                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
-                        Description = isCar ? $"Luxury electric SUV - BD Branch" : $"Compact electric scooter - BD Branch",
-                        PricePerDay = isCar ? 3000000 : 120000, 
-                        SeatNumber = isCar ? 5 : 2,
-                        Battery = isCar ? 80.0m : 2.0m,
-                        ChargingTime = isCar ? 10.0m : 3.5m,
+						Description = $"Luxury electric SUV - BD Branch",
+						PricePerDay = 3000000, 
+						SeatNumber = 5,
+						Battery = isCar ? 80.0m : 2.0m,
                         RangeKm = isCar ? 600 : 45,
                         Status = "Good",
                         StationId = station.StationId
@@ -318,20 +314,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 for (int i = 1; i <= 10; i++)
                 {
                     var station = dnStations[(i - 1) % dnStations.Count];
-                    var brand = i % 3 == 0 ? mercedesBrand : (i % 2 == 0 ? hondaBrand : suzukiBrand);
-                    var isCar = i % 3 == 0;
+					var brand = i % 3 == 0 ? mercedesBrand : (i % 2 == 0 ? hondaBrand : suzukiBrand);
+					var isCar = true;
                     
                     vehicles.Add(new Vehicle 
                     { 
-                        Model = isCar ? $"Mercedes EQS {i}" : $"Suzuki Burgman Electric {i}",
+						Model = $"Mercedes EQS {i}",
                         ModelYear = 2024, 
                         BrandId = brand.BrandId, 
-                        VehicleType = isCar ? "Electric Car" : "Electric Motorcycle", 
-                        Description = isCar ? $"Luxury electric sedan - DN Branch" : $"Electric maxi scooter - DN Branch",
-                        PricePerDay = isCar ? 3500000 : 180000, 
-                        SeatNumber = isCar ? 5 : 2,
-                        Battery = isCar ? 90.0m : 3.0m,
-                        ChargingTime = isCar ? 12.0m : 5.0m,
+						Description = $"Luxury electric sedan - DN Branch",
+						PricePerDay = 3500000, 
+						SeatNumber = 5,
+						Battery = isCar ? 90.0m : 3.0m,
                         RangeKm = isCar ? 700 : 60,
                         Status = "Good",
                         StationId = station.StationId

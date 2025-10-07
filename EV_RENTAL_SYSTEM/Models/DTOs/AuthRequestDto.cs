@@ -91,5 +91,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime CreatedAt { get; set; } // Ngày tạo tài khoản
         public string? Status { get; set; } // Trạng thái tài khoản
         public string RoleName { get; set; } = string.Empty; // Tên role (Admin, Staff, EV Renter)
+        public string? DriverLicenseNumber { get; set; }   
+        public string? DriverLicenseImage { get; set; }
     }
 }

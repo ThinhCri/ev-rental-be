@@ -25,6 +25,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Licenses)
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
 

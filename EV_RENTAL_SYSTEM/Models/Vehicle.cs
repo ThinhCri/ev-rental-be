@@ -20,10 +20,6 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Brand_Id")]
         public int BrandId { get; set; }
 
-        [MaxLength(50)]
-        [Column("Vehicle_type")]
-        public string? VehicleType { get; set; }
-
         [MaxLength(255)]
         public string? Description { get; set; }
 
@@ -39,9 +35,6 @@ namespace EV_RENTAL_SYSTEM.Models
 
         [Column("Battery", TypeName = "decimal(5,2)")]
         public decimal? Battery { get; set; } // Dung lượng pin (kWh)
-
-        [Column("Charging_time", TypeName = "decimal(4,1)")]
-        public decimal? ChargingTime { get; set; } // Thời gian sạc (giờ)
 
         [Column("Range_km")]
         public int? RangeKm { get; set; } // Tầm hoạt động (km)
