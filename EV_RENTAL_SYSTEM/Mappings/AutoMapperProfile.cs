@@ -20,6 +20,50 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.DriverLicenseNumber, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseNumber : null))
                 .ForMember(dest => dest.DriverLicenseImage, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseImageUrl : null));
 
+            // User management mappings (Admin)
+            CreateMap<CreateUserDto, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Password, opt => opt.Ignore()) // Will be hashed manually
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Role, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Licenses, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
+            CreateMap<UpdateUserDto, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Password, opt => opt.Ignore()) // Password not updated in this operation
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // CreatedAt not updated
+                .ForMember(dest => dest.Role, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Licenses, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
+            // Staff management mappings (Admin)
+            CreateMap<CreateStaffDto, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Password, opt => opt.Ignore()) // Will be hashed manually
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => 2)) // Station Staff
+                .ForMember(dest => dest.Role, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Licenses, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
+            CreateMap<UpdateStaffDto, User>()
+                .ForMember(dest => dest.UserId, opt => opt.Ignore())
+                .ForMember(dest => dest.Password, opt => opt.Ignore()) // Password not updated in this operation
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore()) // CreatedAt not updated
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => 2)) // Station Staff
+                .ForMember(dest => dest.Role, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.Licenses, opt => opt.Ignore())
+                .ForMember(dest => dest.Orders, opt => opt.Ignore())
+                .ForMember(dest => dest.Complaints, opt => opt.Ignore())
+                .ForMember(dest => dest.Transactions, opt => opt.Ignore());
+
             // Vehicle mappings
             CreateMap<Vehicle, VehicleDto>()
                 .ForMember(dest => dest.VehicleId, opt => opt.MapFrom(src => src.VehicleId))
@@ -36,8 +80,10 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.StationId, opt => opt.MapFrom(src => src.StationId))
                 .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.Station != null ? src.Station.StationName : null))
+                .ForMember(dest => dest.StationStreet, opt => opt.MapFrom(src => src.Station != null ? src.Station.Street : null))
                 .ForMember(dest => dest.IsAvailable, opt => opt.Ignore()) // Will be set manually
-                .ForMember(dest => dest.AvailableLicensePlates, opt => opt.Ignore()); // Will be set manually
+                .ForMember(dest => dest.AvailableLicensePlates, opt => opt.Ignore()) // Will be set manually
+                .ForMember(dest => dest.LicensePlateNumbers, opt => opt.Ignore()); // Will be set manually
 
             CreateMap<CreateVehicleDto, Vehicle>()
                 .ForMember(dest => dest.VehicleId, opt => opt.Ignore())

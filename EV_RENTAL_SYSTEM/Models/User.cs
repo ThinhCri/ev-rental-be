@@ -42,9 +42,18 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Role_Id")]
         public int RoleId { get; set; }
 
+        [Column("Station_Id")]
+        public int? StationId { get; set; } // Trạm mà staff quản lý (chỉ dành cho Station Staff)
+
+        [MaxLength(500)]
+        public string? Notes { get; set; } // Ghi chú về staff
+
         // Navigation properties
         [ForeignKey("RoleId")]
         public virtual Role Role { get; set; } = null!;
+
+        [ForeignKey("StationId")]
+        public virtual Station? Station { get; set; }
 
         public virtual ICollection<License> Licenses { get; set; } = new List<License>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

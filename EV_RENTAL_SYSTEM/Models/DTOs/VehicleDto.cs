@@ -23,8 +23,10 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? Status { get; set; } // Trạng thái xe
         public int? StationId { get; set; } // ID trạm xe đang đậu
         public string? StationName { get; set; } // Tên trạm xe đang đậu
+        public string? StationStreet { get; set; } // Địa chỉ trạm xe (cho Google Maps)
         public bool IsAvailable { get; set; } = true; // Trạng thái có sẵn để thuê
         public int AvailableLicensePlates { get; set; } = 0; // Số biển số có sẵn
+        public List<string> LicensePlateNumbers { get; set; } = new List<string>(); // Danh sách biển số xe
     }
 
     /// <summary>
@@ -65,6 +67,16 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? Status { get; set; }
 
         public int? StationId { get; set; } // ID trạm xe đang đậu
+
+        [Required(ErrorMessage = "Biển số xe là bắt buộc")]
+        [MaxLength(50, ErrorMessage = "Biển số xe không được quá 50 ký tự")]
+        public string LicensePlateNumber { get; set; } = string.Empty;
+
+        [MaxLength(50, ErrorMessage = "Tỉnh thành không được quá 50 ký tự")]
+        public string? Province { get; set; }
+
+        [MaxLength(50, ErrorMessage = "Tình trạng biển số không được quá 50 ký tự")]
+        public string? LicensePlateCondition { get; set; } = "Good";
     }
 
     /// <summary>

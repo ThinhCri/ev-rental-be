@@ -423,7 +423,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         .Select(lp => new AvailableLicensePlateDto
                         {
                             LicensePlateId = lp.LicensePlateId,
-                            LicensePlateNumber = lp.LicensePlateId, // LicensePlateId is the number
+                            LicensePlateNumber = lp.LicensePlateId, // Sử dụng LicensePlateId làm biển số
                             Status = lp.Status
                         })
                         .ToList();

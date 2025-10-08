@@ -29,6 +29,7 @@ namespace EV_RENTAL_SYSTEM.Models
         // Navigation properties
         public virtual ICollection<LicensePlate> LicensePlates { get; set; } = new List<LicensePlate>();
         public virtual ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        public virtual ICollection<User> Staff { get; set; } = new List<User>(); // Staff quản lý trạm này
     }
 }
 

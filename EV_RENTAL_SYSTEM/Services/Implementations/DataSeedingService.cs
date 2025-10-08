@@ -367,16 +367,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     var statuses = new[] { "Available", "Available", "Available", "Maintenance", "Rented" };
                     var conditions = new[] { "Excellent", "Good", "Good", "Fair" };
                     
-                    licensePlates.Add(new LicensePlate 
-                    { 
-                        LicensePlateId = plateNumber, 
-                        Status = statuses[random.Next(statuses.Length)], 
-                        VehicleId = vehicle.VehicleId, 
-                        Province = station.Province, 
-                        RegistrationDate = DateTime.Now.AddDays(-random.Next(1, 90)), 
-                        Condition = conditions[random.Next(conditions.Length)], 
-                        StationId = station.StationId 
-                    });
+       licensePlates.Add(new LicensePlate
+       {
+           LicensePlateId = plateNumber, // Sử dụng LicensePlateId để lưu biển số
+           Status = statuses[random.Next(statuses.Length)],
+           VehicleId = vehicle.VehicleId,
+           Province = station.Province,
+           RegistrationDate = DateTime.Now.AddDays(-random.Next(1, 90)),
+           Condition = conditions[random.Next(conditions.Length)],
+           StationId = station.StationId
+       });
                 }
 
                 _context.LicensePlates.AddRange(licensePlates);

@@ -39,7 +39,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasKey("BrandId");
 
-                    b.ToTable("Brand");
+                    b.ToTable("Brand", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Complaint", b =>
@@ -77,7 +77,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Complaint");
+                    b.ToTable("Complaint", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Contract", b =>
@@ -116,7 +116,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Contract");
+                    b.ToTable("Contract", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.ContractProcessing", b =>
@@ -146,7 +146,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("StepId");
 
-                    b.ToTable("ContractProcessing");
+                    b.ToTable("ContractProcessing", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.License", b =>
@@ -191,7 +191,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("License");
+                    b.ToTable("License", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.LicensePlate", b =>
@@ -231,7 +231,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("LicensePlate");
+                    b.ToTable("LicensePlate", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.LicenseType", b =>
@@ -252,7 +252,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasKey("LicenseTypeId");
 
-                    b.ToTable("LicenseType");
+                    b.ToTable("LicenseType", (string)null);
 
                     b.HasData(
                         new
@@ -321,7 +321,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("LicensePlateId");
 
-                    b.ToTable("Maintenance");
+                    b.ToTable("Maintenance", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Order", b =>
@@ -361,7 +361,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Order");
+                    b.ToTable("Order", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Order_LicensePlate", b =>
@@ -379,7 +379,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("LicensePlateId");
 
-                    b.ToTable("Order_LicensePlate");
+                    b.ToTable("Order_LicensePlate", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Payment", b =>
@@ -410,7 +410,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("ContractId");
 
-                    b.ToTable("Payment");
+                    b.ToTable("Payment", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.ProcessStep", b =>
@@ -433,7 +433,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasKey("StepId");
 
-                    b.ToTable("ProcessStep");
+                    b.ToTable("ProcessStep", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Role", b =>
@@ -457,7 +457,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Role");
+                    b.ToTable("Role", (string)null);
 
                     b.HasData(
                         new
@@ -512,7 +512,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasKey("StationId");
 
-                    b.ToTable("Station");
+                    b.ToTable("Station", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Transaction", b =>
@@ -545,7 +545,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transaction");
+                    b.ToTable("Transaction", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.User", b =>
@@ -603,7 +603,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Vehicle", b =>
@@ -677,7 +677,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.HasIndex("StationId");
 
-                    b.ToTable("Vehicle");
+                    b.ToTable("Vehicle", (string)null);
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Complaint", b =>
