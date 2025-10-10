@@ -708,7 +708,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 CreatedAt = user.CreatedAt,
                 Status = user.Status,
                 RoleName = user.Role.RoleName,
-                Notes = notes
+                Notes = notes ?? user.Notes
             };
 
             // Nếu có stationId được cung cấp, lấy thông tin trạm

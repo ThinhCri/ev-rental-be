@@ -131,7 +131,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Số điện thoại đã được sử dụng bởi tài khoản khác."
+                        Message = "Phone number already in use by another account."
                     };
                 }
 
@@ -156,11 +156,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new AuthResponseDto
                 {
                     Success = false,
-                    Message = "Loại bằng lái xe không tồn tại."
+                    Message = "License is not valid"
                 };
             }
 
-                // Kiểm tra ảnh bằng lái xe có hợp lệ không
                 var imageValidation = await _fileService.ValidateLicenseImageAsync(registerRequest.LicenseImage);
                 if (!imageValidation.IsValid)
                 {
@@ -178,7 +177,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new AuthResponseDto
                     {
                         Success = false,
-                        Message = "Số bằng lái xe đã được sử dụng bởi tài khoản khác."
+                        Message = "Driver's license already exists"
                     };
                 }
 
