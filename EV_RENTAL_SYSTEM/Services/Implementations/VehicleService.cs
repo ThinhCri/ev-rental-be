@@ -14,6 +14,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly ILicensePlateRepository _licensePlateRepository;
         private readonly IMapper _mapper;
         private readonly ICloudService _cloudService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public VehicleService(
             IVehicleRepository vehicleRepository,
@@ -21,14 +22,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             ILicensePlateRepository licensePlateRepository,
             IMapper mapper,
             ILogger<VehicleService> logger,
-            ICloudService cloudService) : base(logger)
+            ICloudService cloudService,
+            IUnitOfWork unitOfWork) : base(logger)
         {
             _vehicleRepository = vehicleRepository;
             _brandRepository = brandRepository;
             _licensePlateRepository = licensePlateRepository;
             _mapper = mapper;
             _cloudService = cloudService;
+            _unitOfWork = unitOfWork;
         }
+
 
         public async Task<VehicleResponseDto> GetByIdAsync(int id)
         {
@@ -54,9 +58,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
 
                 var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
+                vehicleDto.Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
                 vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(id);
                 vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.LicensePlateId).ToList();
+                vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
+                // Derive station fields from the first license plate (if any)
+                var firstPlate = vehicle.LicensePlates.FirstOrDefault();
+                if (firstPlate != null)
+                {
+                    vehicleDto.StationId = firstPlate.StationId;
+                    // StationName/Street will require include; keep null here or enrich in controller if needed
+                }
 
                 return new VehicleResponseDto
                 {
@@ -86,9 +98,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 foreach (var vehicle in vehicles)
                 {
                     var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
+                    vehicleDto.Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
                     vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
-                    vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.LicensePlateId).ToList();
+                    vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
+                    var firstPlate = vehicle.LicensePlates.FirstOrDefault();
+                    if (firstPlate != null)
+                    {
+                        vehicleDto.StationId = firstPlate.StationId;
+                    }
                     vehicleDtos.Add(vehicleDto);
                 }
 
@@ -164,26 +182,45 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lưu vào database
                 var createdVehicle = await _vehicleRepository.AddAsync(vehicle);
 
-       // Tạo LicensePlate cho xe
-       var licensePlate = new LicensePlate
-       {
-           LicensePlateId = createDto.LicensePlateNumber, // Sử dụng LicensePlateId để lưu biển số
-           Status = "Available",
-           VehicleId = createdVehicle.VehicleId,
-           Province = createDto.Province,
-           RegistrationDate = DateTime.Now,
-           Condition = createDto.LicensePlateCondition ?? "Good",
-           StationId = createDto.StationId ?? 1 // Default station nếu không có
-       };
+                // Tạo LicensePlate cho xe
+                var licensePlate = new LicensePlate
+                {
+                    PlateNumber = createDto.LicensePlateNumber, // Sử dụng PlateNumber để lưu biển số
+                    Status = "Available",
+                    VehicleId = createdVehicle.VehicleId,
+                    RegistrationDate = DateTime.Now,
+                    StationId = createDto.StationId ?? 1 // Default station nếu không có
+                };
 
                 await _licensePlateRepository.AddAsync(licensePlate);
 
-                // Map sang DTO để trả về
-                var vehicleDto = _mapper.Map<VehicleDto>(createdVehicle);
+                // Cập nhật bộ đếm của trạm
+                // Cập nhật bộ đếm của trạm dựa trên LicensePlate được gán
+                if (licensePlate.StationId != 0)
+                {
+                    var station = await _unitOfWork.Stations.GetByIdAsync(licensePlate.StationId);
+                    if (station != null)
+                    {
+                        station.TotalVehicle += 1;
+                        // Xe mới tạo có ít nhất 1 biển số Available
+                        station.AvailableVehicle += 1;
+                        _unitOfWork.Stations.Update(station);
+                    }
+                }
+
+                // Đảm bảo tất cả thay đổi được commit trước khi load lại
+                await _unitOfWork.SaveChangesAsync();
+
+                // Load lại vehicle với đầy đủ thông tin (bao gồm Station và LicensePlates)
+                var vehicleWithDetails = await _vehicleRepository.GetByIdAsync(createdVehicle.VehicleId);
+
+                var vehicleDto = _mapper.Map<VehicleDto>(vehicleWithDetails);
                 vehicleDto.BrandName = brand.BrandName;
+                vehicleDto.Status = "Available"; // Mới tạo nên có 1 biển số available
                 vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(createdVehicle.VehicleId);
                 vehicleDto.AvailableLicensePlates = 1; // Mới tạo nên có 1 biển số available
                 vehicleDto.LicensePlateNumbers = new List<string> { createDto.LicensePlateNumber };
+                vehicleDto.StationId = licensePlate.StationId;
 
                 _logger.LogInformation("Vehicle created successfully with ID: {VehicleId}", createdVehicle.VehicleId);
 
@@ -200,7 +237,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi tạo xe mới."
+                    Message = "An error occurred while creating the vehicle."
                 };
             }
         }
@@ -266,17 +303,26 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 existingVehicle.SeatNumber = updateDto.SeatNumber;
                 existingVehicle.Battery = updateDto.Battery;
                 existingVehicle.RangeKm = updateDto.RangeKm;
-                existingVehicle.Status = updateDto.Status;
-                existingVehicle.StationId = updateDto.StationId;
+                // Trạm xe không còn liên kết trực tiếp với Vehicle; chuyển trạm sẽ dựa vào LicensePlate ở luồng khác
 
                 // Lưu vào database
                 var updatedVehicle = await _vehicleRepository.UpdateAsync(existingVehicle);
 
+                // Nếu chuyển trạm, cập nhật bộ đếm trạm cũ và mới
+                // Nếu cần chuyển trạm, thực hiện qua API riêng để di chuyển tất cả biển số sang trạm mới
+
                 // Map sang DTO để trả về
                 var vehicleDto = _mapper.Map<VehicleDto>(updatedVehicle);
                 vehicleDto.BrandName = brand.BrandName;
+                vehicleDto.Status = updatedVehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
                 vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(id);
                 vehicleDto.AvailableLicensePlates = updatedVehicle.LicensePlates.Count(lp => lp.Status == "Available");
+                vehicleDto.LicensePlateNumbers = updatedVehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
+                var firstPlateAfterUpdate = updatedVehicle.LicensePlates.FirstOrDefault();
+                if (firstPlateAfterUpdate != null)
+                {
+                    vehicleDto.StationId = firstPlateAfterUpdate.StationId;
+                }
 
                 _logger.LogInformation("Vehicle updated successfully with ID: {VehicleId}", id);
 
@@ -316,6 +362,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Kiểm tra xe có đang được sử dụng không (có order đang active)
                 // TODO: Thêm logic kiểm tra order active
 
+                // Xóa tất cả LicensePlate của xe trước
+                var licensePlates = await _licensePlateRepository.GetLicensePlatesByVehicleIdAsync(id);
+                foreach (var licensePlate in licensePlates)
+                {
+                    await _licensePlateRepository.RemoveByIdAsync(licensePlate.LicensePlateId);
+                }
+
                 // Xóa ảnh khỏi cloud nếu có
                 if (!string.IsNullOrEmpty(vehicle.VehicleImage))
                 {
@@ -340,6 +393,27 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Message = "Không thể xóa xe này."
                     };
                 }
+
+                // Cập nhật bộ đếm của trạm sau khi xóa
+                // Giảm bộ đếm dựa trên Station của biển số (nếu có)
+                var anyPlate = licensePlates.FirstOrDefault();
+                if (anyPlate != null)
+                {
+                    var station = await _unitOfWork.Stations.GetByIdAsync(anyPlate.StationId);
+                    if (station != null)
+                    {
+                        station.TotalVehicle = Math.Max(0, station.TotalVehicle - 1);
+                        var wasAvailable = licensePlates.Any(lp => lp.Status == "Available") || (!licensePlates.Any());
+                        if (wasAvailable)
+                        {
+                            station.AvailableVehicle = Math.Max(0, station.AvailableVehicle - 1);
+                        }
+                        _unitOfWork.Stations.Update(station);
+                    }
+                }
+
+                // Commit tất cả thay đổi
+                await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Vehicle deleted successfully with ID: {VehicleId}", id);
 
@@ -371,15 +445,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 foreach (var vehicle in vehicles)
                 {
                     var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
+                    vehicleDto.Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
                     vehicleDto.IsAvailable = true;
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
+                    vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
                     vehicleDtos.Add(vehicleDto);
                 }
 
                 return new VehicleListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách xe có sẵn thành công.",
+                    Message = "Available vehicles retrieved successfully.",
                     Data = vehicleDtos,
                     TotalCount = vehicleDtos.Count
                 };
@@ -405,15 +481,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 foreach (var vehicle in vehicles)
                 {
                     var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
+                    vehicleDto.Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
                     vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
+                    vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
                     vehicleDtos.Add(vehicleDto);
                 }
 
                 return new VehicleListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách xe theo trạm thành công.",
+                    Message = "Vehicles by station retrieved successfully.",
                     Data = vehicleDtos,
                     TotalCount = vehicleDtos.Count
                 };

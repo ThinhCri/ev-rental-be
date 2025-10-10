@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EV_RENTAL_SYSTEM.Models.Enums;
 
 namespace EV_RENTAL_SYSTEM.Models
 {
@@ -39,19 +40,9 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Range_km")]
         public int? RangeKm { get; set; } // Tầm hoạt động (km)
 
-        [MaxLength(50)]
-        [Column("Status")]
-        public string? Status { get; set; } // Trạng thái xe (Good, Maintenance, etc.)
-
-        [Column("Station_Id")]
-        public int? StationId { get; set; } // Trạm xe đang đậu
-
         // Navigation properties
         [ForeignKey("BrandId")]
         public virtual Brand Brand { get; set; } = null!;
-
-        [ForeignKey("StationId")]
-        public virtual Station? Station { get; set; }
 
         public virtual ICollection<LicensePlate> LicensePlates { get; set; } = new List<LicensePlate>();
     }

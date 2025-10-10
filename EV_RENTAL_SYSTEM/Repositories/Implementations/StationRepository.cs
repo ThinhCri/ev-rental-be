@@ -21,10 +21,9 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         public async Task<Station?> GetStationWithVehiclesAsync(int stationId)
         {
             return await _context.Stations
-                .Include(s => s.Vehicles)
-                    .ThenInclude(v => v.Brand)
-                .Include(s => s.Vehicles)
-                    .ThenInclude(v => v.LicensePlates)
+                .Include(s => s.LicensePlates)
+                .ThenInclude(lp => lp.Vehicle)
+                .ThenInclude(v => v.Brand)
                 .FirstOrDefaultAsync(s => s.StationId == stationId);
         }
     }

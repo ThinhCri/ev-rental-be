@@ -63,7 +63,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new StationResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy trạm"
+                        Message = "Station not found"
                     };
                 }
 
@@ -127,7 +127,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new StationResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy trạm"
+                        Message = "Station not found"
                     };
                 }
 
@@ -167,13 +167,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new StationResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy trạm"
+                        Message = "Station not found"
                     };
                 }
 
-                // Kiểm tra xem trạm có xe không
-                var vehicles = await _unitOfWork.Vehicles.GetAllAsync();
-                var stationVehicles = vehicles.Where(v => v.StationId == id).ToList();
+                // Kiểm tra xem trạm có xe không (qua LicensePlates)
+                var licensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
+                var stationVehicles = licensePlates
+                    .Where(lp => lp.StationId == id)
+                    .Select(lp => lp.VehicleId)
+                    .Distinct()
+                    .ToList();
                 
                 if (stationVehicles.Any())
                 {
@@ -250,18 +254,24 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new StationResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy trạm"
+                        Message = "Station not found"
                     };
                 }
 
                 var stationDto = MapToStationDto(station);
-                stationDto.VehicleCount = station.Vehicles?.Count ?? 0;
-                stationDto.AvailableVehicleCount = station.Vehicles?.Count(v => v.Status == "Available") ?? 0;
+                // Tính từ LicensePlates
+                var licensePlates = station.LicensePlates ?? new List<LicensePlate>();
+                stationDto.VehicleCount = licensePlates.Select(lp => lp.VehicleId).Distinct().Count();
+                stationDto.AvailableVehicleCount = licensePlates
+                    .Where(lp => lp.Status == "Available")
+                    .Select(lp => lp.VehicleId)
+                    .Distinct()
+                    .Count();
 
                 return new StationResponseDto
                 {
                     Success = true,
-                    Message = "Lấy thông tin trạm và xe thành công",
+                    Message = "Station and vehicle information retrieved successfully",
                     Data = stationDto
                 };
             }
@@ -364,6 +374,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             if (!string.IsNullOrEmpty(station.Country)) addressParts.Add(station.Country);
             
             stationDto.FullAddress = string.Join(", ", addressParts);
+            
+            // Gán số liệu đếm từ cột tổng hợp trong bảng Station
+            stationDto.VehicleCount = station.TotalVehicle;
+            stationDto.AvailableVehicleCount = station.AvailableVehicle;
             
             return stationDto;
         }

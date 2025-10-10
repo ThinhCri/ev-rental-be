@@ -19,6 +19,14 @@ namespace EV_RENTAL_SYSTEM.Migrations
                 table: "Vehicle");
 
             migrationBuilder.AddColumn<string>(
+                name: "Phone_number",
+                table: "User",
+                type: "nvarchar(20)",
+                maxLength: 20,
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
                 name: "Notes",
                 table: "User",
                 type: "nvarchar(500)",
@@ -57,6 +65,10 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
             migrationBuilder.DropColumn(
                 name: "Notes",
+                table: "User");
+
+            migrationBuilder.DropColumn(
+                name: "Phone_number",
                 table: "User");
 
             migrationBuilder.DropColumn(

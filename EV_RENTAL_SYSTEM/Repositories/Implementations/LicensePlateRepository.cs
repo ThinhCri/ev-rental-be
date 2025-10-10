@@ -31,13 +31,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<LicensePlate?> GetLicensePlateByNumberAsync(string licensePlateNumber)
+        public async Task<LicensePlate?> GetLicensePlateByNumberAsync(string plateNumber)
         {
             return await _context.LicensePlates
                 .Include(lp => lp.Vehicle)
                 .ThenInclude(v => v.Brand)
                 .Include(lp => lp.Station)
-                .FirstOrDefaultAsync(lp => lp.LicensePlateId == licensePlateNumber);
+                .FirstOrDefaultAsync(lp => lp.PlateNumber == plateNumber);
         }
     }
 }

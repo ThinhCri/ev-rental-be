@@ -22,9 +22,8 @@ namespace EV_RENTAL_SYSTEM.Models
         [MaxLength(50)]
         public string? Status { get; set; }
 
-        [MaxLength(50)]
         [Column("License_plate_Id")]
-        public string LicensePlateId { get; set; } = string.Empty;
+        public int LicensePlateId { get; set; }
 
         // Navigation properties
         [ForeignKey("LicensePlateId")]

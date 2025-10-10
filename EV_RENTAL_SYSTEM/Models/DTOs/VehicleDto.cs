@@ -63,20 +63,11 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
         public int? RangeKm { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
-        public string? Status { get; set; }
-
         public int? StationId { get; set; } // ID trạm xe đang đậu
 
         [Required(ErrorMessage = "Biển số xe là bắt buộc")]
         [MaxLength(50, ErrorMessage = "Biển số xe không được quá 50 ký tự")]
         public string LicensePlateNumber { get; set; } = string.Empty;
-
-        [MaxLength(50, ErrorMessage = "Tỉnh thành không được quá 50 ký tự")]
-        public string? Province { get; set; }
-
-        [MaxLength(50, ErrorMessage = "Tình trạng biển số không được quá 50 ký tự")]
-        public string? LicensePlateCondition { get; set; } = "Good";
     }
 
     /// <summary>
@@ -112,9 +103,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
 
         [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
         public int? RangeKm { get; set; }
-
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
-        public string? Status { get; set; }
 
         public int? StationId { get; set; } // ID trạm xe đang đậu
     }

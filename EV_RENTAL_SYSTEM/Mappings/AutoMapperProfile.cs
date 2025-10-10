@@ -77,10 +77,11 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.VehicleImage, opt => opt.MapFrom(src => src.VehicleImage))
                 .ForMember(dest => dest.Battery, opt => opt.MapFrom(src => src.Battery))
                 .ForMember(dest => dest.RangeKm, opt => opt.MapFrom(src => src.RangeKm))
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.StationId, opt => opt.MapFrom(src => src.StationId))
-                .ForMember(dest => dest.StationName, opt => opt.MapFrom(src => src.Station != null ? src.Station.StationName : null))
-                .ForMember(dest => dest.StationStreet, opt => opt.MapFrom(src => src.Station != null ? src.Station.Street : null))
+                .ForMember(dest => dest.Status, opt => opt.Ignore()) // Will be calculated from LicensePlates
+                // Station is derived from LicensePlates' Station
+                .ForMember(dest => dest.StationId, opt => opt.Ignore())
+                .ForMember(dest => dest.StationName, opt => opt.Ignore())
+                .ForMember(dest => dest.StationStreet, opt => opt.Ignore())
                 .ForMember(dest => dest.IsAvailable, opt => opt.Ignore()) // Will be set manually
                 .ForMember(dest => dest.AvailableLicensePlates, opt => opt.Ignore()) // Will be set manually
                 .ForMember(dest => dest.LicensePlateNumbers, opt => opt.Ignore()); // Will be set manually
@@ -111,13 +112,11 @@ namespace EV_RENTAL_SYSTEM.Mappings
 
             CreateMap<CreateStationDto, Station>()
                 .ForMember(dest => dest.StationId, opt => opt.Ignore())
-                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
-                .ForMember(dest => dest.Vehicles, opt => opt.Ignore());
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore());
 
             CreateMap<UpdateStationDto, Station>()
                 .ForMember(dest => dest.StationId, opt => opt.Ignore())
-                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore())
-                .ForMember(dest => dest.Vehicles, opt => opt.Ignore());
+                .ForMember(dest => dest.LicensePlates, opt => opt.Ignore());
 
             // Order mappings
             CreateMap<Order, RentalDto>()

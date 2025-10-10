@@ -46,8 +46,8 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     /// </summary>
     public class RentalLicensePlateDto
     {
-        public string LicensePlateId { get; set; } = string.Empty;
-        public string LicensePlateNumber { get; set; } = string.Empty;
+        public int LicensePlateId { get; set; }
+        public string PlateNumber { get; set; } = string.Empty;
         public string? Status { get; set; }
     }
 
@@ -161,8 +161,8 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     /// </summary>
     public class AvailableLicensePlateDto
     {
-        public string LicensePlateId { get; set; } = string.Empty;
-        public string LicensePlateNumber { get; set; } = string.Empty;
+        public int LicensePlateId { get; set; }
+        public string PlateNumber { get; set; } = string.Empty;
         public string? Status { get; set; }
     }
 

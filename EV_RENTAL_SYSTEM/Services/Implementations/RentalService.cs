@@ -394,7 +394,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         continue;
 
                     // Apply filters
-                    if (searchDto.StationId.HasValue && vehicle.StationId != searchDto.StationId.Value)
+                    if (searchDto.StationId.HasValue)
+                    {
+                        var stationId = vehicle.LicensePlates.FirstOrDefault()?.StationId;
+                        if (stationId != searchDto.StationId.Value)
+                            continue;
+                    }
                         continue;
 
                     if (searchDto.BrandId.HasValue && vehicle.BrandId != searchDto.BrandId.Value)
@@ -408,11 +413,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,
-                        StationName = vehicle.Station?.StationName,
-                        StationId = vehicle.StationId,
+                        StationName = null, // có thể lấy qua include Station từ LicensePlate nếu cần
+                        StationId = vehicle.LicensePlates.FirstOrDefault()?.StationId,
                         Battery = vehicle.Battery,
                         RangeKm = vehicle.RangeKm,
-                        Status = vehicle.Status,
+                        Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available",
                         EstimatedTotalCost = vehicle.PricePerDay * (int)Math.Ceiling((searchDto.EndTime - searchDto.StartTime).TotalDays)
                     };
 
@@ -423,7 +428,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         .Select(lp => new AvailableLicensePlateDto
                         {
                             LicensePlateId = lp.LicensePlateId,
-                            LicensePlateNumber = lp.LicensePlateId, // Sử dụng LicensePlateId làm biển số
+                            PlateNumber = lp.PlateNumber, // Sử dụng PlateNumber làm biển số
                             Status = lp.Status
                         })
                         .ToList();
@@ -630,10 +635,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     : 0
             };
 
-            // Lấy thông tin xe
+            // Lấy thông tin xe/biển số/trạm
             var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetAllAsync();
             var licensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
             var vehicles = await _unitOfWork.Vehicles.GetAllAsync();
+            var stations = await _unitOfWork.Stations.GetAllAsync();
 
             var vehicleIds = orderLicensePlates
                 .Where(olp => olp.OrderId == order.OrderId)
@@ -649,6 +655,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var vehicle = vehicles.FirstOrDefault(v => v.VehicleId == vehicleId);
                 if (vehicle != null)
                 {
+                    var firstPlateForVehicle = licensePlates.FirstOrDefault(lp => lp.VehicleId == vehicleId);
+                    string? stationName = null;
+                    if (firstPlateForVehicle != null)
+                    {
+                        stationName = stations.FirstOrDefault(s => s.StationId == firstPlateForVehicle.StationId)?.StationName;
+                    }
                     var rentalVehicle = new RentalVehicleDto
                     {
                         VehicleId = vehicle.VehicleId,
@@ -657,7 +669,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,
-                        StationName = vehicle.Station?.StationName
+                        StationName = stationName
                     };
 
                     // Lấy biển số của xe trong đơn thuê
@@ -671,7 +683,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         .Select(lp => new RentalLicensePlateDto
                         {
                             LicensePlateId = lp.LicensePlateId,
-                            LicensePlateNumber = lp.LicensePlateId,
+                            PlateNumber = lp.PlateNumber,
                             Status = lp.Status
                         })
                         .ToList();

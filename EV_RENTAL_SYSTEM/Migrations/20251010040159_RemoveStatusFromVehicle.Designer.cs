@@ -4,6 +4,7 @@ using EV_RENTAL_SYSTEM.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010040159_RemoveStatusFromVehicle")]
+    partial class RemoveStatusFromVehicle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,11 +206,19 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LicensePlateId"));
 
+                    b.Property<string>("Condition")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("PlateNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("Plate_Number");
+
+                    b.Property<string>("Province")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("RegistrationDate")
                         .HasColumnType("date")
@@ -486,10 +497,6 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StationId"));
 
-                    b.Property<int>("AvailableVehicle")
-                        .HasColumnType("int")
-                        .HasColumnName("Available_Vehicle");
-
                     b.Property<string>("Country")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -510,10 +517,6 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     b.Property<string>("Street")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("TotalVehicle")
-                        .HasColumnType("int")
-                        .HasColumnName("Total_Vehicle");
 
                     b.HasKey("StationId");
 

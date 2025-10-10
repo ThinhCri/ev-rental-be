@@ -18,7 +18,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? VehicleModel { get; set; }
         public string? VehicleBrand { get; set; }
         public string? VehicleType { get; set; }
-        public string? LicensePlateId { get; set; }
+        public int? LicensePlateId { get; set; }
         
         // Thông tin trạm
         public string? StationName { get; set; }

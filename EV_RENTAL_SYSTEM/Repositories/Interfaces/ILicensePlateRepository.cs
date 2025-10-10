@@ -6,6 +6,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
     {
         Task<IEnumerable<LicensePlate>> GetLicensePlatesByVehicleIdAsync(int vehicleId);
         Task<IEnumerable<LicensePlate>> GetAvailableLicensePlatesAsync();
-        Task<LicensePlate?> GetLicensePlateByNumberAsync(string licensePlateNumber);
+        Task<LicensePlate?> GetLicensePlateByNumberAsync(string plateNumber);
     }
 }

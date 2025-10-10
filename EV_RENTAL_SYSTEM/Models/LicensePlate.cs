@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EV_RENTAL_SYSTEM.Models.Enums;
 
 namespace EV_RENTAL_SYSTEM.Models
 {
@@ -7,24 +8,22 @@ namespace EV_RENTAL_SYSTEM.Models
     public class LicensePlate
     {
         [Key]
-        [MaxLength(50)]
         [Column("License_plate_Id")]
-        public string LicensePlateId { get; set; } = string.Empty;
+        public int LicensePlateId { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        [Column("Plate_Number")]
+        public string PlateNumber { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string? Status { get; set; }
+        public string? Status { get; set; } // Trạng thái biển số (Available, Rented, Maintenance)
 
         [Column("Vehicle_Id")]
         public int VehicleId { get; set; }
 
-        [MaxLength(50)]
-        public string? Province { get; set; }
-
         [Column("Registration_date", TypeName = "date")]
         public DateTime? RegistrationDate { get; set; }
-
-        [MaxLength(50)]
-        public string? Condition { get; set; }
 
         [Column("Station_Id")]
         public int StationId { get; set; }

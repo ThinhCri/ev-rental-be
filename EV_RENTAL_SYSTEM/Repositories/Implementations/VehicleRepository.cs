@@ -19,7 +19,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Vehicles
                 .Include(v => v.Brand)
-                .Include(v => v.Station)
                 .Include(v => v.LicensePlates)
                 .FirstOrDefaultAsync(v => v.VehicleId == id);
         }
@@ -28,7 +27,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Vehicles
                 .Include(v => v.Brand)
-                .Include(v => v.Station)
                 .Include(v => v.LicensePlates)
                 .ToListAsync();
         }
@@ -64,11 +62,11 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
 
         public async Task<IEnumerable<Vehicle>> GetByStationIdAsync(int stationId)
         {
+            // Vehicles that have at least one license plate at the given station
             return await _context.Vehicles
                 .Include(v => v.Brand)
-                .Include(v => v.Station)
                 .Include(v => v.LicensePlates)
-                .Where(v => v.StationId == stationId)
+                .Where(v => v.LicensePlates.Any(lp => lp.StationId == stationId))
                 .ToListAsync();
         }
 
@@ -77,7 +75,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             // Lấy các xe có ít nhất 1 biển số có status "Available" HOẶC chưa có biển số nào (xe mới)
             return await _context.Vehicles
                 .Include(v => v.Brand)
-                .Include(v => v.Station)
                 .Include(v => v.LicensePlates)
                 .Where(v => !v.LicensePlates.Any() || v.LicensePlates.Any(lp => lp.Status == "Available"))
                 .ToListAsync();

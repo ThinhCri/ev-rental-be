@@ -259,17 +259,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var mercedesBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Mercedes");
                 var suzukiBrand = await _context.Brands.FirstAsync(b => b.BrandName == "Suzuki");
 
-                var stations = await _context.Stations.ToListAsync();
-                var hcmStations = stations.Where(s => s.Province == "Ho Chi Minh City").ToList();
-                var bdStations = stations.Where(s => s.Province == "Binh Duong").ToList();
-                var dnStations = stations.Where(s => s.Province == "Da Nang").ToList();
-
                 var vehicles = new List<Vehicle>();
 
                 // Ho Chi Minh City Vehicles (10 vehicles)
                 for (int i = 1; i <= 10; i++)
                 {
-                    var station = hcmStations[(i - 1) % hcmStations.Count];
 					var brand = i % 3 == 0 ? teslaBrand : (i % 2 == 0 ? hondaBrand : yamahaBrand);
 					var isCar = true;
                     
@@ -281,17 +275,14 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 						Description = $"Premium electric vehicle with autopilot - HCM Branch",
 						PricePerDay = 2500000, 
 						SeatNumber = 5,
-						Battery = isCar ? 75.0m : 2.5m,
+                        Battery = isCar ? 75.0m : 2.5m,
                         RangeKm = isCar ? 500 : 50,
-                        Status = "Good",
-                        StationId = station.StationId
                     });
                 }
 
                 // Binh Duong Vehicles (10 vehicles)
                 for (int i = 1; i <= 10; i++)
                 {
-                    var station = bdStations[(i - 1) % bdStations.Count];
 					var brand = i % 3 == 0 ? bmwBrand : (i % 2 == 0 ? suzukiBrand : yamahaBrand);
 					var isCar = true;
                     
@@ -305,15 +296,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 						SeatNumber = 5,
 						Battery = isCar ? 80.0m : 2.0m,
                         RangeKm = isCar ? 600 : 45,
-                        Status = "Good",
-                        StationId = station.StationId
                     });
                 }
 
                 // Da Nang Vehicles (10 vehicles)
                 for (int i = 1; i <= 10; i++)
                 {
-                    var station = dnStations[(i - 1) % dnStations.Count];
 					var brand = i % 3 == 0 ? mercedesBrand : (i % 2 == 0 ? hondaBrand : suzukiBrand);
 					var isCar = true;
                     
@@ -327,8 +315,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 						SeatNumber = 5,
 						Battery = isCar ? 90.0m : 3.0m,
                         RangeKm = isCar ? 700 : 60,
-                        Status = "Good",
-                        StationId = station.StationId
                     });
                 }
 
@@ -352,7 +338,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 for (int i = 0; i < vehicles.Count; i++)
                 {
                     var vehicle = vehicles[i];
-                    var station = stations.First(s => s.StationId == vehicle.StationId);
+                    // Gán trạm theo vòng tròn chỉ để seed biển số (xe không còn lưu StationId)
+                    var station = stations[i % stations.Count];
                     
                     // Generate license plate based on province
                     string provinceCode = station.Province switch
@@ -365,16 +352,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                     var plateNumber = $"{provinceCode}-{10000 + i:00000}";
                     var statuses = new[] { "Available", "Available", "Available", "Maintenance", "Rented" };
-                    var conditions = new[] { "Excellent", "Good", "Good", "Fair" };
                     
        licensePlates.Add(new LicensePlate
        {
-           LicensePlateId = plateNumber, // Sử dụng LicensePlateId để lưu biển số
+           PlateNumber = plateNumber, // Sử dụng PlateNumber để lưu biển số
            Status = statuses[random.Next(statuses.Length)],
            VehicleId = vehicle.VehicleId,
-           Province = station.Province,
            RegistrationDate = DateTime.Now.AddDays(-random.Next(1, 90)),
-           Condition = conditions[random.Next(conditions.Length)],
            StationId = station.StationId
        });
                 }

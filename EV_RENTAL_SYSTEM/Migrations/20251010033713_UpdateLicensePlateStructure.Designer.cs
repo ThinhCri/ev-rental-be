@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251006204732_RemoveChargingTimeFromVehicle")]
-    partial class RemoveChargingTimeFromVehicle
+    [Migration("20251010033713_UpdateLicensePlateStructure")]
+    partial class UpdateLicensePlateStructure
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -199,14 +199,22 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.LicensePlate", b =>
                 {
-                    b.Property<string>("LicensePlateId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("LicensePlateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
                         .HasColumnName("License_plate_Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LicensePlateId"));
 
                     b.Property<string>("Condition")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Plate_Number");
 
                     b.Property<string>("Province")
                         .HasMaxLength(50)
@@ -306,10 +314,8 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("LicensePlateId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("LicensePlateId")
+                        .HasColumnType("int")
                         .HasColumnName("License_plate_Id");
 
                     b.Property<DateTime?>("MaintenanceDate")
@@ -373,9 +379,8 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Order_Id");
 
-                    b.Property<string>("LicensePlateId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("LicensePlateId")
+                        .HasColumnType("int")
                         .HasColumnName("License_plate_Id");
 
                     b.HasKey("OrderId", "LicensePlateId");
@@ -580,6 +585,10 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("Full_name");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -595,6 +604,10 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Role_Id");
 
+                    b.Property<int?>("StationId")
+                        .HasColumnType("int")
+                        .HasColumnName("Station_Id");
+
                     b.Property<string>("Status")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -605,6 +618,8 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .IsUnique();
 
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("StationId");
 
                     b.ToTable("User");
                 });
@@ -625,10 +640,6 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     b.Property<int>("BrandId")
                         .HasColumnType("int")
                         .HasColumnName("Brand_Id");
-
-                    b.Property<decimal?>("ChargingTime")
-                        .HasColumnType("decimal(4,1)")
-                        .HasColumnName("Charging_time");
 
                     b.Property<string>("Description")
                         .HasMaxLength(255)
@@ -668,11 +679,6 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("Vehicle_image");
-
-                    b.Property<string>("VehicleType")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("Vehicle_type");
 
                     b.HasKey("VehicleId");
 
@@ -849,7 +855,13 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EV_RENTAL_SYSTEM.Models.Station", "Station")
+                        .WithMany("Staff")
+                        .HasForeignKey("StationId");
+
                     b.Navigation("Role");
+
+                    b.Navigation("Station");
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Vehicle", b =>
@@ -920,6 +932,8 @@ namespace EV_RENTAL_SYSTEM.Migrations
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Station", b =>
                 {
                     b.Navigation("LicensePlates");
+
+                    b.Navigation("Staff");
 
                     b.Navigation("Vehicles");
                 });

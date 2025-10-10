@@ -22,7 +22,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order_LicensePlate>> GetOrderLicensePlatesByLicensePlateIdAsync(string licensePlateId)
+        public async Task<IEnumerable<Order_LicensePlate>> GetOrderLicensePlatesByLicensePlateIdAsync(int licensePlateId)
         {
             return await _context.OrderLicensePlates
                 .Where(olp => olp.LicensePlateId == licensePlateId)
@@ -33,7 +33,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<bool> IsLicensePlateInOrderAsync(string licensePlateId, DateTime startTime, DateTime endTime)
+        public async Task<bool> IsLicensePlateInOrderAsync(int licensePlateId, DateTime startTime, DateTime endTime)
         {
             var conflictingOrders = await _context.OrderLicensePlates
                 .Where(olp => olp.LicensePlateId == licensePlateId)

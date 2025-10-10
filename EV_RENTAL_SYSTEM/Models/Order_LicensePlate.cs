@@ -9,9 +9,8 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Order_Id")]
         public int OrderId { get; set; }
 
-        [MaxLength(50)]
         [Column("License_plate_Id")]
-        public string LicensePlateId { get; set; } = string.Empty;
+        public int LicensePlateId { get; set; }
 
         // Navigation properties
         [ForeignKey("OrderId")]
