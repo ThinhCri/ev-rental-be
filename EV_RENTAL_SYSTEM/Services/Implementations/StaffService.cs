@@ -298,14 +298,27 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Birthday = createDto.Birthday,
                     CreatedAt = DateTime.UtcNow,
                     Status = createDto.Status ?? "Active",
-                    RoleId = 2 // Station Staff
+                    RoleId = 2, // Station Staff
+                    StationId = createDto.StationId, // FIX: Lưu StationId
+                    Notes = createDto.Notes // FIX: Lưu Notes
                 };
 
                 // Lưu vào database
                 var createdUser = await _userRepository.AddAsync(user);
 
+                // FIX: Reload user with navigation properties
+                var userWithNavProps = await _userRepository.GetByIdAsync(createdUser.UserId);
+                if (userWithNavProps == null)
+                {
+                    return new StaffResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải thông tin nhân viên sau khi tạo"
+                    };
+                }
+
                 // Map sang DTO để trả về
-                var staffDto = await MapToStaffDto(createdUser, createDto.StationId, createDto.Notes);
+                var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff created successfully with ID: {StaffId}", createdUser.UserId);
 
@@ -397,6 +410,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 existingUser.Email = updateDto.Email;
                 existingUser.PhoneNumber = updateDto.PhoneNumber;
                 existingUser.Birthday = updateDto.Birthday;
+                existingUser.StationId = updateDto.StationId; // FIX: Cập nhật StationId
+                existingUser.Notes = updateDto.Notes; // FIX: Cập nhật Notes
                 if (!string.IsNullOrEmpty(updateDto.Status))
                 {
                     existingUser.Status = updateDto.Status;
@@ -405,8 +420,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
+                // FIX: Reload user with navigation properties
+                var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
+                if (userWithNavProps == null)
+                {
+                    return new StaffResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải thông tin nhân viên sau khi cập nhật"
+                    };
+                }
+
                 // Map sang DTO để trả về
-                var staffDto = await MapToStaffDto(updatedUser, updateDto.StationId, updateDto.Notes);
+                var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff updated successfully with ID: {StaffId}", updatedUser.UserId);
 
@@ -532,8 +558,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
+                // FIX: Reload user with navigation properties
+                var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
+                if (userWithNavProps == null)
+                {
+                    return new StaffResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải thông tin nhân viên sau khi đổi mật khẩu"
+                    };
+                }
+
                 // Map sang DTO để trả về
-                var staffDto = await MapToStaffDto(updatedUser);
+                var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff password changed successfully with ID: {StaffId}", updatedUser.UserId);
 
@@ -595,8 +632,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
+                // FIX: Reload user with navigation properties
+                var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
+                if (userWithNavProps == null)
+                {
+                    return new StaffResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải thông tin nhân viên sau khi cập nhật trạng thái"
+                    };
+                }
+
                 // Map sang DTO để trả về
-                var staffDto = await MapToStaffDto(updatedUser);
+                var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff status updated successfully with ID: {StaffId} to {Status}", updatedUser.UserId, status);
 
@@ -707,18 +755,34 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 Birthday = user.Birthday,
                 CreatedAt = user.CreatedAt,
                 Status = user.Status,
-                RoleName = user.Role.RoleName,
-                Notes = notes ?? user.Notes
+                RoleName = user.Role?.RoleName ?? "Unknown",
+                Notes = notes ?? user.Notes,
+                // FIX: Initialize with default values
+                StationId = 0,
+                StationName = ""
             };
 
-            // Nếu có stationId được cung cấp, lấy thông tin trạm
-            if (stationId.HasValue)
+            if (user.Station != null)
             {
-                var station = await _stationRepository.GetByIdAsync(stationId.Value);
-                if (station != null)
+                staffDto.StationId = user.Station.StationId;
+                staffDto.StationName = user.Station.StationName;
+            }
+            else
+            {
+                var targetStationId = user.StationId ?? stationId;
+                if (targetStationId.HasValue)
                 {
-                    staffDto.StationId = station.StationId;
-                    staffDto.StationName = station.StationName;
+                    var station = await _stationRepository.GetByIdAsync(targetStationId.Value);
+                    if (station != null)
+                    {
+                        staffDto.StationId = station.StationId;
+                        staffDto.StationName = station.StationName;
+                    }
+                }
+                else
+                {
+                    staffDto.StationId = 0;
+                    staffDto.StationName = "Not Staff";
                 }
             }
 
@@ -727,10 +791,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
         private async Task<List<User>> GetUsersByStationId(int stationId)
         {
-            // Hiện tại chưa có trường StationId trong User model
-            // Trong thực tế, cần thêm trường này hoặc tạo bảng UserStation
-            // Tạm thời trả về danh sách rỗng
-            return new List<User>();
+            var users = await _userRepository.GetAllAsync();
+            return users.Where(u => u.RoleId == 2 && u.StationId == stationId).ToList();
         }
     }
 }
