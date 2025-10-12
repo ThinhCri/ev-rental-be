@@ -28,14 +28,31 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetAllRentals()
         {
-            var result = await _rentalService.GetAllRentalsAsync();
-            
-            if (!result.Success)
+            try
             {
-                return ErrorResponse(result.Message, 500);
-            }
+                var result = await _rentalService.GetAllRentalsAsync();
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all rentals: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy danh sách đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -47,14 +64,31 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetRentalById(int id)
         {
-            var result = await _rentalService.GetRentalByIdAsync(id);
-            
-            if (!result.Success)
+            try
             {
-                return NotFound(result);
-            }
+                var result = await _rentalService.GetRentalByIdAsync(id);
+                
+                if (!result.Success)
+                {
+                    return NotFound(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting rental by ID {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy thông tin đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -65,20 +99,41 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetMyRentals()
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
+            try
             {
-                return Unauthorized(new { message = "Invalid token" });
-            }
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return Unauthorized(new 
+                    { 
+                        Success = false,
+                        Message = "Token không hợp lệ" 
+                    });
+                }
 
-            var result = await _rentalService.GetUserRentalsAsync(userId.Value);
-            
-            if (!result.Success)
+                var result = await _rentalService.GetUserRentalsAsync(userId.Value);
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                return ErrorResponse(result.Message, 500);
+                _logger.LogError(ex, "Error getting user rentals: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy lịch sử thuê xe",
+                    Error = ex.Message
+                });
             }
-
-            return Ok(result);
         }
 
         /// <summary>
@@ -90,14 +145,31 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetRentalDetails(int id)
         {
-            var result = await _rentalService.GetRentalWithDetailsAsync(id);
-            
-            if (!result.Success)
+            try
             {
-                return NotFound(result);
-            }
+                var result = await _rentalService.GetRentalWithDetailsAsync(id);
+                
+                if (!result.Success)
+                {
+                    return NotFound(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting rental details for ID {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy chi tiết đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -108,28 +180,59 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [HttpPost("available-vehicles")]
         public async Task<IActionResult> GetAvailableVehicles([FromBody] AvailableVehiclesSearchDto searchDto)
         {
-            var validationError = ValidateModelState();
-            if (validationError != null) return validationError;
-
-            // Validate date range
-            if (searchDto.StartTime >= searchDto.EndTime)
+            try
             {
-                return ErrorResponse("End time must be after start time");
-            }
+                if (searchDto == null)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu tìm kiếm không hợp lệ"
+                    });
+                }
 
-            if (searchDto.StartTime < DateTime.Now)
+                // Validate date range
+                if (searchDto.StartTime >= searchDto.EndTime)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    });
+                }
+
+                if (searchDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                    });
+                }
+
+                var result = await _rentalService.GetAvailableVehiclesAsync(searchDto);
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
             {
-                return ErrorResponse("Start time cannot be in the past");
+                _logger.LogError(ex, "Error getting available vehicles: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi tìm kiếm xe có sẵn",
+                    Error = ex.Message
+                });
             }
-
-            var result = await _rentalService.GetAvailableVehiclesAsync(searchDto);
-            
-            if (!result.Success)
-            {
-                return ErrorResponse(result.Message, 500);
-            }
-
-            return Ok(result);
         }
 
         /// <summary>
@@ -141,34 +244,162 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CreateRental([FromBody] CreateRentalDto createDto)
         {
-            var validationError = ValidateModelState();
-            if (validationError != null) return validationError;
-
-            // Validate date range
-            if (createDto.StartTime >= createDto.EndTime)
+            try
             {
-                return ErrorResponse("End time must be after start time");
-            }
+                _logger.LogInformation("CreateRental called with data: {Data}", 
+                    createDto != null ? System.Text.Json.JsonSerializer.Serialize(createDto) : "null");
 
-            if (createDto.StartTime < DateTime.Now)
+                // Kiểm tra JSON parsing
+                if (createDto == null)
+                {
+                    _logger.LogWarning("CreateRental: createDto is null");
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "JSON không hợp lệ hoặc bị lỗi cú pháp",
+                        Hint = "Kiểm tra dấu phẩy, ngoặc vuông và format JSON"
+                    });
+                }
+
+                // Kiểm tra model validation
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    
+                    var fieldErrors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    
+                    _logger.LogWarning("CreateRental: Model validation failed. Errors: {Errors}, FieldErrors: {FieldErrors}", 
+                        string.Join(", ", errors), System.Text.Json.JsonSerializer.Serialize(fieldErrors));
+                    
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ",
+                        Errors = errors,
+                        FieldErrors = fieldErrors,
+                        ReceivedData = new
+                        {
+                            StartTime = createDto?.StartTime,
+                            EndTime = createDto?.EndTime,
+                            VehicleIds = createDto?.VehicleIds,
+                            DepositAmount = createDto?.DepositAmount,
+                            Notes = createDto?.Notes,
+                            IsBookingForOthers = createDto?.IsBookingForOthers,
+                            RenterName = createDto?.RenterName,
+                            RenterPhone = createDto?.RenterPhone,
+                            RenterLicenseImageUrl = createDto?.RenterLicenseImageUrl
+                        }
+                    });
+                }
+
+                // Validate date range
+                if (createDto.StartTime >= createDto.EndTime)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    });
+                }
+
+                if (createDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                    });
+                }
+
+                // Validate vehicle IDs
+                if (createDto.VehicleIds == null || !createDto.VehicleIds.Any())
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Phải chọn ít nhất 1 xe"
+                    });
+                }
+
+                // Validate đặt hộ
+                if (createDto.IsBookingForOthers)
+                {
+                    if (string.IsNullOrWhiteSpace(createDto.RenterName))
+                    {
+                        return BadRequest(new
+                        {
+                            Success = false,
+                            Message = "Tên người thuê là bắt buộc khi đặt hộ"
+                        });
+                    }
+                    
+                    if (string.IsNullOrWhiteSpace(createDto.RenterPhone))
+                    {
+                        return BadRequest(new
+                        {
+                            Success = false,
+                            Message = "Số điện thoại người thuê là bắt buộc khi đặt hộ"
+                        });
+                    }
+                    
+                    if (string.IsNullOrWhiteSpace(createDto.RenterLicenseImageUrl))
+                    {
+                        return BadRequest(new
+                        {
+                            Success = false,
+                            Message = "Ảnh GPLX người thuê là bắt buộc khi đặt hộ"
+                        });
+                    }
+                }
+
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return Unauthorized(new 
+                    { 
+                        Success = false,
+                        Message = "Token không hợp lệ" 
+                    });
+                }
+
+                var result = await _rentalService.CreateRentalAsync(createDto, userId.Value);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Tạo đơn thuê thành công",
+                    Data = result.Data,
+                    OrderId = result.OrderId, // Thêm OrderId vào response
+                    ContractId = result.ContractId // Thêm ContractId vào response
+                });
+            }
+            catch (Exception ex)
             {
-                return ErrorResponse("Start time cannot be in the past");
+                _logger.LogError(ex, "Error creating rental: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi tạo đơn thuê",
+                    Error = ex.Message
+                });
             }
-
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { message = "Invalid token" });
-            }
-
-            var result = await _rentalService.CreateRentalAsync(createDto, userId.Value);
-            
-            if (!result.Success)
-            {
-                return BadRequest(result);
-            }
-
-            return CreatedAtAction(nameof(GetRentalById), new { id = result.Data?.OrderId }, result);
         }
 
         /// <summary>
@@ -181,17 +412,40 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> UpdateRental(int id, [FromBody] UpdateRentalDto updateDto)
         {
-            var validationError = ValidateModelState();
-            if (validationError != null) return validationError;
-
-            var result = await _rentalService.UpdateRentalAsync(id, updateDto);
-            
-            if (!result.Success)
+            try
             {
-                return BadRequest(result);
-            }
+                if (updateDto == null)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu cập nhật không hợp lệ"
+                    });
+                }
 
-            return Ok(result);
+                var result = await _rentalService.UpdateRentalAsync(id, updateDto);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating rental {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi cập nhật đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -203,14 +457,31 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CancelRental(int id)
         {
-            var result = await _rentalService.CancelRentalAsync(id);
-            
-            if (!result.Success)
+            try
             {
-                return BadRequest(result);
-            }
+                var result = await _rentalService.CancelRentalAsync(id);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling rental {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi hủy đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -222,14 +493,31 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> CompleteRental(int id)
         {
-            var result = await _rentalService.CompleteRentalAsync(id);
-            
-            if (!result.Success)
+            try
             {
-                return BadRequest(result);
-            }
+                var result = await _rentalService.CompleteRentalAsync(id);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing rental {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi hoàn thành đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -241,17 +529,40 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> SearchRentals([FromBody] RentalSearchDto searchDto)
         {
-            var validationError = ValidateModelState();
-            if (validationError != null) return validationError;
-
-            var result = await _rentalService.SearchRentalsAsync(searchDto);
-            
-            if (!result.Success)
+            try
             {
-                return ErrorResponse(result.Message, 500);
-            }
+                if (searchDto == null)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu tìm kiếm không hợp lệ"
+                    });
+                }
 
-            return Ok(result);
+                var result = await _rentalService.SearchRentalsAsync(searchDto);
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching rentals: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi tìm kiếm đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -264,21 +575,43 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [HttpGet("calculate-cost")]
         public async Task<IActionResult> CalculateRentalCost([FromQuery] int vehicleId, [FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
         {
-            if (startTime >= endTime)
+            try
             {
-                return ErrorResponse("End time must be after start time");
-            }
+                if (startTime >= endTime)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    });
+                }
 
-            var cost = await _rentalService.CalculateRentalCostAsync(vehicleId, startTime, endTime);
-            
-            return SuccessResponse(new
+                var cost = await _rentalService.CalculateRentalCostAsync(vehicleId, startTime, endTime);
+                
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Tính toán chi phí thành công",
+                    Data = new
+                    {
+                        VehicleId = vehicleId,
+                        StartTime = startTime,
+                        EndTime = endTime,
+                        TotalDays = (int)Math.Ceiling((endTime - startTime).TotalDays),
+                        TotalCost = cost
+                    }
+                });
+            }
+            catch (Exception ex)
             {
-                VehicleId = vehicleId,
-                StartTime = startTime,
-                EndTime = endTime,
-                TotalDays = (int)Math.Ceiling((endTime - startTime).TotalDays),
-                TotalCost = cost
-            }, "Cost calculated successfully");
+                _logger.LogError(ex, "Error calculating rental cost: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi tính toán chi phí",
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -291,21 +624,154 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [HttpGet("check-availability")]
         public async Task<IActionResult> CheckVehicleAvailability([FromQuery] int vehicleId, [FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
         {
-            if (startTime >= endTime)
+            try
             {
-                return ErrorResponse("End time must be after start time");
-            }
+                if (startTime >= endTime)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    });
+                }
 
-            var isAvailable = await _rentalService.IsVehicleAvailableAsync(vehicleId, startTime, endTime);
-            
-            return SuccessResponse(new
+                var isAvailable = await _rentalService.IsVehicleAvailableAsync(vehicleId, startTime, endTime);
+                
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Kiểm tra tính khả dụng thành công",
+                    Data = new
+                    {
+                        VehicleId = vehicleId,
+                        StartTime = startTime,
+                        EndTime = endTime,
+                        IsAvailable = isAvailable
+                    }
+                });
+            }
+            catch (Exception ex)
             {
-                VehicleId = vehicleId,
-                StartTime = startTime,
-                EndTime = endTime,
-                IsAvailable = isAvailable
-            }, "Availability checked successfully");
+                _logger.LogError(ex, "Error checking vehicle availability: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi kiểm tra tính khả dụng",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy thông tin bảng hợp đồng để hiển thị
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <returns>Contract summary information</returns>
+        [HttpGet("{orderId}/contract-summary")]
+        [Authorize(Policy = "AuthenticatedUser")]
+        public async Task<IActionResult> GetContractSummary(int orderId)
+        {
+            try
+            {
+                var result = await _rentalService.GetContractSummaryAsync(orderId);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting contract summary for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy thông tin hợp đồng",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Xác nhận hợp đồng và tạo QR code thanh toán
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <returns>QR code payment information</returns>
+        [HttpPost("{orderId}/confirm-contract")]
+        [Authorize(Policy = "AuthenticatedUser")]
+        public async Task<IActionResult> ConfirmContract(int orderId)
+        {
+            try
+            {
+                var result = await _rentalService.ConfirmContractAsync(orderId);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirming contract for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi xác nhận hợp đồng",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Staff xác nhận GPLX và cập nhật trạng thái xe
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <param name="request">Staff confirmation request</param>
+        /// <returns>Confirmation result</returns>
+        [HttpPost("{orderId}/staff-confirm")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> StaffConfirmRental(int orderId, [FromBody] StaffConfirmationDto request)
+        {
+            try
+            {
+                var validationError = ValidateModelState();
+                if (validationError != null) return validationError;
+
+                var result = await _rentalService.StaffConfirmRentalAsync(orderId, request);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in staff confirmation for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi xác nhận đơn thuê",
+                    Error = ex.Message
+                });
+            }
         }
     }
 }
-

@@ -13,6 +13,10 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Order_Id")]
         public int OrderId { get; set; }
 
+        [MaxLength(50)]
+        [Column("Contract_Code")]
+        public string? ContractCode { get; set; }
+
         [Column("Created_date")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 

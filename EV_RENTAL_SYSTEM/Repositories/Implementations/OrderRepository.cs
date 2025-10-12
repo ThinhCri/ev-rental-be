@@ -56,6 +56,19 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             return await _context.Orders
                 .AnyAsync(o => o.UserId == userId && (o.Status == "Active" || o.Status == "Rented"));
         }
+
+        public async Task<IEnumerable<Order>> GetUserOrdersAsync(int userId)
+        {
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderLicensePlates)
+                    .ThenInclude(olp => olp.LicensePlate)
+                        .ThenInclude(lp => lp.Vehicle)
+                            .ThenInclude(v => v.Brand)
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+        }
     }
 }
 

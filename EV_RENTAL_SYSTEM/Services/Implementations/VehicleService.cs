@@ -185,6 +185,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Tạo LicensePlate cho xe
                 var licensePlate = new LicensePlate
                 {
+                    LicensePlateId = createdVehicle.VehicleId, // Tạo ID dạng int
                     PlateNumber = createDto.LicensePlateNumber, // Sử dụng PlateNumber để lưu biển số
                     Status = "Available",
                     VehicleId = createdVehicle.VehicleId,

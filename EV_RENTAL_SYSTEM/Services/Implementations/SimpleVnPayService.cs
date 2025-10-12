@@ -23,13 +23,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             _paymentService = paymentService;
         }
 
-        public async Task<VnPayPaymentResponseDto> CreatePaymentUrlAsync(VnPayPaymentRequestDto request, HttpContext httpContext)
+        public async Task<VnPayPaymentResponseDto> CreatePaymentUrlAsync(VnPayPaymentRequestDto request, HttpContext httpContext, string transactionId)
         {
             try
             {
-                // Tạo transaction ID
-                var transactionId = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
-
                 // Tạo payment trong database trước
                 var paymentResult = await _paymentService.CreatePaymentAsync(request, 1); // Mock userId = 1
 

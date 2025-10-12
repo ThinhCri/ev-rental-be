@@ -50,5 +50,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ThenInclude(cp => cp.ProcessStep)
                 .FirstOrDefaultAsync(c => c.ContractId == contractId);
         }
+
+        public async Task<Contract?> GetContractByOrderIdAsync(int orderId)
+        {
+            return await _context.Contracts
+                .Include(c => c.Order)
+                .ThenInclude(o => o.User)
+                .FirstOrDefaultAsync(c => c.OrderId == orderId);
+        }
     }
 }

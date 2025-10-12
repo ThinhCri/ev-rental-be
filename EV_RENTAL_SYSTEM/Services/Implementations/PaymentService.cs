@@ -21,19 +21,61 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
+                // Tạo Transaction ID trước để sử dụng chung
+                var transactionId = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
+
+                // Tìm Contract từ OrderId
+                Contract? contract = null;
+                if (request.OrderId.HasValue)
+                {
+                    contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(request.OrderId.Value);
+                }
+                
+                // Nếu không tìm thấy Contract, tạo mới
+                if (contract == null)
+                {
+                    // Tìm Order gần nhất của user
+                    var orders = await _unitOfWork.Orders.GetUserOrdersAsync(userId);
+                    var latestOrder = orders.FirstOrDefault();
+                    
+                    if (latestOrder != null)
+                    {
+                        contract = new Contract
+                        {
+                            OrderId = latestOrder.OrderId,
+                            CreatedDate = DateTime.Now,
+                            Status = "Active",
+                            Deposit = request.Amount * 0.2m, // 20% cọc
+                            RentalFee = request.Amount,
+                            ExtraFee = 0
+                        };
+                        
+                        await _unitOfWork.Contracts.AddAsync(contract);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        return new PaymentResponseDto
+                        {
+                            Success = false,
+                            Message = "Không tìm thấy đơn thuê để thanh toán"
+                        };
+                    }
+                }
+
                 // Tạo Payment record
                 var payment = new Payment
                 {
                     Amount = request.Amount,
                     Status = "Pending",
-                    ContractId = request.ContractId ?? 1, // Tạm thời sử dụng ContractId = 1
+                    ContractId = contract.ContractId,
                     PaymentDate = DateTime.Now
                 };
 
                 await _unitOfWork.Payments.AddAsync(payment);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo Transaction record
+                // Tạo Transaction record với Transaction ID đã tạo
                 var transaction = new Transaction
                 {
                     Amount = request.Amount,
@@ -45,7 +87,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Transactions.AddAsync(transaction);
                 await _unitOfWork.SaveChangesAsync();
 
-                _logger.LogInformation("Created payment {PaymentId} for user {UserId}", payment.PaymentId, userId);
+                _logger.LogInformation("Created payment {PaymentId} for user {UserId} with transaction {TransactionId}", 
+                    payment.PaymentId, userId, transactionId);
 
                 return new PaymentResponseDto
                 {
@@ -58,7 +101,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Amount = payment.Amount ?? 0,
                         Status = payment.Status ?? "Pending",
                         PaymentMethod = "VNPay",
-                        TransactionId = transaction.TransactionId.ToString(),
+                        TransactionId = transactionId, // Sử dụng Transaction ID đã tạo
                         ContractId = payment.ContractId,
                         Description = request.Description
                     }
@@ -79,10 +122,21 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
+                // Validation dữ liệu callback
+                if (string.IsNullOrEmpty(callbackData.TransactionId))
+                {
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "Transaction ID không hợp lệ"
+                    };
+                }
+
                 // Tìm payment theo transaction ID
                 var transaction = await _unitOfWork.Transactions.GetTransactionByTransactionIdAsync(callbackData.TransactionId);
                 if (transaction == null)
                 {
+                    _logger.LogWarning("Transaction not found: {TransactionId}", callbackData.TransactionId);
                     return new PaymentResponseDto
                     {
                         Success = false,
@@ -93,10 +147,33 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var payment = await _unitOfWork.Payments.GetByIdAsync(transaction.PaymentId);
                 if (payment == null)
                 {
+                    _logger.LogWarning("Payment not found for transaction: {TransactionId}", callbackData.TransactionId);
                     return new PaymentResponseDto
                     {
                         Success = false,
                         Message = "Không tìm thấy thanh toán"
+                    };
+                }
+
+                // Kiểm tra trạng thái hiện tại
+                if (payment.Status == "Success")
+                {
+                    _logger.LogInformation("Payment {PaymentId} already processed successfully", payment.PaymentId);
+                    return new PaymentResponseDto
+                    {
+                        Success = true,
+                        Message = "Thanh toán đã được xử lý thành công trước đó",
+                        Data = new PaymentDto
+                        {
+                            PaymentId = payment.PaymentId,
+                            PaymentDate = payment.PaymentDate,
+                            Amount = payment.Amount ?? 0,
+                            Status = payment.Status ?? "Unknown",
+                            PaymentMethod = "VNPay",
+                            TransactionId = callbackData.TransactionId,
+                            ContractId = payment.ContractId,
+                            Description = callbackData.Description
+                        }
                     };
                 }
 

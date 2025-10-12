@@ -351,10 +351,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
 
                     var plateNumber = $"{provinceCode}-{10000 + i:00000}";
+                    var licensePlateId = i + 1; // Tạo ID dạng int
                     var statuses = new[] { "Available", "Available", "Available", "Maintenance", "Rented" };
                     
        licensePlates.Add(new LicensePlate
        {
+           LicensePlateId = licensePlateId, // ID dạng int
            PlateNumber = plateNumber, // Sử dụng PlateNumber để lưu biển số
            Status = statuses[random.Next(statuses.Length)],
            VehicleId = vehicle.VehicleId,

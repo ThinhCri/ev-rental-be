@@ -228,7 +228,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                         var orderLicensePlate = order.OrderLicensePlates.First();
                         var licensePlate = orderLicensePlate.LicensePlate;
                         
-                        orderDto.LicensePlateId = licensePlate.LicensePlateId;
+                        orderDto.LicensePlateId = licensePlate.LicensePlateId.ToString();
                         orderDto.VehicleModel = licensePlate.Vehicle?.Model;
                         orderDto.VehicleBrand = licensePlate.Vehicle?.Brand?.BrandName;
                         orderDto.VehicleType = null;

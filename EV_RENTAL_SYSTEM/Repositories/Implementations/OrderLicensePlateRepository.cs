@@ -33,6 +33,14 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Order_LicensePlate>> GetByOrderIdAsync(int orderId)
+        {
+            return await _context.OrderLicensePlates
+                .Where(olp => olp.OrderId == orderId)
+                .Include(olp => olp.LicensePlate)
+                .ToListAsync();
+        }
+
         public async Task<bool> IsLicensePlateInOrderAsync(int licensePlateId, DateTime startTime, DateTime endTime)
         {
             var conflictingOrders = await _context.OrderLicensePlates

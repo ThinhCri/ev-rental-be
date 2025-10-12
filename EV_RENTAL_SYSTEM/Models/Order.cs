@@ -23,6 +23,7 @@ namespace EV_RENTAL_SYSTEM.Models
         public decimal? TotalAmount { get; set; }
 
         [MaxLength(50)]
+        [Column("Status")]
         public string? Status { get; set; }
 
         [Column("User_Id")]

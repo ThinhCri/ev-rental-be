@@ -16,6 +16,9 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<RentalResponseDto> GetRentalWithDetailsAsync(int orderId);
         Task<decimal> CalculateRentalCostAsync(int vehicleId, DateTime startTime, DateTime endTime);
         Task<bool> IsVehicleAvailableAsync(int vehicleId, DateTime startTime, DateTime endTime);
+        Task<ServiceResponse<ContractSummaryDto>> GetContractSummaryAsync(int orderId);
+        Task<ServiceResponse<PaymentQrResponseDto>> ConfirmContractAsync(int orderId);
+        Task<ServiceResponse<RentalResponseDto>> StaffConfirmRentalAsync(int orderId, StaffConfirmationDto request);
     }
 }
 

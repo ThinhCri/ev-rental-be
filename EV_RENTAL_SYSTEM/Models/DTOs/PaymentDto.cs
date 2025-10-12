@@ -61,6 +61,12 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string Description { get; set; } = string.Empty;
         public string SecureHash { get; set; } = string.Empty;
         public string ResponseCode { get; set; } = string.Empty;
+        public string BankCode { get; set; } = string.Empty;
+        public string BankTranNo { get; set; } = string.Empty;
+        public string CardType { get; set; } = string.Empty;
+        public string PayDate { get; set; } = string.Empty;
+        public string TransactionNo { get; set; } = string.Empty;
+        public string SecureHashType { get; set; } = string.Empty;
     }
 
     /// <summary>

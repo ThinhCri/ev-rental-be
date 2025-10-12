@@ -8,8 +8,10 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         /// Tạo URL thanh toán VNPay
         /// </summary>
         /// <param name="request">Thông tin thanh toán</param>
+        /// <param name="httpContext">HTTP context</param>
+        /// <param name="transactionId">Transaction ID đã tạo</param>
         /// <returns>URL thanh toán và thông tin giao dịch</returns>
-        Task<VnPayPaymentResponseDto> CreatePaymentUrlAsync(VnPayPaymentRequestDto request, HttpContext httpContext);
+        Task<VnPayPaymentResponseDto> CreatePaymentUrlAsync(VnPayPaymentRequestDto request, HttpContext httpContext, string transactionId);
 
         /// <summary>
         /// Xử lý callback từ VNPay

@@ -16,6 +16,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int UserId { get; set; }
         public string? UserName { get; set; }
         public string? UserEmail { get; set; }
+        public int? ContractId { get; set; } // Thêm ContractId để frontend có thể sử dụng cho thanh toán
         public List<RentalVehicleDto> Vehicles { get; set; } = new List<RentalVehicleDto>();
         public List<RentalContractDto> Contracts { get; set; } = new List<RentalContractDto>();
         public int TotalDays { get; set; }
@@ -57,12 +58,69 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     public class RentalContractDto
     {
         public int ContractId { get; set; }
+        public string? ContractCode { get; set; }
         public DateTime CreatedDate { get; set; }
         public string? Status { get; set; }
         public decimal? Deposit { get; set; }
         public decimal? RentalFee { get; set; }
         public decimal? ExtraFee { get; set; }
         public List<RentalPaymentDto> Payments { get; set; } = new List<RentalPaymentDto>();
+    }
+
+    /// <summary>
+    /// DTO cho bảng hợp đồng hiển thị các loại phí
+    /// </summary>
+    public class ContractSummaryDto
+    {
+        public string ContractCode { get; set; } = string.Empty;
+        public decimal RentalFee { get; set; }
+        public decimal Deposit { get; set; }
+        public decimal OverKmFee { get; set; } = 0;
+        public decimal ElectricityFee { get; set; } = 0;
+        public decimal TotalAmount { get; set; }
+        public string Status { get; set; } = "Pending"; // Pending, Confirmed, Paid, Cancelled
+        public DateTime CreatedDate { get; set; }
+        public DateTime? ExpiryDate { get; set; } // Thời gian hết hạn QR code (2 phút)
+        public List<ContractFeeDetailDto> FeeDetails { get; set; } = new List<ContractFeeDetailDto>();
+    }
+
+    /// <summary>
+    /// DTO cho chi tiết các loại phí trong hợp đồng
+    /// </summary>
+    public class ContractFeeDetailDto
+    {
+        public string FeeType { get; set; } = string.Empty; // "Rental", "Deposit", "OverKm", "Electricity"
+        public string FeeName { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Description { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// DTO cho request xác nhận của staff
+    /// </summary>
+    public class StaffConfirmationDto
+    {
+        [Required(ErrorMessage = "Trạng thái xác nhận là bắt buộc")]
+        public bool IsConfirmed { get; set; }
+        
+        [MaxLength(500, ErrorMessage = "Ghi chú không được quá 500 ký tự")]
+        public string? Notes { get; set; }
+        
+        public string Action { get; set; } = string.Empty; // "Handover", "Return"
+    }
+
+    /// <summary>
+    /// DTO cho response QR code thanh toán
+    /// </summary>
+    public class PaymentQrResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string QrCodeUrl { get; set; } = string.Empty;
+        public string PaymentUrl { get; set; } = string.Empty;
+        public DateTime ExpiryDate { get; set; }
+        public string ContractCode { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
     }
 
     /// <summary>
@@ -90,7 +148,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime EndTime { get; set; }
 
         [Required(ErrorMessage = "Danh sách xe thuê là bắt buộc")]
-        [MinLength(1, ErrorMessage = "Phải chọn ít nhất 1 xe")]
         public List<int> VehicleIds { get; set; } = new List<int>();
 
         [Range(0, double.MaxValue, ErrorMessage = "Phí cọc phải lớn hơn hoặc bằng 0")]
@@ -98,6 +155,18 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
 
         [MaxLength(500, ErrorMessage = "Ghi chú không được quá 500 ký tự")]
         public string? Notes { get; set; }
+
+        // Thông tin cho trường hợp đặt hộ
+        public bool IsBookingForOthers { get; set; } = false;
+        
+        [MaxLength(100, ErrorMessage = "Tên người thuê không được quá 100 ký tự")]
+        public string? RenterName { get; set; }
+        
+        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        public string? RenterPhone { get; set; }
+        
+        [MaxLength(500, ErrorMessage = "Đường dẫn ảnh GPLX không được quá 500 ký tự")]
+        public string? RenterLicenseImageUrl { get; set; }
     }
 
     /// <summary>
@@ -190,6 +259,8 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
         public RentalDto? Data { get; set; }
+        public int? OrderId { get; set; } // Thêm OrderId để API thanh toán có thể sử dụng
+        public int? ContractId { get; set; } // Thêm ContractId để API thanh toán có thể sử dụng
     }
 
     /// <summary>
