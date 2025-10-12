@@ -141,14 +141,13 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Enable Swagger in both Development and Production
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV Rental System API V1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EV Rental System API V1");
+    c.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Serve static files (ảnh upload)
