@@ -20,6 +20,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             return await _context.Vehicles
                 .Include(v => v.Brand)
                 .Include(v => v.LicensePlates)
+                    .ThenInclude(lp => lp.Station)
                 .FirstOrDefaultAsync(v => v.VehicleId == id);
         }
 
@@ -28,6 +29,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             return await _context.Vehicles
                 .Include(v => v.Brand)
                 .Include(v => v.LicensePlates)
+                    .ThenInclude(lp => lp.Station)
                 .ToListAsync();
         }
 
@@ -66,6 +68,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             return await _context.Vehicles
                 .Include(v => v.Brand)
                 .Include(v => v.LicensePlates)
+                    .ThenInclude(lp => lp.Station)
                 .Where(v => v.LicensePlates.Any(lp => lp.StationId == stationId))
                 .ToListAsync();
         }
@@ -76,6 +79,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             return await _context.Vehicles
                 .Include(v => v.Brand)
                 .Include(v => v.LicensePlates)
+                    .ThenInclude(lp => lp.Station)
                 .Where(v => !v.LicensePlates.Any() || v.LicensePlates.Any(lp => lp.Status == "Available"))
                 .ToListAsync();
         }
@@ -86,13 +90,13 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             var vehicle = await _context.Vehicles
                 .Include(v => v.LicensePlates)
                 .FirstOrDefaultAsync(v => v.VehicleId == vehicleId);
-            
+
             if (vehicle == null) return false;
-            
+
             // Nếu xe chưa có biển số nào, coi như Available (xe mới)
             if (!vehicle.LicensePlates.Any())
                 return true;
-            
+
             // Nếu có biển số, kiểm tra có biển số nào Available không
             return vehicle.LicensePlates.Any(lp => lp.Status == "Available");
         }

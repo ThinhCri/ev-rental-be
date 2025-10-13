@@ -67,7 +67,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 if (firstPlate != null)
                 {
                     vehicleDto.StationId = firstPlate.StationId;
-                    // StationName/Street will require include; keep null here or enrich in controller if needed
+                    vehicleDto.StationName = firstPlate.Station?.StationName;
+                    vehicleDto.StationStreet = firstPlate.Station?.Street;
                 }
 
                 return new VehicleResponseDto
@@ -106,6 +107,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     if (firstPlate != null)
                     {
                         vehicleDto.StationId = firstPlate.StationId;
+                        vehicleDto.StationName = firstPlate.Station?.StationName;
+                        vehicleDto.StationStreet = firstPlate.Station?.Street;
                     }
                     vehicleDtos.Add(vehicleDto);
                 }
@@ -185,7 +188,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Tạo LicensePlate cho xe
                 var licensePlate = new LicensePlate
                 {
-                    LicensePlateId = createdVehicle.VehicleId, // Tạo ID dạng int
                     PlateNumber = createDto.LicensePlateNumber, // Sử dụng PlateNumber để lưu biển số
                     Status = "Available",
                     VehicleId = createdVehicle.VehicleId,
@@ -222,6 +224,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 vehicleDto.AvailableLicensePlates = 1; // Mới tạo nên có 1 biển số available
                 vehicleDto.LicensePlateNumbers = new List<string> { createDto.LicensePlateNumber };
                 vehicleDto.StationId = licensePlate.StationId;
+                vehicleDto.StationName = vehicleWithDetails.LicensePlates.FirstOrDefault()?.Station?.StationName;
+                vehicleDto.StationStreet = vehicleWithDetails.LicensePlates.FirstOrDefault()?.Station?.Street;
 
                 _logger.LogInformation("Vehicle created successfully with ID: {VehicleId}", createdVehicle.VehicleId);
 
@@ -323,6 +327,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 if (firstPlateAfterUpdate != null)
                 {
                     vehicleDto.StationId = firstPlateAfterUpdate.StationId;
+                    vehicleDto.StationName = firstPlateAfterUpdate.Station?.StationName;
+                    vehicleDto.StationStreet = firstPlateAfterUpdate.Station?.Street;
                 }
 
                 _logger.LogInformation("Vehicle updated successfully with ID: {VehicleId}", id);
@@ -450,6 +456,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     vehicleDto.IsAvailable = true;
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
                     vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
+                    var firstPlate = vehicle.LicensePlates.FirstOrDefault();
+                    if (firstPlate != null)
+                    {
+                        vehicleDto.StationId = firstPlate.StationId;
+                        vehicleDto.StationName = firstPlate.Station?.StationName;
+                        vehicleDto.StationStreet = firstPlate.Station?.Street;
+                    }
                     vehicleDtos.Add(vehicleDto);
                 }
 
@@ -486,6 +499,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
                     vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
+                    var firstPlate = vehicle.LicensePlates.FirstOrDefault();
+                    if (firstPlate != null)
+                    {
+                        vehicleDto.StationId = firstPlate.StationId;
+                        vehicleDto.StationName = firstPlate.Station?.StationName;
+                        vehicleDto.StationStreet = firstPlate.Station?.Street;
+                    }
                     vehicleDtos.Add(vehicleDto);
                 }
 

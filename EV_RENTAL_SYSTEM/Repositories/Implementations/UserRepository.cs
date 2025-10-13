@@ -18,6 +18,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Station)
                 .FirstOrDefaultAsync(u => u.UserId == id);
         }
 
@@ -25,6 +26,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Station)
                 .Include(u => u.Licenses)
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
@@ -33,6 +35,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Station)
                 .ToListAsync();
         }
 
@@ -76,5 +79,3 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         }
     }
 }
-
-
