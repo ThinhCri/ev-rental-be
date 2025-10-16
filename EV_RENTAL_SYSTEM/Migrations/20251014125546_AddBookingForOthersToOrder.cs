@@ -5,63 +5,34 @@
 namespace EV_RENTAL_SYSTEM.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBookingForOthersToOrder : Migration
+    public partial class UpdateOrderAndContractStructure : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Drop Status column from Contract table
             migrationBuilder.DropColumn(
                 name: "Status",
                 table: "Contract");
 
-            migrationBuilder.AddColumn<bool>(
-                name: "Is_Booking_For_Others",
-                table: "Order",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-
+            // Add Notes column to Order table (final result after both migrations)
             migrationBuilder.AddColumn<string>(
-                name: "Renter_License_ImageUrl",
+                name: "Notes",
                 table: "Order",
-                type: "nvarchar(500)",
-                maxLength: 500,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Renter_Name",
-                table: "Order",
-                type: "nvarchar(100)",
-                maxLength: 100,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Renter_Phone",
-                table: "Order",
-                type: "nvarchar(20)",
-                maxLength: 20,
+                type: "nvarchar(1000)",
+                maxLength: 1000,
                 nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Drop Notes column from Order table
             migrationBuilder.DropColumn(
-                name: "Is_Booking_For_Others",
+                name: "Notes",
                 table: "Order");
 
-            migrationBuilder.DropColumn(
-                name: "Renter_License_ImageUrl",
-                table: "Order");
-
-            migrationBuilder.DropColumn(
-                name: "Renter_Name",
-                table: "Order");
-
-            migrationBuilder.DropColumn(
-                name: "Renter_Phone",
-                table: "Order");
-
+            // Add back Status column to Contract table
             migrationBuilder.AddColumn<string>(
                 name: "Status",
                 table: "Contract",
