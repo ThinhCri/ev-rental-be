@@ -53,6 +53,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IStationService, StationService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRevenueService, RevenueService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
 
 // Custom JWT Authentication (không cần Bearer prefix)
 builder.Services.AddAuthentication("CustomJwt")

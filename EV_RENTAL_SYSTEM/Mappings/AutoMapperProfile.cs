@@ -17,6 +17,7 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName))
+                .ForMember(dest => dest.StationId, opt => opt.MapFrom(src => src.StationId))
                 .ForMember(dest => dest.DriverLicenseNumber, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseNumber : null))
                 .ForMember(dest => dest.DriverLicenseImage, opt => opt.MapFrom(src => src.Licenses.FirstOrDefault() != null ? src.Licenses.FirstOrDefault()!.LicenseImageUrl : null));
 
@@ -157,6 +158,8 @@ namespace EV_RENTAL_SYSTEM.Mappings
                 .ForMember(dest => dest.OrderLicensePlates, opt => opt.Ignore())
                 .ForMember(dest => dest.Complaints, opt => opt.Ignore())
                 .ForMember(dest => dest.Contracts, opt => opt.Ignore());
+
+            CreateMap<Brand, BrandDto>();
         }
     }
 }

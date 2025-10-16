@@ -12,6 +12,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IBrandRepository _brandRepository;
         private readonly ILicensePlateRepository _licensePlateRepository;
+        private readonly IStationRepository _stationRepository;
         private readonly IMapper _mapper;
         private readonly ICloudService _cloudService;
         private readonly IUnitOfWork _unitOfWork;
@@ -20,6 +21,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             IVehicleRepository vehicleRepository,
             IBrandRepository brandRepository,
             ILicensePlateRepository licensePlateRepository,
+            IStationRepository stationRepository,
             IMapper mapper,
             ILogger<VehicleService> logger,
             ICloudService cloudService,
@@ -28,6 +30,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             _vehicleRepository = vehicleRepository;
             _brandRepository = brandRepository;
             _licensePlateRepository = licensePlateRepository;
+            _stationRepository = stationRepository;
             _mapper = mapper;
             _cloudService = cloudService;
             _unitOfWork = unitOfWork;
@@ -262,7 +265,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra brand có tồn tại không
+
                 var brand = await _brandRepository.GetByIdAsync(updateDto.BrandId);
                 if (brand == null)
                 {
@@ -273,18 +276,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Xử lý upload ảnh mới nếu có
                 if (updateDto.VehicleImageFile != null)
                 {
                     try
                     {
-                        // Xóa ảnh cũ nếu có
+
                         if (!string.IsNullOrEmpty(existingVehicle.VehicleImage))
                         {
                             await _cloudService.DeleteImageAsync(existingVehicle.VehicleImage);
                         }
 
-                        // Upload ảnh mới
                         var newImageUrl = await _cloudService.UploadImageAsync(updateDto.VehicleImageFile);
                         existingVehicle.VehicleImage = newImageUrl;
                     }
@@ -299,7 +300,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Cập nhật thông tin
                 existingVehicle.Model = updateDto.Model;
                 existingVehicle.ModelYear = updateDto.ModelYear;
                 existingVehicle.BrandId = updateDto.BrandId;
@@ -308,13 +308,81 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 existingVehicle.SeatNumber = updateDto.SeatNumber;
                 existingVehicle.Battery = updateDto.Battery;
                 existingVehicle.RangeKm = updateDto.RangeKm;
-                // Trạm xe không còn liên kết trực tiếp với Vehicle; chuyển trạm sẽ dựa vào LicensePlate ở luồng khác
 
-                // Lưu vào database
                 var updatedVehicle = await _vehicleRepository.UpdateAsync(existingVehicle);
 
-                // Nếu chuyển trạm, cập nhật bộ đếm trạm cũ và mới
-                // Nếu cần chuyển trạm, thực hiện qua API riêng để di chuyển tất cả biển số sang trạm mới
+                // Xử lý chuyển trạm nếu có StationId trong request
+                if (updateDto.StationId.HasValue)
+                {
+                    _logger.LogInformation("Starting vehicle station transfer for VehicleId: {VehicleId} to StationId: {StationId}", id, updateDto.StationId.Value);
+                    
+                    // Kiểm tra trạm mới có tồn tại không
+                    var newStation = await _stationRepository.GetByIdAsync(updateDto.StationId.Value);
+                    if (newStation == null)
+                    {
+                        _logger.LogWarning("Station not found for StationId: {StationId}", updateDto.StationId.Value);
+                        return new VehicleResponseDto
+                        {
+                            Success = false,
+                            Message = "Trạm mới không tồn tại"
+                        };
+                    }
+
+                    var licensePlates = await _licensePlateRepository.GetLicensePlatesByVehicleIdAsync(id);
+                    _logger.LogInformation("Found {Count} license plates for VehicleId: {VehicleId}", licensePlates.Count(), id);
+                    
+                    if (licensePlates.Any())
+                    {
+                        // Lưu thông tin trạm cũ và status TRƯỚC KHI cập nhật
+                        var oldStationCounts = licensePlates
+                            .GroupBy(lp => lp.StationId)
+                            .ToDictionary(g => g.Key, g => g.Count());
+                        
+                        var availableCount = licensePlates.Count(lp => lp.Status == "Available");
+                        
+                        _logger.LogInformation("Before transfer - Old station counts: {StationCounts}, Available vehicles: {AvailableCount}", 
+                            string.Join(", ", oldStationCounts.Select(kvp => $"Station {kvp.Key}: {kvp.Value} vehicles")), availableCount);
+
+                        // Cập nhật tất cả license plates sang trạm mới
+                        foreach (var licensePlate in licensePlates)
+                        {
+                            licensePlate.StationId = updateDto.StationId.Value;
+                            _licensePlateRepository.Update(licensePlate);
+                        }
+
+                        // Cập nhật bộ đếm trạm cũ (giảm)
+                        foreach (var kvp in oldStationCounts)
+                        {
+                            var oldStationId = kvp.Key;
+                            var vehiclesFromThisStation = kvp.Value;
+                            
+                            if (oldStationId > 0)
+                            {
+                                var oldStation = await _stationRepository.GetByIdAsync(oldStationId);
+                                if (oldStation != null)
+                                {
+                                    var oldAvailableCount = oldStation.AvailableVehicle;
+                                    oldStation.AvailableVehicle = Math.Max(0, oldStation.AvailableVehicle - vehiclesFromThisStation);
+                                    _stationRepository.Update(oldStation);
+                                    _logger.LogInformation("Station {StationId} available vehicles: {OldCount} -> {NewCount} (decreased by {Decreased})", 
+                                        oldStationId, oldAvailableCount, oldStation.AvailableVehicle, vehiclesFromThisStation);
+                                }
+                            }
+                        }
+
+                        // Cập nhật bộ đếm trạm mới (tăng)
+                        var oldNewStationAvailable = newStation.AvailableVehicle;
+                        newStation.AvailableVehicle = Math.Min(newStation.TotalVehicle, newStation.AvailableVehicle + availableCount);
+                        _stationRepository.Update(newStation);
+                        _logger.LogInformation("Station {StationId} available vehicles: {OldCount} -> {NewCount} (increased by {Increased})", 
+                            updateDto.StationId.Value, oldNewStationAvailable, newStation.AvailableVehicle, availableCount);
+
+                        // Lưu tất cả thay đổi vào database
+                        await _unitOfWork.SaveChangesAsync();
+
+                        _logger.LogInformation("Vehicle {VehicleId} transferred to station {StationId} successfully", id, updateDto.StationId.Value);
+                    }
+                }
 
                 // Map sang DTO để trả về
                 var vehicleDto = _mapper.Map<VehicleDto>(updatedVehicle);
@@ -568,8 +636,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // TODO: Implement logic to toggle availability
-                // This might involve updating license plate statuses
 
                 return new VehicleResponseDto
                 {

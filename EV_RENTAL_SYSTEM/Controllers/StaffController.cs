@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
@@ -17,14 +18,26 @@ namespace EV_RENTAL_SYSTEM.Controllers
         }
 
         /// <summary>
-        /// Get staff by ID endpoint (Admin only)
+        /// Get staff by ID endpoint (Admin can see all, Staff can only see themselves)
         /// </summary>
         /// <param name="id">Staff ID</param>
         /// <returns>Staff information</returns>
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetStaffById(int id)
         {
+            var userIdClaim = User.FindFirst("uid")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(userIdClaim == null) return Unauthorized(new { message = "User ID claim not found" });
+            var userId = int.Parse(userIdClaim);
+
+            var roleClaim = User.FindFirst("role")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value;
+            if(roleClaim == null) return Unauthorized(new { message = "Role claim not found" });
+
+            if(roleClaim != "Admin" && userId != id)
+            {
+                return Forbid("You can only view your own information");
+            }
+
             var result = await _staffService.GetByIdAsync(id);
             
             if (!result.Success)
@@ -84,6 +97,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetStaffByStation(int stationId)
         {
+
             var result = await _staffService.GetByStationIdAsync(stationId);
             
             if (!result.Success)

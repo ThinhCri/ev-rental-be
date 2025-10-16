@@ -23,6 +23,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
+                await UpdateAllStationCountersAsync();
                 var stations = await _unitOfWork.Stations.GetAllAsync();
                 var stationDtos = stations.Select(MapToStationDto).ToList();
 
@@ -380,6 +381,55 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             stationDto.AvailableVehicleCount = station.AvailableVehicle;
             
             return stationDto;
+        }
+
+     
+        public async Task UpdateAllStationCountersAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Starting to update counters for all stations");
+                
+                var stations = await _unitOfWork.Stations.GetAllAsync();
+                var updatedCount = 0;
+                
+                foreach (var station in stations)
+                {
+                    
+                    var totalVehicles = await _unitOfWork.LicensePlates.GetVehiclesByStationIdAsync(station.StationId);
+                    var availableVehicles = await _unitOfWork.LicensePlates.GetAvailableVehiclesByStationIdAsync(station.StationId);
+
+                    if (station.TotalVehicle != totalVehicles || station.AvailableVehicle != availableVehicles)
+                    {
+                        var oldTotal = station.TotalVehicle;
+                        var oldAvailable = station.AvailableVehicle;
+                        
+                        station.TotalVehicle = totalVehicles;
+                        station.AvailableVehicle = availableVehicles;
+                        
+                        _unitOfWork.Stations.Update(station);
+                        updatedCount++;
+                        
+                        _logger.LogInformation("Station {StationId} ({StationName}): Total {OldTotal}->{NewTotal}, Available {OldAvailable}->{NewAvailable}", 
+                            station.StationId, station.StationName, oldTotal, totalVehicles, oldAvailable, availableVehicles);
+                    }
+                }
+                
+                if (updatedCount > 0)
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation("Successfully updated counters for {Count} stations", updatedCount);
+                }
+                else
+                {
+                    _logger.LogInformation("No stations needed counter updates");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating all station counters");
+                throw;
+            }
         }
     }
 }

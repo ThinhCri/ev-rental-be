@@ -429,7 +429,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        public async Task<RentalResponseDto> CancelRentalAsync(int orderId)
+        public async Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId)
         {
             try
             {
@@ -443,8 +443,47 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                order.Status = "Cancelled";
-                _unitOfWork.Orders.Update(order);
+                if (order.UserId != userId)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "You don't have permission to cancel this rental"
+                    };
+                }
+
+                // Lấy danh sách biển số xe trong đơn thuê
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                var licensePlateIds = orderLicensePlates.Select(olp => olp.LicensePlateId).ToList();
+
+                // Cập nhật trạng thái biển số xe về Available
+                foreach (var licensePlateId in licensePlateIds)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(licensePlateId);
+                    if (licensePlate != null)
+                    {
+                        licensePlate.Status = "Available";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                    }
+                }
+
+                // Xóa các bản ghi Order_LicensePlate
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    _unitOfWork.OrderLicensePlates.Remove(orderLicensePlate);
+                }
+
+                // Xóa các Contract liên quan
+                var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
+                foreach (var contract in contracts)
+                {
+                    // Xóa Contract (Payment sẽ được xóa cascade nếu có)
+                    _unitOfWork.Contracts.Remove(contract);
+                }
+
+                // Xóa Order
+                _unitOfWork.Orders.Remove(order);
+
                 await _unitOfWork.SaveChangesAsync();
 
                 return new RentalResponseDto

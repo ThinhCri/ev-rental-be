@@ -140,7 +140,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// <param name="updateDto">Update information</param>
         /// <returns>Update result</returns>
         [HttpPut("{id}")]
-        [Authorize(Policy = "StaffOrAdmin")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> UpdateStation(int id, [FromBody] UpdateStationDto updateDto)
         {
             var validationError = ValidateModelState();
@@ -162,7 +162,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// <param name="id">Station ID</param>
         /// <returns>Delete result</returns>
         [HttpDelete("{id}")]
-        [Authorize(Policy = "StaffOrAdmin")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteStation(int id)
         {
             var result = await _stationService.DeleteAsync(id);
@@ -174,6 +174,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
 
             return Ok(result);
         }
+
     }
 }
 
