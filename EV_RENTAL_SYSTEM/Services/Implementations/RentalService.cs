@@ -323,12 +323,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var availableLicensePlate = availableLicensePlates.FirstOrDefault();
                 if (availableLicensePlate != null)
                 {
+                    availableLicensePlate.Status = "Reserved";
+                    _unitOfWork.LicensePlates.Update(availableLicensePlate);
+                    
                     var orderLicensePlate = new Order_LicensePlate
                     {
                         OrderId = order.OrderId,
                         LicensePlateId = availableLicensePlate.LicensePlateId
                     };
                     await _unitOfWork.OrderLicensePlates.AddAsync(orderLicensePlate);
+                    
+                    _logger.LogInformation("Updated license plate {LicensePlateId} status to Reserved for order {OrderId}", 
+                        availableLicensePlate.LicensePlateId, order.OrderId);
                 }
                 else
                 {
@@ -460,10 +466,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 foreach (var licensePlateId in licensePlateIds)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(licensePlateId);
-                    if (licensePlate != null)
+                    if (licensePlate != null && (licensePlate.Status == "Reserved" || licensePlate.Status == "Rented"))
                     {
                         licensePlate.Status = "Available";
                         _unitOfWork.LicensePlates.Update(licensePlate);
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after cancelling order {OrderId}", 
+                            licensePlateId, orderId);
                     }
                 }
 
@@ -517,6 +525,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
+                    if (licensePlate != null && licensePlate.Status == "Rented")
+                    {
+                        licensePlate.Status = "Available";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after completing order {OrderId}", 
+                            licensePlate.LicensePlateId, orderId);
+                    }
+                }
+
                 order.Status = "Completed";
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
@@ -542,11 +563,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                var vehicles = await _unitOfWork.Vehicles.GetAllAsync();
+                var vehicles = await _unitOfWork.Vehicles.GetAvailableVehiclesAsync();
                 var availableVehicles = new List<AvailableVehicleDto>();
 
                 foreach (var vehicle in vehicles)
                 {
+                 
+                    if (!await IsVehicleAvailableAsync(vehicle.VehicleId, searchDto.StartTime, searchDto.EndTime))
+                    {
+                        continue; // Bỏ qua xe không khả dụng
+                    }
+
+                    var availableLicensePlate = vehicle.LicensePlates.FirstOrDefault(lp => lp.Status == "Available");
+                    
                     var availableVehicle = new AvailableVehicleDto
                     {
                         VehicleId = vehicle.VehicleId,
@@ -556,8 +585,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,
-                        StationName = "Station", // Tạm thời
-                        StationId = 1,
+                        StationName = availableLicensePlate?.Station?.StationName ?? "Unknown Station",
+                        StationId = availableLicensePlate?.StationId ?? 0,
                         Battery = vehicle.Battery,
                         RangeKm = vehicle.RangeKm,
                         Status = "Available",
@@ -934,10 +963,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         foreach (var orderLicensePlate in orderLicensePlates)
                         {
                             var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
-                            if (licensePlate != null)
+                            if (licensePlate != null && licensePlate.Status == "Reserved")
                             {
                                 licensePlate.Status = "Rented";
                                 _unitOfWork.LicensePlates.Update(licensePlate);
+                                _logger.LogInformation("Updated license plate {LicensePlateId} status to Rented during handover for order {OrderId}", 
+                                    licensePlate.LicensePlateId, orderId);
                             }
                         }
                     }
@@ -961,10 +992,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         foreach (var orderLicensePlate in orderLicensePlates)
                         {
                             var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
-                            if (licensePlate != null)
+                            if (licensePlate != null && licensePlate.Status == "Rented")
                             {
                                 licensePlate.Status = "Available";
                                 _unitOfWork.LicensePlates.Update(licensePlate);
+                                _logger.LogInformation("Updated license plate {LicensePlateId} status to Available during return for order {OrderId}", 
+                                    licensePlate.LicensePlateId, orderId);
                             }
                         }
                     }
@@ -987,10 +1020,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     foreach (var orderLicensePlate in orderLicensePlates)
                     {
                         var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
-                        if (licensePlate != null)
+                        if (licensePlate != null && (licensePlate.Status == "Reserved" || licensePlate.Status == "Rented"))
                         {
                             licensePlate.Status = "Available";
                             _unitOfWork.LicensePlates.Update(licensePlate);
+                            _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after rejection for order {OrderId}", 
+                                licensePlate.LicensePlateId, orderId);
                         }
                     }
                 }

@@ -521,7 +521,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 {
                     var vehicleDto = _mapper.Map<VehicleDto>(vehicle);
                     vehicleDto.Status = vehicle.LicensePlates.FirstOrDefault()?.Status ?? "Available";
-                    vehicleDto.IsAvailable = true;
+                    vehicleDto.IsAvailable = await _vehicleRepository.IsVehicleAvailableAsync(vehicle.VehicleId);
                     vehicleDto.AvailableLicensePlates = vehicle.LicensePlates.Count(lp => lp.Status == "Available");
                     vehicleDto.LicensePlateNumbers = vehicle.LicensePlates.Select(lp => lp.PlateNumber).ToList();
                     var firstPlate = vehicle.LicensePlates.FirstOrDefault();

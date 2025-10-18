@@ -205,11 +205,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                                 foreach (var orderLicensePlate in orderLicensePlates)
                                 {
                                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
-                                    if (licensePlate != null && licensePlate.Status == "Available")
+                                    if (licensePlate != null && licensePlate.Status == "Reserved")
                                     {
                                         licensePlate.Status = "Rented";
                                         _unitOfWork.LicensePlates.Update(licensePlate);
-                                        _logger.LogInformation("Updated LicensePlate {LicensePlateId} status to Reserved after payment success", 
+                                        _logger.LogInformation("Updated LicensePlate {LicensePlateId} status to Rented after payment success", 
                                             licensePlate.LicensePlateId);
                                     }
                                 }
