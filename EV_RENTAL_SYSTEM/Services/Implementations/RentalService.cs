@@ -62,13 +62,28 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
             }
 
-            // Xác định ảnh GPLX hiển thị:
-            // - Nếu User.Notes có giá trị (đặt hộ): dùng User.Notes
-            // - Ngược lại (tự đặt): dùng license đầu tiên của user
             string? licenseImageUrl = null;
             if (!string.IsNullOrWhiteSpace(order.User?.Notes))
             {
-                licenseImageUrl = order.User.Notes;
+                try
+                {
+                    var renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(order.User.Notes);
+                    if (renterImages != null && renterImages.ContainsKey(order.OrderId))
+                    {
+ 
+                        licenseImageUrl = renterImages[order.OrderId];
+                    }
+                    else
+                    {
+                        var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
+                        licenseImageUrl = userLicenses?.FirstOrDefault()?.LicenseImageUrl;
+                    }
+                }
+                catch
+                {
+                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
+                    licenseImageUrl = userLicenses?.FirstOrDefault()?.LicenseImageUrl;
+                }
             }
             else
             {
@@ -241,17 +256,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Message = "Thời gian bắt đầu không thể trong quá khứ"
                     };
                 }
+                // Xử lý ảnh bằng lái xe cho đặt hộ
+                string? renterLicenseImageUrl = null;
                 if (createDto.IsBookingForOthers && createDto.RenterLicenseImage != null)
                 {
-                    var licenseImageUrl = await _cloudService.UploadLicenseImageAsync(createDto.RenterLicenseImage);
-                    
-                    var currentUser = await _unitOfWork.Users.GetByIdAsync(userId);
-                    if (currentUser != null)
-                    {
-                        currentUser.Notes = licenseImageUrl;
-                        await _unitOfWork.Users.UpdateAsync(currentUser);
-                        await _unitOfWork.SaveChangesAsync();
-                    }
+                    renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(createDto.RenterLicenseImage);
                 }
   
                 var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(createDto.VehicleId);
@@ -280,7 +289,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Tính tổng tiền
                 var totalAmount = 0m;
                 if (vehicle.PricePerDay != null)
                 {
@@ -288,7 +296,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     totalAmount = vehicle.PricePerDay.Value * days;
                 }
 
-                // Tạo Order với tổng tiền đã tính
                 var order = new Order
                 {
                     UserId = userId,
@@ -299,9 +306,35 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     TotalAmount = totalAmount
                 };
 
-    
                 await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.SaveChangesAsync();
+
+ 
+                if (createDto.IsBookingForOthers && !string.IsNullOrEmpty(renterLicenseImageUrl))
+                {
+                    var currentUser = await _unitOfWork.Users.GetByIdAsync(userId);
+                    if (currentUser != null)
+                    {
+                        var renterImages = new Dictionary<int, string>();
+                        if (!string.IsNullOrWhiteSpace(currentUser.Notes))
+                        {
+                            try
+                            {
+                                renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(currentUser.Notes) ?? new Dictionary<int, string>();
+                            }
+                            catch
+                            {                                
+                                renterImages = new Dictionary<int, string>();
+                            }
+                        }
+
+                        renterImages[order.OrderId] = renterLicenseImageUrl;
+
+                        currentUser.Notes = System.Text.Json.JsonSerializer.Serialize(renterImages);
+                        await _unitOfWork.Users.UpdateAsync(currentUser);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                }
 
                 var contractCode = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
 
@@ -475,21 +508,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Xóa các bản ghi Order_LicensePlate
                 foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     _unitOfWork.OrderLicensePlates.Remove(orderLicensePlate);
                 }
 
-                // Xóa các Contract liên quan
                 var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
                 foreach (var contract in contracts)
                 {
-                    // Xóa Contract (Payment sẽ được xóa cascade nếu có)
+
                     _unitOfWork.Contracts.Remove(contract);
                 }
 
-                // Xóa Order
                 _unitOfWork.Orders.Remove(order);
 
                 await _unitOfWork.SaveChangesAsync();
@@ -1073,3 +1103,4 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         }
     }
 }
+
