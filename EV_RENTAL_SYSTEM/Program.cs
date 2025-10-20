@@ -7,6 +7,7 @@ using EV_RENTAL_SYSTEM.Repositories.Implementations;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Implementations;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
+using EV_RENTAL_SYSTEM.Services.Vnpay;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
