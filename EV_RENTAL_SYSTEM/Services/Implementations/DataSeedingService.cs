@@ -66,7 +66,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Roles.AddRange(roles);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Roles seeded successfully");
             }
         }
 
@@ -85,7 +84,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.LicenseTypes.AddRange(licenseTypes);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ License Types seeded successfully");
             }
         }
 
@@ -107,7 +105,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Brands.AddRange(brands);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Brands seeded successfully");
             }
         }
 
@@ -220,7 +217,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Stations.AddRange(stations);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Stations seeded successfully (HCM, BD, DN)");
             }
         }
 
@@ -244,7 +240,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.ProcessSteps.AddRange(processSteps);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Process Steps seeded successfully");
             }
         }
 
@@ -320,7 +315,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Vehicles.AddRange(vehicles);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Sample Vehicles seeded successfully (30 vehicles across 3 branches)");
             }
         }
 
@@ -367,7 +361,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.LicensePlates.AddRange(licensePlates);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Sample License Plates seeded successfully (30 plates)");
             }
         }
 
@@ -382,7 +375,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
                 if (adminRole == null)
                 {
-                    Console.WriteLine("❌ Admin role not found. Please run SeedRolesAsync first.");
                     return;
                 }
 
@@ -414,9 +406,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Users.AddRange(adminUsers);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Admin users seeded successfully");
-                Console.WriteLine("📧 Admin Email: admin@evrental.com | Password: Admin123!");
-                Console.WriteLine("📧 Manager Email: manager@evrental.com | Password: Manager123!");
             }
         }
 
@@ -431,7 +420,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var staffRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Station Staff");
                 if (staffRole == null)
                 {
-                    Console.WriteLine("❌ Station Staff role not found. Please run SeedRolesAsync first.");
                     return;
                 }
 
@@ -496,12 +484,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _context.Users.AddRange(staffUsers);
                 await _context.SaveChangesAsync();
-                Console.WriteLine("✓ Staff users seeded successfully");
-                Console.WriteLine("📧 Staff 1 Email: staff1@evrental.com | Password: Staff123!");
-                Console.WriteLine("📧 Staff 2 Email: staff2@evrental.com | Password: Staff123!");
-                Console.WriteLine("📧 Staff 3 Email: staff3@evrental.com | Password: Staff123!");
-                Console.WriteLine("📧 Staff 4 Email: staff4@evrental.com | Password: Staff123!");
-                Console.WriteLine("📧 Staff 5 Email: staff5@evrental.com | Password: Staff123!");
             }
         }
     }

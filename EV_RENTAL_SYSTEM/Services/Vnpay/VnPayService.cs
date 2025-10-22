@@ -16,9 +16,10 @@ namespace EV_RENTAL_SYSTEM.Services.Vnpay
         {
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"] ?? "SE Asia Standard Time");
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
-            var tick = DateTime.Now.Ticks.ToString();
+            // Sử dụng OrderId nếu có, nếu không thì dùng tick
+            var txnRef = model.OrderId?.ToString() ?? DateTime.Now.Ticks.ToString();
             var pay = new VnPayLibrary();
-            var urlCallBack = _configuration["Vnpay:PaymentBackReturnUrl"];
+            var urlCallBack = "https://localhost:7181/api/Payment/payment-callback";
 
             var usdToVndRate = 24000;
             var amountInVnd = (int)(model.Amount * usdToVndRate);
@@ -39,7 +40,7 @@ namespace EV_RENTAL_SYSTEM.Services.Vnpay
             pay.AddRequestData("vnp_OrderInfo", $"{model.Name} {model.OrderDescription} ${model.Amount}");
             pay.AddRequestData("vnp_OrderType", model.OrderType);
             pay.AddRequestData("vnp_ReturnUrl", urlCallBack);
-            pay.AddRequestData("vnp_TxnRef", tick);
+            pay.AddRequestData("vnp_TxnRef", txnRef);
 
             var paymentUrl =
                 pay.CreateRequestUrl(_configuration["Vnpay:BaseUrl"] ?? "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html", 

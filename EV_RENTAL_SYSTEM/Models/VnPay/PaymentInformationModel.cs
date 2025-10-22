@@ -15,5 +15,7 @@ namespace EV_RENTAL_SYSTEM.Models.VnPay
 
         [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; } = string.Empty;
+
+        public int? OrderId { get; set; }
     }
 }

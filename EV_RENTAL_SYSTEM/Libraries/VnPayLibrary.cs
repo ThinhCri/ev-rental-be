@@ -22,29 +22,49 @@ namespace EV_RENTAL_SYSTEM.Libraries
                     vnPay.AddResponseData(key, value);
                 }
             }
-            var orderId = Convert.ToInt64(vnPay.GetResponseData("vnp_TxnRef"));
-            var vnPayTranId = Convert.ToInt64(vnPay.GetResponseData("vnp_TransactionNo"));
+            if (!long.TryParse(vnPay.GetResponseData("vnp_TxnRef"), out long orderId))
+            {
+                return new PaymentResponseModel()
+                {
+                    Success = false,
+                    Message = "Invalid OrderId format"
+                };
+            }
+            
+            if (!long.TryParse(vnPay.GetResponseData("vnp_TransactionNo"), out long vnPayTranId))
+            {
+                return new PaymentResponseModel()
+                {
+                    Success = false,
+                    Message = "Invalid Transaction ID format"
+                };
+            }
             var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
             var vnpSecureHash =
-                collection.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value; //hash của dữ liệu trả về
+                collection.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value;
             var orderInfo = vnPay.GetResponseData("vnp_OrderInfo");
             var checkSignature =
-                vnPay.ValidateSignature(vnpSecureHash, hashSecret); //check Signature
+                vnPay.ValidateSignature(vnpSecureHash, hashSecret);
             if (!checkSignature)
                 return new PaymentResponseModel()
                 {
-                    Success = false
+                    Success = false,
+                    Message = "Invalid signature"
                 };
+            
+            var isPaymentSuccess = vnpResponseCode == "00";
+            
             return new PaymentResponseModel()
             {
-                Success = true,
+                Success = isPaymentSuccess,
                 PaymentMethod = "VnPay",
                 OrderDescription = orderInfo,
                 OrderId = orderId.ToString(),
                 PaymentId = vnPayTranId.ToString(),
                 TransactionId = vnPayTranId.ToString(),
                 Token = vnpSecureHash,
-                VnPayResponseCode = vnpResponseCode
+                VnPayResponseCode = vnpResponseCode,
+                Message = isPaymentSuccess ? "Payment successful" : $"Payment failed with code: {vnpResponseCode}"
             };
         }
         public string GetIpAddress(HttpContext context)
@@ -174,7 +194,6 @@ namespace EV_RENTAL_SYSTEM.Libraries
                 data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
             }
 
-            //remove last '&'
             if (data.Length > 0)
             {
                 data.Remove(data.Length - 1, 1);

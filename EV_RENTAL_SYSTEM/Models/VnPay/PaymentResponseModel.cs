@@ -19,5 +19,7 @@ namespace EV_RENTAL_SYSTEM.Models.VnPay
         public string Token { get; set; } = string.Empty;
 
         public string VnPayResponseCode { get; set; } = string.Empty;
+
+        public string Message { get; set; } = string.Empty;
     }
 }

@@ -10,9 +10,6 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Transaction_Id")]
         public int TransactionId { get; set; }
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal? Amount { get; set; }
-
         [Column("Transaction_date")]
         public DateTime TransactionDate { get; set; } = DateTime.Now;
 
@@ -21,6 +18,9 @@ namespace EV_RENTAL_SYSTEM.Models
 
         [Column("User_Id")]
         public int UserId { get; set; }
+
+        [MaxLength(50)]
+        public string? Status { get; set; }
 
         // Navigation properties
         [ForeignKey("PaymentId")]

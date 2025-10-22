@@ -145,7 +145,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public bool? IsAvailable { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string? SortBy { get; set; } = "Model"; // Model, DailyRate, ModelYear
-        public string? SortOrder { get; set; } = "asc"; // asc, desc
+        public string? SortBy { get; set; } = "Model"; 
+        public string? SortOrder { get; set; } = "asc"; 
     }
 }
