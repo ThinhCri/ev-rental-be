@@ -19,7 +19,11 @@ namespace EV_RENTAL_SYSTEM.Services.Vnpay
             // Sử dụng OrderId nếu có, nếu không thì dùng tick
             var txnRef = model.OrderId?.ToString() ?? DateTime.Now.Ticks.ToString();
             var pay = new VnPayLibrary();
-            var urlCallBack = "https://localhost:7181/api/Payment/payment-callback";
+            // Use configured callback URL or fallback to current request
+            var configuredCallbackUrl = _configuration["Vnpay:PaymentBackReturnUrl"];
+            var urlCallBack = !string.IsNullOrEmpty(configuredCallbackUrl) 
+                ? configuredCallbackUrl 
+                : $"{context.Request.Scheme}://{context.Request.Host}/api/Payment/payment-callback";
 
             var usdToVndRate = 24000;
             var amountInVnd = (int)(model.Amount * usdToVndRate);

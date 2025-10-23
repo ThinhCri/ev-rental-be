@@ -15,12 +15,14 @@ namespace EV_RENTAL_SYSTEM.Controllers
         private readonly IVnPayService _vnPayService;
         private readonly IPaymentService _paymentService;
         private readonly ILogger<PaymentController> _logger;
+        private readonly IConfiguration _configuration;
         
-        public PaymentController(IVnPayService vnPayService, IPaymentService paymentService, ILogger<PaymentController> logger)
+        public PaymentController(IVnPayService vnPayService, IPaymentService paymentService, ILogger<PaymentController> logger, IConfiguration configuration)
         {
             _vnPayService = vnPayService;
             _paymentService = paymentService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpPost("create-payment-url")]
@@ -73,7 +75,8 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 {
                     var result = await _paymentService.ProcessPaymentSuccessAsync(response);
                     
-                    var frontendUrl = "http://localhost:5173/history?payment=success";
+                    var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+                    var frontendUrl = $"{frontendBaseUrl}/history?payment=success";
                     return Redirect(frontendUrl);
                 }
                 else
@@ -81,14 +84,16 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     _logger.LogWarning("Payment failed - ResponseCode: {ResponseCode}, Message: {Message}", 
                         response.VnPayResponseCode, response.Message);
                     
-                    var frontendUrl = "http://localhost:5173/history?payment=failed";
+                    var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+                    var frontendUrl = $"{frontendBaseUrl}/history?payment=failed";
                     return Redirect(frontendUrl);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing VnPay callback");
-                var frontendUrl = "http://localhost:5173/history?payment=failed";
+                var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+                var frontendUrl = $"{frontendBaseUrl}/history?payment=failed";
                 return Redirect(frontendUrl);
             }
         }

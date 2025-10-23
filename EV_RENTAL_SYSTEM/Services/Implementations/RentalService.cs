@@ -63,6 +63,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
 
             string? licenseImageUrl = null;
+            int? licenseId = null;
+            string? licenseNumber = null;
+            string? licenseType = null;
+            DateTime? licenseExpiryDate = null;
+            
             if (!string.IsNullOrWhiteSpace(order.User?.Notes))
             {
                 try
@@ -70,25 +75,55 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     var renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(order.User.Notes);
                     if (renterImages != null && renterImages.ContainsKey(order.OrderId))
                     {
- 
                         licenseImageUrl = renterImages[order.OrderId];
                     }
                     else
                     {
                         var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
-                        licenseImageUrl = userLicenses?.FirstOrDefault()?.LicenseImageUrl;
+                        var license = userLicenses?.FirstOrDefault();
+                        if (license != null)
+                        {
+                            licenseImageUrl = license.LicenseImageUrl;
+                            licenseId = license.LicenseId;
+                            licenseNumber = license.LicenseNumber;
+                            licenseType = license.LicenseType?.TypeName;
+                            licenseExpiryDate = license.ExpiryDate;
+                        }
                     }
                 }
                 catch
                 {
                     var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
-                    licenseImageUrl = userLicenses?.FirstOrDefault()?.LicenseImageUrl;
+                    var license = userLicenses?.FirstOrDefault();
+                    if (license != null)
+                    {
+                        licenseImageUrl = license.LicenseImageUrl;
+                        licenseId = license.LicenseId;
+                        licenseNumber = license.LicenseNumber;
+                        licenseType = license.LicenseType?.TypeName;
+                        licenseExpiryDate = license.ExpiryDate;
+                    }
                 }
             }
             else
             {
                 var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
-                licenseImageUrl = userLicenses?.FirstOrDefault()?.LicenseImageUrl;
+                var license = userLicenses?.FirstOrDefault();
+                if (license != null)
+                {
+                    licenseImageUrl = license.LicenseImageUrl;
+                    licenseId = license.LicenseId;
+                    licenseNumber = license.LicenseNumber;
+                    licenseType = license.LicenseType?.TypeName;
+                    licenseExpiryDate = license.ExpiryDate;
+                }
+            }
+
+            // Xử lý trường Status để hiển thị đúng
+            var displayStatus = order.Status;
+            if (!string.IsNullOrEmpty(order.Status) && order.Status.Contains("|License:"))
+            {
+                displayStatus = order.Status.Split('|')[0]; // Lấy phần trước "|License:"
             }
 
             return new RentalDto
@@ -98,12 +133,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 StartTime = order.StartTime,
                 EndTime = order.EndTime,
                 TotalAmount = order.TotalAmount,
-                Status = order.Status,
+                Status = displayStatus,
                 UserId = order.UserId,
                 UserName = order.User?.FullName ?? "Unknown User",
                 UserEmail = order.User?.Email ?? "unknown@example.com",
                 LicenseImageUrl = licenseImageUrl,
                 ContractId = contract?.ContractId,
+                
+                // Thêm thông tin bằng lái xe
+                LicenseId = licenseId,
+                LicenseNumber = licenseNumber,
+                LicenseType = licenseType,
+                LicenseExpiryDate = licenseExpiryDate,
+                
                 TotalDays = order.StartTime.HasValue && order.EndTime.HasValue 
                     ? (int)Math.Ceiling((order.EndTime.Value - order.StartTime.Value).TotalDays)
                     : 0,
@@ -238,6 +280,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 _logger.LogInformation("Creating rental for user {UserId} with vehicle {VehicleId}", 
                     userId, createDto.VehicleId);
 
+                // ========================================
+                // VALIDATION 1: Kiểm tra 1 bằng lái chỉ thuê 1 xe
+                // ========================================
+                var licenseValidationResult = await ValidateLicenseUsageAsync(createDto, userId);
+                if (!licenseValidationResult.Success)
+                {
+                    return licenseValidationResult;
+                }
+
                 // Validate date range
                 if (createDto.StartTime >= createDto.EndTime)
                 {
@@ -302,7 +353,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     OrderDate = DateTime.Now,
                     StartTime = createDto.StartTime,
                     EndTime = createDto.EndTime,
-                    Status = "Pending", // Trạng thái chờ xác nhận hợp đồng
+                    Status = "Pending Payment", // Trạng thái chờ thanh toán
                     TotalAmount = totalAmount
                 };
 
@@ -343,7 +394,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     OrderId = order.OrderId, // Bây giờ OrderId đã có
                     ContractCode = contractCode,
                     CreatedDate = DateTime.Now,
-                    Status = "Pending", // Trạng thái chờ xác nhận
+                    Status = "Pending Payment", // Trạng thái chờ thanh toán
                     Deposit = createDto.DepositAmount ?? (totalAmount * 0.2m),
                     RentalFee = totalAmount,
                     ExtraFee = 0
@@ -404,10 +455,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = "Tạo đơn thuê thành công",
+                    Message = "Tạo đơn thuê thành công. Vui lòng thanh toán để hoàn tất đơn hàng.",
                     Data = rentalDto,
                     OrderId = order.OrderId,
-                    ContractId = contract.ContractId
+                    ContractId = contract.ContractId,
+                    RequiresPayment = true // Thêm flag để frontend biết cần thanh toán
                 };
             }
             catch (Exception ex)
@@ -426,6 +478,359 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             finally
             {
                 transaction?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Tạo đơn thuê với thanh toán bắt buộc (tạo đơn hàng thực tế trong DB)
+        /// </summary>
+        public async Task<RentalResponseDto> CreateRentalWithMandatoryPaymentAsync(CreateRentalDto createDto, int userId)
+        {
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                _logger.LogInformation("Creating rental with mandatory payment for user {UserId} with vehicle {VehicleId}", 
+                    userId, createDto.VehicleId);
+
+                // ========================================
+                // VALIDATION 1: Kiểm tra 1 bằng lái chỉ thuê 1 xe
+                // ========================================
+                var licenseValidationResult = await ValidateLicenseUsageAsync(createDto, userId);
+                if (!licenseValidationResult.Success)
+                {
+                    return licenseValidationResult;
+                }
+
+                // Validate date range
+                if (createDto.StartTime >= createDto.EndTime)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    };
+                }
+
+                if (createDto.StartTime < DateTime.Now.AddMinutes(-5))
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                    };
+                }
+
+                // Kiểm tra xe có khả dụng không (với buffer 1 ngày)
+                if (!await IsVehicleAvailableAsync(createDto.VehicleId, createDto.StartTime, createDto.EndTime))
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Xe ID {createDto.VehicleId} không có sẵn trong khoảng thời gian đã chọn (đã bao gồm buffer 1 ngày bảo trì)"
+                    };
+                }
+
+                // Lấy thông tin xe và tính toán chi phí
+                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(createDto.VehicleId);
+                if (vehicle == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy xe với ID này"
+                    };
+                }
+
+                var totalAmount = 0m;
+                if (vehicle.PricePerDay != null)
+                {
+                    var days = (int)Math.Ceiling((createDto.EndTime - createDto.StartTime).TotalDays);
+                    totalAmount = vehicle.PricePerDay.Value * days;
+                }
+
+                // Kiểm tra có biển số Available không
+                var allLicensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
+                var availableLicensePlates = allLicensePlates
+                    .Where(lp => lp.VehicleId == createDto.VehicleId && lp.Status == "Available")
+                    .ToList();
+                
+                if (!availableLicensePlates.Any())
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Không có biển số khả dụng cho xe ID {createDto.VehicleId}"
+                    };
+                }
+
+                // Xử lý ảnh bằng lái xe cho đặt hộ
+                string? renterLicenseImageUrl = null;
+                if (createDto.IsBookingForOthers && createDto.RenterLicenseImage != null)
+                {
+                    renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(createDto.RenterLicenseImage);
+                }
+
+                // Tạo đơn hàng thực tế trong database
+                var order = new Order
+                {
+                    UserId = userId,
+                    OrderDate = DateTime.Now,
+                    StartTime = createDto.StartTime,
+                    EndTime = createDto.EndTime,
+                    Status = "Pending Payment", // Trạng thái chờ thanh toán
+                    TotalAmount = totalAmount
+                };
+
+                await _unitOfWork.Orders.AddAsync(order);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Xử lý ảnh GPLX cho đặt hộ và lưu thông tin bằng lái xe thực tế
+                if (createDto.IsBookingForOthers && !string.IsNullOrEmpty(renterLicenseImageUrl))
+                {
+                    var currentUser = await _unitOfWork.Users.GetByIdAsync(userId);
+                    if (currentUser != null)
+                    {
+                        var renterImages = new Dictionary<int, string>();
+                        if (!string.IsNullOrWhiteSpace(currentUser.Notes))
+                        {
+                            try
+                            {
+                                renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(currentUser.Notes) ?? new Dictionary<int, string>();
+                            }
+                            catch
+                            {                                
+                                renterImages = new Dictionary<int, string>();
+                            }
+                        }
+
+                        renterImages[order.OrderId] = renterLicenseImageUrl;
+                        currentUser.Notes = System.Text.Json.JsonSerializer.Serialize(renterImages);
+                        await _unitOfWork.Users.UpdateAsync(currentUser);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                }
+                else
+                {
+                    // Trường hợp đặt cho chính mình: lưu thông tin bằng lái xe của user
+                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
+                    var userLicense = userLicenses?.FirstOrDefault();
+                    if (userLicense != null)
+                    {
+                        // Lưu thông tin bằng lái xe thực tế vào Order (sử dụng trường Status để lưu thêm thông tin)
+                        order.Status = $"Pending Payment|License:{userLicense.LicenseNumber}";
+                        _unitOfWork.Orders.Update(order);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+                }
+
+                // Tạo contract
+                var contractCode = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
+                var contract = new Contract
+                {
+                    OrderId = order.OrderId,
+                    ContractCode = contractCode,
+                    CreatedDate = DateTime.Now,
+                    Status = "Pending Payment",
+                    Deposit = createDto.DepositAmount ?? (totalAmount * 0.2m),
+                    RentalFee = totalAmount,
+                    ExtraFee = 0
+                };
+
+                await _unitOfWork.Contracts.AddAsync(contract);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Tạo Order_LicensePlate và reserve biển số
+                var availableLicensePlate = availableLicensePlates.FirstOrDefault();
+                if (availableLicensePlate != null)
+                {
+                    availableLicensePlate.Status = "Reserved";
+                    _unitOfWork.LicensePlates.Update(availableLicensePlate);
+                    
+                    var orderLicensePlate = new Order_LicensePlate
+                    {
+                        OrderId = order.OrderId,
+                        LicensePlateId = availableLicensePlate.LicensePlateId
+                    };
+                    await _unitOfWork.OrderLicensePlates.AddAsync(orderLicensePlate);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                // Reload order với đầy đủ navigation properties
+                var createdOrder = await _unitOfWork.Orders.GetByIdAsync(order.OrderId);
+                if (createdOrder == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải lại thông tin đơn thuê"
+                    };
+                }
+
+                var rentalDto = await PopulateRentalDtoAsync(createdOrder);
+
+                _logger.LogInformation("Created rental {OrderId} with mandatory payment for user {UserId} with total amount {TotalAmount}", 
+                    order.OrderId, userId, totalAmount);
+
+                return new RentalResponseDto
+                {
+                    Success = true,
+                    Message = "Tạo đơn thuê thành công. Vui lòng thanh toán để hoàn tất đơn hàng.",
+                    RequiresPayment = true,
+                    OrderId = order.OrderId, // Trả về OrderId thật
+                    ContractId = contract.ContractId, // Trả về ContractId thật
+                    Data = rentalDto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating rental with mandatory payment for user {UserId}: {Error}", userId, ex.Message);
+                await _unitOfWork.RollbackTransactionAsync();
+                
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi tạo đơn thuê: {ex.Message}"
+                };
+            }
+            finally
+            {
+                transaction?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Validate license usage - 1 bằng lái chỉ được thuê 1 xe tại một thời điểm
+        /// </summary>
+        private async Task<RentalResponseDto> ValidateLicenseUsageAsync(CreateRentalDto createDto, int userId)
+        {
+            try
+            {
+                // Lấy thông tin bằng lái xe thực tế được sử dụng
+                string? actualLicenseNumber = null;
+                
+                if (createDto.IsBookingForOthers)
+                {
+                    // Trường hợp đặt hộ: bằng lái xe thực tế sẽ được lưu sau khi upload ảnh
+                    // Tạm thời cho phép (sẽ validate sau khi có thông tin bằng lái)
+                    _logger.LogInformation("Booking for others - license validation will be done after image upload");
+                    return new RentalResponseDto { Success = true };
+                }
+                else
+                {
+                    // Trường hợp đặt cho chính mình: lấy bằng lái xe của user
+                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
+                    var userLicense = userLicenses?.FirstOrDefault();
+                    if (userLicense == null)
+                    {
+                        return new RentalResponseDto
+                        {
+                            Success = false,
+                            Message = "Bạn chưa có bằng lái xe. Vui lòng cập nhật thông tin bằng lái xe trước khi đặt xe."
+                        };
+                    }
+                    actualLicenseNumber = userLicense.LicenseNumber;
+                }
+
+                // Kiểm tra bằng lái xe này có đang được sử dụng trong đơn hàng active không
+                if (!string.IsNullOrEmpty(actualLicenseNumber))
+                {
+                    var conflictingOrders = await GetActiveOrdersByLicenseNumberAsync(actualLicenseNumber);
+                    if (conflictingOrders.Any())
+                    {
+                        var conflictingOrder = conflictingOrders.First();
+                        return new RentalResponseDto
+                        {
+                            Success = false,
+                            Message = $"Bằng lái xe {actualLicenseNumber} đang được sử dụng trong đơn hàng khác. Một bằng lái chỉ có thể thuê 1 xe tại một thời điểm."
+                        };
+                    }
+                }
+
+                return new RentalResponseDto { Success = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating license usage: {Error}", ex.Message);
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi kiểm tra bằng lái xe: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách đơn hàng active theo số bằng lái xe
+        /// </summary>
+        private async Task<IEnumerable<Models.Order>> GetActiveOrdersByLicenseNumberAsync(string licenseNumber)
+        {
+            try
+            {
+                // Lấy tất cả đơn hàng active
+                var allOrders = await _unitOfWork.Orders.GetAllAsync();
+                var activeOrders = allOrders.Where(o => 
+                    o.Status == "Pending" || 
+                    o.Status == "Pending Payment" ||
+                    o.Status == "Confirmed" || 
+                    o.Status == "Paid" || 
+                    o.Status == "Active" || 
+                    o.Status == "Rented");
+
+                var conflictingOrders = new List<Models.Order>();
+
+                foreach (var order in activeOrders)
+                {
+                    // Kiểm tra thông tin bằng lái xe từ trường Status
+                    if (!string.IsNullOrEmpty(order.Status) && order.Status.Contains("|License:"))
+                    {
+                        var licenseInfo = order.Status.Split('|')[1]; // Lấy phần "License:ABC123"
+                        var actualLicenseNumber = licenseInfo.Replace("License:", "");
+                        
+                        if (actualLicenseNumber == licenseNumber)
+                        {
+                            conflictingOrders.Add(order);
+                            continue;
+                        }
+                    }
+
+                    // Kiểm tra bằng lái xe của user đặt hàng (fallback)
+                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
+                    var userLicense = userLicenses?.FirstOrDefault();
+                    
+                    if (userLicense != null && userLicense.LicenseNumber == licenseNumber)
+                    {
+                        conflictingOrders.Add(order);
+                        continue;
+                    }
+
+                    // Kiểm tra trường hợp đặt hộ (lưu trong User.Notes)
+                    if (!string.IsNullOrWhiteSpace(order.User?.Notes))
+                    {
+                        try
+                        {
+                            var renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(order.User.Notes);
+                            if (renterImages != null && renterImages.ContainsKey(order.OrderId))
+                            {
+                                // Đây là đơn hàng đặt hộ, cần kiểm tra thêm logic khác
+                                // Tạm thời bỏ qua validation cho đặt hộ vì chưa có thông tin bằng lái chi tiết
+                                _logger.LogInformation("Found booking for others order {OrderId}, skipping license validation for now", order.OrderId);
+                            }
+                        }
+                        catch
+                        {
+                            // Ignore parsing errors
+                        }
+                    }
+                }
+
+                return conflictingOrders;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active orders by license number: {Error}", ex.Message);
+                return new List<Models.Order>();
             }
         }
 
@@ -762,14 +1167,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 if (!availableLicensePlates.Any())
                     return false;
 
-                // Kiểm tra xe có bị thuê trong khoảng thời gian này không
+                // Kiểm tra xe có bị thuê trong khoảng thời gian này không (với buffer 1 ngày)
                 var orders = await _unitOfWork.Orders.GetAllAsync();
+                
+                // Thêm buffer 1 ngày sau mỗi lần thuê để xe có thời gian bảo trì
+                var bufferTime = TimeSpan.FromDays(1);
+                var startTimeWithBuffer = startTime;
+                var endTimeWithBuffer = endTime;
+                
                 var conflictingOrders = orders.Where(o => 
                     o.Status != "Cancelled" && 
                     o.Status != "Completed" &&
                     o.StartTime.HasValue && 
                     o.EndTime.HasValue &&
-                    !(endTime <= o.StartTime.Value || startTime >= o.EndTime.Value))
+                    !(endTimeWithBuffer <= o.StartTime.Value || startTimeWithBuffer >= o.EndTime.Value.Add(bufferTime)))
                     .ToList();
 
                 // Kiểm tra xem có xe nào trong danh sách bị conflict không
@@ -1112,6 +1523,132 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Success = false,
                     Message = "Lỗi server khi xác nhận đơn thuê"
                 };
+            }
+        }
+
+        public async Task<RentalListResponseDto> GetPendingOrdersAsync()
+        {
+            try
+            {
+                var pendingOrders = await _unitOfWork.Orders.GetPendingOrdersAsync();
+                var rentalDtos = new List<RentalDto>();
+
+                foreach (var order in pendingOrders)
+                {
+                    var rentalDto = await PopulateRentalDtoAsync(order);
+                    
+                    // Thêm thông tin thời gian còn lại
+                    var timeElapsed = DateTime.Now - order.OrderDate;
+                    var timeRemaining = TimeSpan.FromMinutes(15) - timeElapsed;
+                    
+                    rentalDto.Status = $"Pending ({timeRemaining.TotalMinutes:F0} phút còn lại)";
+                    rentalDtos.Add(rentalDto);
+                }
+
+                return new RentalListResponseDto
+                {
+                    Success = true,
+                    Message = "Pending orders retrieved successfully",
+                    Data = rentalDtos,
+                    TotalCount = rentalDtos.Count,
+                    PageNumber = 1,
+                    PageSize = rentalDtos.Count,
+                    TotalPages = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pending orders: {Error}", ex.Message);
+                return new RentalListResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi lấy danh sách đơn hàng chờ xử lý: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<RentalResponseDto> StaffCancelOrderAsync(int orderId, string reason)
+        {
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (order == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy đơn hàng với ID này"
+                    };
+                }
+
+                // Kiểm tra order có thể hủy không
+                if (order.Status != "Pending" && order.Status != "Pending Payment")
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Không thể hủy đơn hàng với trạng thái: {order.Status}"
+                    };
+                }
+
+                _logger.LogInformation("Staff cancelling order {OrderId} with reason: {Reason}", orderId, reason);
+
+                // Cập nhật status đơn hàng
+                order.Status = "Cancelled";
+                _unitOfWork.Orders.Update(order);
+
+                // Giải phóng biển số xe nếu có
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
+                    if (licensePlate != null)
+                    {
+                        licensePlate.Status = "Available";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                        
+                        _logger.LogInformation("Released license plate {LicensePlateId} back to Available status", 
+                            licensePlate.LicensePlateId);
+                    }
+                }
+
+                // Cập nhật contract status nếu có
+                var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
+                foreach (var contract in contracts)
+                {
+                    contract.Status = "Cancelled";
+                    _unitOfWork.Contracts.Update(contract);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                var rentalDto = await PopulateRentalDtoAsync(order);
+
+                _logger.LogInformation("Staff successfully cancelled order {OrderId} with reason: {Reason}", orderId, reason);
+
+                return new RentalResponseDto
+                {
+                    Success = true,
+                    Message = $"Đã hủy đơn hàng thành công. Lý do: {reason}",
+                    Data = rentalDto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order {OrderId}: {Error}", orderId, ex.Message);
+                await _unitOfWork.RollbackTransactionAsync();
+                
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi hủy đơn hàng: {ex.Message}"
+                };
+            }
+            finally
+            {
+                transaction?.Dispose();
             }
         }
     }

@@ -18,6 +18,13 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? UserEmail { get; set; }
         public string? LicenseImageUrl { get; set; } 
         public int? ContractId { get; set; } 
+        
+        // Thêm thông tin bằng lái xe
+        public int? LicenseId { get; set; }
+        public string? LicenseNumber { get; set; }
+        public string? LicenseType { get; set; }
+        public DateTime? LicenseExpiryDate { get; set; }
+        
         public List<RentalVehicleDto> Vehicles { get; set; } = new List<RentalVehicleDto>();
         public List<RentalContractDto> Contracts { get; set; } = new List<RentalContractDto>();
         public int TotalDays { get; set; }
@@ -253,6 +260,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public RentalDto? Data { get; set; }
         public int? OrderId { get; set; } // Thêm OrderId để API thanh toán có thể sử dụng
         public int? ContractId { get; set; } // Thêm ContractId để API thanh toán có thể sử dụng
+        public bool RequiresPayment { get; set; } = false; // Flag để frontend biết cần thanh toán
     }
 
     /// <summary>

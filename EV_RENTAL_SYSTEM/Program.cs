@@ -56,6 +56,9 @@ builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRevenueService, RevenueService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 
+// Background Services
+builder.Services.AddHostedService<OrderCleanupService>();
+
 // Custom JWT Authentication (không cần Bearer prefix)
 builder.Services.AddAuthentication("CustomJwt")
     .AddScheme<AuthenticationSchemeOptions, CustomJwtAuthenticationHandler>("CustomJwt", options => { });

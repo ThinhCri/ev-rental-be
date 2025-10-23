@@ -236,7 +236,142 @@ namespace EV_RENTAL_SYSTEM.Controllers
         }
 
         /// <summary>
-        /// Create new rental endpoint
+        /// Create new rental endpoint (với thanh toán bắt buộc)
+        /// </summary>
+        /// <param name="createDto">Rental information</param>
+        /// <returns>Rental creation result</returns>
+        [HttpPost("with-payment")]
+        [Authorize(Policy = "AuthenticatedUser")]
+        public async Task<IActionResult> CreateRentalWithPayment([FromForm] CreateRentalDto createDto)
+        {
+            try
+            {
+                _logger.LogInformation("CreateRentalWithPayment called - VehicleId: {VehicleId}, IsBookingForOthers: {IsBookingForOthers}", 
+                    createDto?.VehicleId, createDto?.IsBookingForOthers);
+
+                // Kiểm tra JSON parsing
+                if (createDto == null)
+                {
+                    _logger.LogWarning("CreateRentalWithPayment: createDto is null");
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "JSON không hợp lệ hoặc bị lỗi cú pháp",
+                        Hint = "Kiểm tra dấu phẩy, ngoặc vuông và format JSON"
+                    });
+                }
+
+                // Kiểm tra model validation
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    
+                    var fieldErrors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    
+                    _logger.LogWarning("CreateRentalWithPayment: Model validation failed. Errors: {Errors}, FieldErrors: {FieldErrors}", 
+                        string.Join(", ", errors), System.Text.Json.JsonSerializer.Serialize(fieldErrors));
+                    
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ",
+                        Errors = errors,
+                        FieldErrors = fieldErrors,
+                        ReceivedData = new
+                        {
+                            StartTime = createDto?.StartTime,
+                            EndTime = createDto?.EndTime,
+                            VehicleId = createDto?.VehicleId,
+                            DepositAmount = createDto?.DepositAmount,
+                            IsBookingForOthers = createDto?.IsBookingForOthers,
+                            HasRenterLicenseImage = createDto?.RenterLicenseImage != null
+                        }
+                    });
+                }
+
+                // Validate date range
+                if (createDto.StartTime >= createDto.EndTime)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                    });
+                }
+
+                if (createDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                    });
+                }
+
+                if (createDto.IsBookingForOthers)
+                {
+                    if (createDto.RenterLicenseImage == null)
+                    {
+                        return BadRequest(new
+                        {
+                            Success = false,
+                            Message = "Renter license image is required"
+                        });
+                    }
+                }
+
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return Unauthorized(new 
+                    { 
+                        Success = false,
+                        Message = "Token không hợp lệ" 
+                    });
+                }
+
+                var result = await _rentalService.CreateRentalWithMandatoryPaymentAsync(createDto, userId.Value);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Thông tin đơn thuê đã sẵn sàng. Vui lòng thanh toán để hoàn tất.",
+                    Data = result.Data,
+                    RequiresPayment = true,
+                    PaymentRequired = true // Flag cho frontend
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating rental with payment: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi tạo đơn thuê",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Create new rental endpoint (cách cũ - không bắt buộc thanh toán)
         /// </summary>
         /// <param name="createDto">Rental information</param>
         /// <returns>Rental creation result</returns>
@@ -704,6 +839,87 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 {
                     Success = false,
                     Message = "Lỗi server khi xác nhận hợp đồng",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách đơn hàng pending để staff quản lý
+        /// </summary>
+        /// <returns>List of pending orders with timeout information</returns>
+        [HttpGet("pending-orders")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> GetPendingOrders()
+        {
+            try
+            {
+                var result = await _rentalService.GetPendingOrdersAsync();
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pending orders: {Error}", ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy danh sách đơn hàng chờ xử lý",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Staff hủy đơn hàng thủ công
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <param name="reason">Lý do hủy</param>
+        /// <returns>Cancellation result</returns>
+        [HttpPost("{orderId}/staff-cancel")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> StaffCancelOrder(int orderId, [FromBody] string reason)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Lý do hủy đơn hàng là bắt buộc"
+                    });
+                }
+
+                var result = await _rentalService.StaffCancelOrderAsync(orderId, reason);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi hủy đơn hàng",
                     Error = ex.Message
                 });
             }

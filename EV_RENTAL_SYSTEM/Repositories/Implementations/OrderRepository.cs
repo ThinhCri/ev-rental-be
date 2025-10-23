@@ -64,6 +64,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
 
         public async Task<IEnumerable<Order>> GetActiveOrdersByUserIdAsync(int userId)
         {
+            var activeStatuses = new[] { "Pending", "Confirmed", "Paid", "Active", "Rented" };
             return await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderLicensePlates)
@@ -73,14 +74,15 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .Include(o => o.OrderLicensePlates)
                     .ThenInclude(olp => olp.LicensePlate)
                         .ThenInclude(lp => lp.Station)
-                .Where(o => o.UserId == userId && (o.Status == "Active" || o.Status == "Rented"))
+                .Where(o => o.UserId == userId && activeStatuses.Contains(o.Status))
                 .ToListAsync();
         }
 
         public async Task<bool> HasActiveOrderAsync(int userId)
         {
+            var activeStatuses = new[] { "Pending", "Confirmed", "Paid", "Active", "Rented" };
             return await _context.Orders
-                .AnyAsync(o => o.UserId == userId && (o.Status == "Active" || o.Status == "Rented"));
+                .AnyAsync(o => o.UserId == userId && activeStatuses.Contains(o.Status));
         }
 
         public async Task<IEnumerable<Order>> GetUserOrdersAsync(int userId)
@@ -93,6 +95,18 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                             .ThenInclude(v => v.Brand)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
+        {
+            var pendingStatuses = new[] { "Pending", "Pending Payment" };
+            return await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderLicensePlates)
+                    .ThenInclude(olp => olp.LicensePlate)
+                .Where(o => pendingStatuses.Contains(o.Status))
+                .OrderBy(o => o.OrderDate)
                 .ToListAsync();
         }
     }

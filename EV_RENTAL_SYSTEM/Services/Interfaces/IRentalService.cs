@@ -8,6 +8,7 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<RentalResponseDto> GetRentalByIdAsync(int orderId);
         Task<RentalListResponseDto> GetUserRentalsAsync(int userId);
         Task<RentalResponseDto> CreateRentalAsync(CreateRentalDto createDto, int userId);
+        Task<RentalResponseDto> CreateRentalWithMandatoryPaymentAsync(CreateRentalDto createDto, int userId);
         Task<RentalResponseDto> UpdateRentalAsync(int orderId, UpdateRentalDto updateDto);
         Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId);
         Task<RentalResponseDto> CompleteRentalAsync(int orderId);
@@ -19,6 +20,8 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<ServiceResponse<ContractSummaryDto>> GetContractSummaryAsync(int orderId);
         Task<ServiceResponse<PaymentQrResponseDto>> ConfirmContractAsync(int orderId);
         Task<ServiceResponse<RentalResponseDto>> StaffConfirmRentalAsync(int orderId, StaffConfirmationDto request);
+        Task<RentalListResponseDto> GetPendingOrdersAsync();
+        Task<RentalResponseDto> StaffCancelOrderAsync(int orderId, string reason);
     }
 }
 

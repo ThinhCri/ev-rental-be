@@ -22,8 +22,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                var transactionId = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
-
                 Contract? contract = null;
                 if (request.OrderId.HasValue)
                 {
@@ -103,14 +101,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 {
                     PaymentId = payment.PaymentId,
                     UserId = userId,
-                    TransactionDate = DateTime.Now
+                    TransactionDate = DateTime.Now,
+                    Status = "Pending"
                 };
 
                 await _unitOfWork.Transactions.AddAsync(transaction);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("Created payment {PaymentId} for user {UserId} with transaction {TransactionId}", 
-                    payment.PaymentId, userId, transactionId);
+                    payment.PaymentId, userId, transaction.TransactionId);
 
                 return new PaymentResponseDto
                 {
@@ -123,7 +122,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Amount = payment.Amount ?? 0,
                         Status = payment.Status ?? "Pending",
                         PaymentMethod = "VNPay",
-                        TransactionId = transactionId,
+                        TransactionId = transaction.TransactionId.ToString(),
                         ContractId = payment.ContractId,
                         Note = request.Description
                     }
@@ -419,9 +418,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Amount = request.Amount,
                     Status = "Pending",
                     ContractId = contract.ContractId,
-                    PaymentDate = DateTime.Now,
-                    Method = "VNPay",
-                    Note = request.Note
+                    PaymentDate = DateTime.Now
                 };
 
                 await _unitOfWork.BeginTransactionAsync();
@@ -523,7 +520,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
 
                 payment.Status = "Success";
-                payment.Method = "VNPay";
                 _unitOfWork.Payments.Update(payment);
 
                 var transaction = payment.Transactions.FirstOrDefault();
@@ -531,6 +527,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 {
                     transaction.Status = "Success";
                     _unitOfWork.Transactions.Update(transaction);
+                    _logger.LogInformation("Updated transaction {TransactionId} status to Success", transaction.TransactionId);
+                }
+                else
+                {
+                    _logger.LogWarning("No transaction found for payment {PaymentId}", payment.PaymentId);
                 }
 
                 if (contract?.Order != null)
@@ -556,8 +557,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PaymentMethod = "VNPay",
                         TransactionId = vnPayResponse.TransactionId,
                         OrderId = orderId,
-                        ContractId = payment.ContractId,
-                        Note = payment.Note
+                        ContractId = payment.ContractId
                     }
                 };
             }

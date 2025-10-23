@@ -202,8 +202,8 @@ namespace EV_RENTAL_SYSTEM.Libraries
             return data.ToString();
         }
     }
-}
-  public class VnPayCompare : IComparer<string>
+
+    public class VnPayCompare : IComparer<string>
     {
         public int Compare(string x, string y)
         {
@@ -214,3 +214,4 @@ namespace EV_RENTAL_SYSTEM.Libraries
             return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
         }
     }
+}

@@ -10,6 +10,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<IEnumerable<Order>> GetActiveOrdersByUserIdAsync(int userId);
         Task<bool> HasActiveOrderAsync(int userId);
         Task<IEnumerable<Order>> GetUserOrdersAsync(int userId);
+        Task<IEnumerable<Order>> GetPendingOrdersAsync();
     }
 }
 
