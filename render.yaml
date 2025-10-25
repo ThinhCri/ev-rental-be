@@ -1,0 +1,25 @@
+# render.yaml - Cấu hình deploy cho Render
+services:
+  - type: web
+    name: ev-rental-system
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:10000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: ev-rental-db
+          property: connectionString
+
+databases:
+  - name: ev-rental-db
+    plan: free
+    region: oregon
