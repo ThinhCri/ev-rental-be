@@ -57,5 +57,15 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .Distinct()
                 .CountAsync();
         }
+
+        public async Task<IEnumerable<LicensePlate>> GetLicensePlatesByStatusAsync(string status)
+        {
+            return await _context.LicensePlates
+                .Where(lp => lp.Status == status)
+                .Include(lp => lp.Vehicle)
+                .ThenInclude(v => v.Brand)
+                .Include(lp => lp.Station)
+                .ToListAsync();
+        }
     }
 }

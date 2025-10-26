@@ -513,7 +513,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// <returns>Update result</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
-        public async Task<IActionResult> UpdateRental(int id, [FromBody] UpdateRentalDto updateDto)
+        public async Task<IActionResult> UpdateRental(int id, [FromForm] UpdateRentalDto updateDto)
         {
             try
             {
@@ -960,6 +960,164 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 {
                     Success = false,
                     Message = "Lỗi server khi xác nhận đơn thuê",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Bàn giao xe cho khách hàng - Staff thực hiện
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <returns>Handover result</returns>
+        [HttpPut("{orderId}/handover")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> HandoverVehicle(int orderId)
+        {
+            try
+            {
+                var result = await _rentalService.HandoverVehicleAsync(orderId);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handing over vehicle for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi bàn giao xe",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Bàn giao xe với thông tin chi tiết (ảnh, note, odometer, battery)
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <param name="handoverDto">Handover details</param>
+        /// <returns>Handover result</returns>
+        [HttpPut("{orderId}/handover-details")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> HandoverVehicleWithDetails(int orderId, [FromForm] HandoverVehicleDto handoverDto)
+        {
+            try
+            {
+                if (handoverDto == null)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ"
+                    });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ",
+                        Errors = errors
+                    });
+                }
+
+                var result = await _rentalService.HandoverVehicleWithDetailsAsync(orderId, handoverDto);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handing over vehicle with details for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi bàn giao xe",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Trả xe với thông tin chi tiết và tính phí phát sinh
+        /// </summary>
+        /// <param name="orderId">Order ID</param>
+        /// <param name="returnDto">Return details</param>
+        /// <returns>Return result</returns>
+        [HttpPut("{orderId}/return")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> ReturnVehicle(int orderId, [FromForm] ReturnVehicleDto returnDto)
+        {
+            try
+            {
+                if (returnDto == null)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ"
+                    });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Dữ liệu không hợp lệ",
+                        Errors = errors
+                    });
+                }
+
+                var result = await _rentalService.ReturnVehicleAsync(orderId, returnDto);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error returning vehicle for order {OrderId}: {Error}", orderId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi trả xe",
                     Error = ex.Message
                 });
             }

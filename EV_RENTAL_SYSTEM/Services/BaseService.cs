@@ -1,3 +1,4 @@
+using AutoMapper;
 using EV_RENTAL_SYSTEM.Models.DTOs;
 using Microsoft.Extensions.Logging;
 
@@ -8,10 +9,18 @@ namespace EV_RENTAL_SYSTEM.Services
     /// </summary>
     public abstract class BaseService
     {
+        protected readonly IMapper? _mapper;
         protected readonly ILogger _logger;
 
         protected BaseService(ILogger logger)
         {
+            _logger = logger;
+            _mapper = null;
+        }
+
+        protected BaseService(IMapper mapper, ILogger logger)
+        {
+            _mapper = mapper;
             _logger = logger;
         }
 

@@ -118,6 +118,46 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     }
 
     /// <summary>
+    /// DTO cho request bàn giao xe với thông tin chi tiết
+    /// </summary>
+    public class HandoverVehicleDto
+    {
+        [Required(ErrorMessage = "Hình ảnh xe là bắt buộc")]
+        public IFormFile? VehicleImage { get; set; }
+        
+        [MaxLength(1000, ErrorMessage = "Ghi chú không được quá 1000 ký tự")]
+        public string? Notes { get; set; }
+        
+        [Required(ErrorMessage = "Odometer là bắt buộc")]
+        [Range(0, 999999, ErrorMessage = "Odometer phải từ 0 đến 999999 km")]
+        public int Odometer { get; set; } // Số km hiện tại của xe
+        
+        [Required(ErrorMessage = "Pin là bắt buộc")]
+        [Range(0, 100, ErrorMessage = "Pin phải từ 0 đến 100%")]
+        public decimal Battery { get; set; } // % pin hiện tại
+    }
+
+    /// <summary>
+    /// DTO cho request trả xe với thông tin chi tiết
+    /// </summary>
+    public class ReturnVehicleDto
+    {
+        [Required(ErrorMessage = "Hình ảnh xe là bắt buộc")]
+        public IFormFile? VehicleImage { get; set; }
+        
+        [MaxLength(1000, ErrorMessage = "Ghi chú không được quá 1000 ký tự")]
+        public string? Notes { get; set; }
+        
+        [Required(ErrorMessage = "Số km là bắt buộc")]
+        [Range(0, 999999, ErrorMessage = "Số km phải từ 0 đến 999999 km")]
+        public int Odometer { get; set; } // Số km sau khi trả xe
+        
+        [Required(ErrorMessage = "Pin là bắt buộc")]
+        [Range(0, 100, ErrorMessage = "Pin phải từ 0 đến 100%")]
+        public decimal Battery { get; set; } // % pin khi trả xe
+    }
+
+    /// <summary>
     /// DTO cho response QR code thanh toán
     /// </summary>
     public class PaymentQrResponseDto
@@ -179,6 +219,8 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public decimal? DepositAmount { get; set; }
         public string? Status { get; set; }
         public string? Notes { get; set; }
+        
+        public IFormFile? RenterLicenseImage { get; set; } // Hỗ trợ upload ảnh bằng lái xe nếu đặt hộ
     }
 
     /// <summary>

@@ -156,6 +156,69 @@ namespace EV_RENTAL_SYSTEM.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get license plates by status endpoint (xem xe nào đang ở trạng thái gì)
+        /// </summary>
+        /// <param name="status">License plate status (Available, Rented, Maintenance, Reserved)</param>
+        /// <returns>List of license plates with status</returns>
+        [HttpGet("license-plates/status/{status}")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> GetLicensePlatesByStatus(string status)
+        {
+            try
+            {
+                var licensePlates = await _context.LicensePlates
+                    .Where(lp => lp.Status == status)
+                    .Include(lp => lp.Vehicle)
+                        .ThenInclude(v => v.Brand)
+                    .Include(lp => lp.Station)
+                    .Select(lp => new
+                    {
+                        lp.LicensePlateId,
+                        lp.PlateNumber,
+                        lp.Status,
+                        Vehicle = new
+                        {
+                            lp.Vehicle.VehicleId,
+                            lp.Vehicle.Model,
+                            lp.Vehicle.ModelYear,
+                            lp.Vehicle.Description,
+                            lp.Vehicle.RangeKm,
+                            lp.Vehicle.Battery,
+                            lp.Vehicle.VehicleImage,
+                            Brand = lp.Vehicle.Brand != null ? new
+                            {
+                                lp.Vehicle.Brand.BrandId,
+                                lp.Vehicle.Brand.BrandName
+                            } : null
+                        },
+                        Station = new
+                        {
+                            lp.Station.StationId,
+                            lp.Station.StationName,
+                            Street = lp.Station.Street,
+                            District = lp.Station.District,
+                            Province = lp.Station.Province,
+                            Country = lp.Station.Country
+                        }
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    Success = true,
+                    Message = $"Lấy danh sách biển số xe trạng thái '{status}' thành công",
+                    Data = licensePlates,
+                    Count = licensePlates.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting license plates by status {Status}: {Error}", status, ex.Message);
+                return ErrorResponse($"Lỗi khi lấy danh sách xe: {ex.Message}", 500);
+            }
+        }
     }
 
 }

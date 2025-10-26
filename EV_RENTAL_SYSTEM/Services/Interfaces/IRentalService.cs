@@ -22,6 +22,9 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<ServiceResponse<RentalResponseDto>> StaffConfirmRentalAsync(int orderId, StaffConfirmationDto request);
         Task<RentalListResponseDto> GetPendingOrdersAsync();
         Task<RentalResponseDto> StaffCancelOrderAsync(int orderId, string reason);
+        Task<RentalResponseDto> HandoverVehicleAsync(int orderId);
+        Task<RentalResponseDto> HandoverVehicleWithDetailsAsync(int orderId, HandoverVehicleDto handoverDto);
+        Task<RentalResponseDto> ReturnVehicleAsync(int orderId, ReturnVehicleDto returnDto);
     }
 }
 

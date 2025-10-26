@@ -56,6 +56,24 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             throw new Exception("Upload failed: " + result.Error?.Message);
         }
 
+        public async Task<string> UploadVehicleImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new Exception("File error.");
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, file.OpenReadStream()),
+                Folder = "VehicleConditions"
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+            if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                return result.SecureUrl.ToString();
+
+            throw new Exception("Upload failed: " + result.Error?.Message);
+        }
+
         public async Task<bool> DeleteImageAsync(string imageUrl)
         {
             if (string.IsNullOrEmpty(imageUrl))
@@ -63,8 +81,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
             try
             {
-
-
                 var uri = new Uri(imageUrl);
                 var pathSegments = uri.AbsolutePath.Split('/');
 
@@ -83,6 +99,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 if (licenseFolderIndex != -1 && licenseFolderIndex + 1 < pathSegments.Length)
                 {
                     var publicId = $"ImgLicense/{Path.GetFileNameWithoutExtension(pathSegments[licenseFolderIndex + 1])}";
+                    var deleteParams = new DeletionParams(publicId);
+                    var result = await _cloudinary.DestroyAsync(deleteParams);
+                    return result.Result == "ok";
+                }
+
+                // Check for VehicleConditions folder
+                var vehicleFolderIndex = Array.IndexOf(pathSegments, "VehicleConditions");
+                if (vehicleFolderIndex != -1 && vehicleFolderIndex + 1 < pathSegments.Length)
+                {
+                    var publicId = $"VehicleConditions/{Path.GetFileNameWithoutExtension(pathSegments[vehicleFolderIndex + 1])}";
                     var deleteParams = new DeletionParams(publicId);
                     var result = await _cloudinary.DestroyAsync(deleteParams);
                     return result.Result == "ok";

@@ -32,6 +32,14 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Extra_fee", TypeName = "decimal(10,2)")]
         public decimal? ExtraFee { get; set; }
 
+        [MaxLength(500)]
+        [Column("Handover_Image")]
+        public string? HandoverImage { get; set; } // Ảnh xe khi khách nhận xe
+
+        [MaxLength(500)]
+        [Column("Return_Image")]
+        public string? ReturnImage { get; set; } // Ảnh xe khi khách trả xe
+
         // Navigation properties
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;

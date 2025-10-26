@@ -848,6 +848,34 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
+                // Xử lý upload ảnh bằng lái xe (đặt hộ) nếu có
+                if (updateDto.RenterLicenseImage != null)
+                {
+                    var renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(updateDto.RenterLicenseImage);
+                    
+                    // Lưu vào User.Notes
+                    var currentUser = await _unitOfWork.Users.GetByIdAsync(order.UserId);
+                    if (currentUser != null)
+                    {
+                        var renterImages = new Dictionary<int, string>();
+                        if (!string.IsNullOrWhiteSpace(currentUser.Notes))
+                        {
+                            try
+                            {
+                                renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(currentUser.Notes) ?? new Dictionary<int, string>();
+                            }
+                            catch
+                            {
+                                renterImages = new Dictionary<int, string>();
+                            }
+                        }
+
+                        renterImages[orderId] = renterLicenseImageUrl;
+                        currentUser.Notes = System.Text.Json.JsonSerializer.Serialize(renterImages);
+                        await _unitOfWork.Users.UpdateAsync(currentUser);
+                    }
+                }
+
                 // Cập nhật thông tin
                 if (updateDto.StartTime.HasValue) order.StartTime = updateDto.StartTime.Value;
                 if (updateDto.EndTime.HasValue) order.EndTime = updateDto.EndTime.Value;
@@ -856,10 +884,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
 
+                // Reload order với đầy đủ thông tin
+                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                var rentalDto = await PopulateRentalDtoAsync(updatedOrder!);
+
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = "Cập nhật đơn thuê thành công"
+                    Message = "Cập nhật đơn thuê thành công",
+                    Data = rentalDto
                 };
             }
             catch (Exception ex)
@@ -1649,6 +1682,332 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             finally
             {
                 transaction?.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Bàn giao xe cho khách hàng - Staff thực hiện
+        /// </summary>
+        public async Task<RentalResponseDto> HandoverVehicleAsync(int orderId)
+        {
+            try
+            {
+                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (order == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy đơn thuê"
+                    };
+                }
+
+                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" mới được bàn giao
+                if (order.Status != "Confirmed")
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận. Trạng thái hiện tại: {order.Status}"
+                    };
+                }
+
+                // Cập nhật trạng thái đơn hàng thành "Active" (xe đang được thuê)
+                order.Status = "Active";
+                _unitOfWork.Orders.Update(order);
+
+                // Cập nhật trạng thái biển số xe thành "Rented"
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
+                    if (licensePlate != null && licensePlate.Status == "Reserved")
+                    {
+                        licensePlate.Status = "Rented";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Rented during handover for order {OrderId}", 
+                            licensePlate.LicensePlateId, orderId);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload order với đầy đủ thông tin
+                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (updatedOrder == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải lại thông tin đơn thuê"
+                    };
+                }
+
+                var rentalDto = await PopulateRentalDtoAsync(updatedOrder);
+
+                _logger.LogInformation("Vehicle handed over successfully for order {OrderId}", orderId);
+
+                return new RentalResponseDto
+                {
+                    Success = true,
+                    Message = "Bàn giao xe thành công",
+                    Data = rentalDto,
+                    OrderId = rentalDto.OrderId,
+                    ContractId = rentalDto.ContractId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handing over vehicle for order {OrderId}: {Error}", orderId, ex.Message);
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi bàn giao xe: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Bàn giao xe với thông tin chi tiết (ảnh, note, odometer, battery)
+        /// </summary>
+        public async Task<RentalResponseDto> HandoverVehicleWithDetailsAsync(int orderId, HandoverVehicleDto handoverDto)
+        {
+            try
+            {
+                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (order == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy đơn thuê"
+                    };
+                }
+
+                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" mới được bàn giao
+                if (order.Status != "Confirmed")
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận. Trạng thái hiện tại: {order.Status}"
+                    };
+                }
+
+                // Upload ảnh xe
+                string? vehicleImageUrl = null;
+                if (handoverDto.VehicleImage != null)
+                {
+                    vehicleImageUrl = await _cloudService.UploadVehicleImageAsync(handoverDto.VehicleImage);
+                }
+
+                // Lấy thông tin biển số xe và cập nhật
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
+                    if (licensePlate != null && licensePlate.Status == "Reserved")
+                    {
+                        // Cập nhật trạng thái biển số thành "Rented"
+                        licensePlate.Status = "Rented";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+
+                        // Cập nhật thông tin xe (odometer và battery hiện tại)
+                        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
+                        if (vehicle != null)
+                        {
+                            vehicle.RangeKm = handoverDto.Odometer; // Lưu odometer hiện tại vào RangeKm
+                            vehicle.Battery = handoverDto.Battery; // Cập nhật % pin
+                            await _unitOfWork.Vehicles.UpdateAsync(vehicle);
+                        }
+
+                        _logger.LogInformation("Updated license plate {LicensePlateId} and vehicle during handover for order {OrderId}", 
+                            licensePlate.LicensePlateId, orderId);
+                    }
+                }
+
+                // Lưu ảnh xe vào Contract.HandoverImage
+                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                if (contract != null && !string.IsNullOrEmpty(vehicleImageUrl))
+                {
+                    contract.HandoverImage = vehicleImageUrl;
+                    _unitOfWork.Contracts.Update(contract);
+                    _logger.LogInformation("Saved handover image to Contract {ContractId} for order {OrderId}", contract.ContractId, orderId);
+                }
+
+                // Lưu ghi chú vào order (tạm thời lưu vào trường Notes của User - có thể cải thiện sau bằng cách thêm bảng Notes)
+                if (!string.IsNullOrWhiteSpace(handoverDto.Notes))
+                {
+                    // Lưu note vào order (có thể dùng trường Notes hoặc thêm bảng mới)
+                    // Tạm thời bỏ qua vì Order model chưa có trường Notes
+                    _logger.LogInformation("Handover note for order {OrderId}: {Note}", orderId, handoverDto.Notes);
+                }
+
+                // Cập nhật trạng thái đơn hàng thành "Active"
+                order.Status = "Active";
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload order với đầy đủ thông tin
+                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (updatedOrder == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải lại thông tin đơn thuê"
+                    };
+                }
+
+                var rentalDto = await PopulateRentalDtoAsync(updatedOrder);
+
+                _logger.LogInformation("Vehicle handed over with details successfully for order {OrderId}", orderId);
+
+                return new RentalResponseDto
+                {
+                    Success = true,
+                    Message = "Bàn giao xe thành công",
+                    Data = rentalDto,
+                    OrderId = rentalDto.OrderId,
+                    ContractId = rentalDto.ContractId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handing over vehicle with details for order {OrderId}: {Error}", orderId, ex.Message);
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi bàn giao xe: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Trả xe với thông tin chi tiết và tính phí phát sinh
+        /// </summary>
+        public async Task<RentalResponseDto> ReturnVehicleAsync(int orderId, ReturnVehicleDto returnDto)
+        {
+            try
+            {
+                var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (order == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy đơn thuê"
+                    };
+                }
+
+                // Kiểm tra trạng thái đơn hàng phải là "Active"
+                if (order.Status != "Active")
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = $"Chỉ có thể trả xe khi xe đang được thuê. Trạng thái hiện tại: {order.Status}"
+                    };
+                }
+
+                // Upload ảnh xe khi trả
+                string? vehicleImageUrl = null;
+                if (returnDto.VehicleImage != null)
+                {
+                    vehicleImageUrl = await _cloudService.UploadVehicleImageAsync(returnDto.VehicleImage);
+                }
+
+                // Lấy thông tin xe và tính phí phát sinh
+                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                decimal extraFee = 0;
+
+                foreach (var orderLicensePlate in orderLicensePlates)
+                {
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
+                    if (licensePlate != null)
+                    {
+                        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
+                        if (vehicle != null)
+                        {
+                            // Tính phí vượt km: Có 60km free, mỗi km thừa tính $1
+                            int kmUsed = returnDto.Odometer - (vehicle.RangeKm ?? 0);
+                            if (kmUsed > 60)
+                            {
+                                int excessKm = kmUsed - 60;
+                                extraFee += excessKm * 1; // $1 per km
+                            }
+
+                            // Tính phí pin thấp: Nếu pin dưới 50%, phụ thu $10
+                            if (returnDto.Battery < 50)
+                            {
+                                extraFee += 10;
+                            }
+
+                            // Cập nhật thông tin xe
+                            vehicle.RangeKm = returnDto.Odometer; // Cập nhật km mới
+                            vehicle.Battery = returnDto.Battery; // Cập nhật % pin
+                            await _unitOfWork.Vehicles.UpdateAsync(vehicle);
+                        }
+
+                        // Auto update trạng thái biển số xe thành "Maintenance" sau khi trả xe
+                        licensePlate.Status = "Maintenance";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Maintenance after return for order {OrderId}", 
+                            licensePlate.LicensePlateId, orderId);
+                    }
+                }
+
+                // Cập nhật extra fee và ảnh xe vào contract
+                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                if (contract != null)
+                {
+                    contract.ExtraFee = extraFee;
+                    // Lưu ảnh xe khi trả vào Contract.ReturnImage
+                    if (!string.IsNullOrEmpty(vehicleImageUrl))
+                    {
+                        contract.ReturnImage = vehicleImageUrl;
+                        _logger.LogInformation("Saved return image to Contract {ContractId} for order {OrderId}", contract.ContractId, orderId);
+                    }
+                    _unitOfWork.Contracts.Update(contract);
+                }
+
+                // Cập nhật trạng thái đơn hàng thành "Completed"
+                order.Status = "Completed";
+                _unitOfWork.Orders.Update(order);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Reload order với đầy đủ thông tin
+                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                if (updatedOrder == null)
+                {
+                    return new RentalResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải lại thông tin đơn thuê"
+                    };
+                }
+
+                var rentalDto = await PopulateRentalDtoAsync(updatedOrder);
+
+                _logger.LogInformation("Vehicle returned successfully for order {OrderId} with extra fee {ExtraFee}", orderId, extraFee);
+
+                return new RentalResponseDto
+                {
+                    Success = true,
+                    Message = $"Trả xe thành công. Phí phát sinh: ${extraFee}",
+                    Data = rentalDto,
+                    OrderId = rentalDto.OrderId,
+                    ContractId = rentalDto.ContractId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error returning vehicle for order {OrderId}: {Error}", orderId, ex.Message);
+                return new RentalResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi trả xe: {ex.Message}"
+                };
             }
         }
     }

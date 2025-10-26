@@ -18,6 +18,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         ILicensePlateRepository LicensePlates { get; }
         IOrderLicensePlateRepository OrderLicensePlates { get; }
         IContractRepository Contracts { get; }
+        IMaintenanceRepository Maintenances { get; }
         Task<int> SaveChangesAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task CommitTransactionAsync();

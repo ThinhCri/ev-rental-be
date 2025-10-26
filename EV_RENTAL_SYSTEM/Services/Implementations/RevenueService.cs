@@ -28,11 +28,27 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var allOrders = await _unitOfWork.Orders.GetAllAsync();
                 var orders = allOrders.ToList();
 
-                // Tính tổng doanh thu
-                var totalRevenue = orders.Where(o => o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
-                var todayRevenue = orders.Where(o => o.OrderDate.Date == today && o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
-                var thisMonthRevenue = orders.Where(o => o.OrderDate >= thisMonth && o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
-                var thisYearRevenue = orders.Where(o => o.OrderDate >= thisYear && o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
+                // Tính tổng doanh thu bao gồm extra fee
+                decimal totalRevenue = 0;
+                decimal todayRevenue = 0;
+                decimal thisMonthRevenue = 0;
+                decimal thisYearRevenue = 0;
+
+                foreach (var order in orders)
+                {
+                    var orderAmount = order.TotalAmount.GetValueOrDefault(0);
+                    var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(order.OrderId);
+                    var extraFee = contract?.ExtraFee.GetValueOrDefault(0) ?? 0;
+                    var totalOrderRevenue = orderAmount + extraFee;
+
+                    totalRevenue += totalOrderRevenue;
+                    if (order.OrderDate.Date == today)
+                        todayRevenue += totalOrderRevenue;
+                    if (order.OrderDate >= thisMonth)
+                        thisMonthRevenue += totalOrderRevenue;
+                    if (order.OrderDate >= thisYear)
+                        thisYearRevenue += totalOrderRevenue;
+                }
 
                 // Thống kê orders
                 var totalOrders = orders.Count;

@@ -25,6 +25,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             LicensePlates = new LicensePlateRepository(_context);
             OrderLicensePlates = new OrderLicensePlateRepository(_context);
             Contracts = new ContractRepository(_context);
+            Maintenances = new MaintenanceRepository(_context);
         }
 
         public IUserRepository Users { get; private set; }
@@ -40,6 +41,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         public ILicensePlateRepository LicensePlates { get; private set; }
         public IOrderLicensePlateRepository OrderLicensePlates { get; private set; }
         public IContractRepository Contracts { get; private set; }
+        public IMaintenanceRepository Maintenances { get; private set; }
 
         public async Task<int> SaveChangesAsync()
         {
