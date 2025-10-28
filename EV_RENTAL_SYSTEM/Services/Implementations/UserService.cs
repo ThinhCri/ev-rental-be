@@ -498,9 +498,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
+                // FIX: Reload user with navigation properties
+                var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
+                if (userWithNavProps == null)
+                {
+                    return new UserResponseDto
+                    {
+                        Success = false,
+                        Message = "Lỗi khi tải thông tin user sau khi cập nhật trạng thái"
+                    };
+                }
+
                 // Map sang DTO để trả về
-                var userDto = _mapper.Map<UserDto>(updatedUser);
-                userDto.RoleName = updatedUser.Role.RoleName;
+                var userDto = _mapper.Map<UserDto>(userWithNavProps);
+                userDto.RoleName = userWithNavProps.Role.RoleName;
 
                 _logger.LogInformation("User status updated successfully with ID: {UserId} to {Status}", updatedUser.UserId, status);
 
