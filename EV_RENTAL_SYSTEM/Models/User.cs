@@ -45,8 +45,8 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Station_Id")]
         public int? StationId { get; set; } // Trạm mà staff quản lý (chỉ dành cho Station Staff)
 
-        [MaxLength(500)]
-        public string? Notes { get; set; } // Ghi chú về staff
+        [MaxLength(4000)]
+        public string? Notes { get; set; } // Lưu JSON mapping orderId -> renter license image URL
 
         // Navigation properties
         [ForeignKey("RoleId")]

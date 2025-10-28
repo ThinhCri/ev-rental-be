@@ -72,6 +72,8 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public decimal? Deposit { get; set; }
         public decimal? RentalFee { get; set; }
         public decimal? ExtraFee { get; set; }
+        public string? HandoverImage { get; set; } // URL ảnh xe khi bàn giao
+        public string? ReturnImage { get; set; } // URL ảnh xe khi trả
         public List<RentalPaymentDto> Payments { get; set; } = new List<RentalPaymentDto>();
     }
 

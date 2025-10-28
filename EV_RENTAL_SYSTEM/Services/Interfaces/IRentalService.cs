@@ -10,7 +10,8 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<RentalResponseDto> CreateRentalAsync(CreateRentalDto createDto, int userId);
         Task<RentalResponseDto> CreateRentalWithMandatoryPaymentAsync(CreateRentalDto createDto, int userId);
         Task<RentalResponseDto> UpdateRentalAsync(int orderId, UpdateRentalDto updateDto);
-        Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId);
+
+        Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId, string userRole);
         Task<RentalResponseDto> CompleteRentalAsync(int orderId);
         Task<AvailableVehicleListResponseDto> GetAvailableVehiclesAsync(AvailableVehiclesSearchDto searchDto);
         Task<RentalListResponseDto> SearchRentalsAsync(RentalSearchDto searchDto);

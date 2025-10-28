@@ -551,11 +551,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             }
         }
 
-        /// <summary>
-        /// Cancel rental endpoint
-        /// </summary>
-        /// <param name="id">Rental ID</param>
-        /// <returns>Cancel result</returns>
         [HttpDelete("{id}")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CancelRental(int id)
@@ -567,10 +562,11 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 {
                     return Unauthorized(new { message = "User ID not found in token" });
                 }
-                
+
                 var userId = int.Parse(userIdClaim);
-                var result = await _rentalService.CancelRentalAsync(id, userId);
-                
+                var userRole = GetCurrentUserRole();
+                var result = await _rentalService.CancelRentalAsync(id, userId, userRole);
+
                 if (!result.Success)
                 {
                     return BadRequest(new

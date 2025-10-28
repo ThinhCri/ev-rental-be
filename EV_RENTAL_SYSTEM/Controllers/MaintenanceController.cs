@@ -129,6 +129,79 @@ namespace EV_RENTAL_SYSTEM.Controllers
         }
 
         /// <summary>
+        /// Get maintenances by station ID endpoint
+        /// </summary>
+        /// <param name="stationId">Station ID</param>
+        /// <returns>List of maintenances for the station</returns>
+        [HttpGet("station/{stationId}")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> GetMaintenancesByStationId(int stationId)
+        {
+            try
+            {
+                var result = await _maintenanceService.GetMaintenancesByStationIdAsync(stationId);
+                
+                if (!result.Success)
+                {
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting maintenances for station {StationId}: {Error}", stationId, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi lấy danh sách bảo trì",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Complete maintenance endpoint (auto set battery 100%)
+        /// </summary>
+        /// <param name="id">Maintenance ID</param>
+        /// <param name="cost">Optional cost</param>
+        /// <returns>Maintenance completion result</returns>
+        [HttpPut("{id}/complete")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> CompleteMaintenance(int id, [FromBody] decimal? cost = null)
+        {
+            try
+            {
+                var result = await _maintenanceService.CompleteMaintenanceAsync(id, cost);
+                
+                if (!result.Success)
+                {
+                    return NotFound(new
+                    {
+                        Success = false,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing maintenance {Id}: {Error}", id, ex.Message);
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = "Lỗi server khi hoàn thành bảo trì",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Create new maintenance endpoint
         /// </summary>
         /// <param name="createDto">Maintenance information</param>

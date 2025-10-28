@@ -154,7 +154,22 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 RentalFee = contract?.RentalFee ?? order.TotalAmount,
                 ExtraFee = contract?.ExtraFee ?? 0,
                 Vehicles = vehicles,
-                Contracts = new List<RentalContractDto>()
+                Contracts = contract != null ? new List<RentalContractDto>
+                {
+                    new RentalContractDto
+                    {
+                        ContractId = contract.ContractId,
+                        ContractCode = contract.ContractCode,
+                        CreatedDate = contract.CreatedDate,
+                        Status = contract.Status,
+                        Deposit = contract.Deposit,
+                        RentalFee = contract.RentalFee,
+                        ExtraFee = contract.ExtraFee,
+                        HandoverImage = contract.HandoverImage,
+                        ReturnImage = contract.ReturnImage,
+                        Payments = new List<RentalPaymentDto>()
+                    }
+                } : new List<RentalContractDto>()
             };
         }
 
@@ -280,9 +295,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 _logger.LogInformation("Creating rental for user {UserId} with vehicle {VehicleId}", 
                     userId, createDto.VehicleId);
 
-                // ========================================
-                // VALIDATION 1: Kiểm tra 1 bằng lái chỉ thuê 1 xe
-                // ========================================
                 var licenseValidationResult = await ValidateLicenseUsageAsync(createDto, userId);
                 if (!licenseValidationResult.Success)
                 {
@@ -353,7 +365,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     OrderDate = DateTime.Now,
                     StartTime = createDto.StartTime,
                     EndTime = createDto.EndTime,
-                    Status = "Pending Payment", // Trạng thái chờ thanh toán
+                    Status = "Pending",
                     TotalAmount = totalAmount
                 };
 
@@ -391,11 +403,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 var contract = new Contract
                 {
-                    OrderId = order.OrderId, // Bây giờ OrderId đã có
+                    OrderId = order.OrderId, 
                     ContractCode = contractCode,
                     CreatedDate = DateTime.Now,
-                    Status = "Pending Payment", // Trạng thái chờ thanh toán
-                    Deposit = createDto.DepositAmount ?? (totalAmount * 0.2m),
+                    Status = "Pending Payment",
+                    Deposit = createDto.DepositAmount ?? (totalAmount * 0.1m),
                     RentalFee = totalAmount,
                     ExtraFee = 0
                 };
@@ -403,7 +415,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Contracts.AddAsync(contract);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo Order_LicensePlate cho xe (sau khi Order đã có OrderId)
                 var availableLicensePlate = availableLicensePlates.FirstOrDefault();
                 if (availableLicensePlate != null)
                 {
@@ -433,10 +444,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Commit transaction nếu tất cả thành công
                 await _unitOfWork.CommitTransactionAsync();
 
-                // Reload order với đầy đủ navigation properties
                 var createdOrder = await _unitOfWork.Orders.GetByIdAsync(order.OrderId);
                 if (createdOrder == null)
                 {
@@ -459,7 +468,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Data = rentalDto,
                     OrderId = order.OrderId,
                     ContractId = contract.ContractId,
-                    RequiresPayment = true // Thêm flag để frontend biết cần thanh toán
+                    RequiresPayment = true 
                 };
             }
             catch (Exception ex)
@@ -906,7 +915,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        public async Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId)
+        public async Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId, string? userRole = null)
         {
             try
             {
@@ -920,7 +929,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                if (order.UserId != userId)
+                var isStaffOrAdmin = userRole == "Admin" || userRole == "Station Staff" || userRole == "Staff";
+                if (!isStaffOrAdmin && order.UserId != userId)
                 {
                     return new RentalResponseDto
                     {
@@ -929,7 +939,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Lấy danh sách biển số xe trong đơn thuê
                 var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 var licensePlateIds = orderLicensePlates.Select(olp => olp.LicensePlateId).ToList();
 
@@ -941,7 +950,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     {
                         licensePlate.Status = "Available";
                         _unitOfWork.LicensePlates.Update(licensePlate);
-                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after cancelling order {OrderId}", 
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after cancelling order {OrderId}",
                             licensePlateId, orderId);
                     }
                 }
@@ -992,6 +1001,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 };
             }
         }
+
 
         public async Task<RentalResponseDto> CompleteRentalAsync(int orderId)
         {
@@ -1702,13 +1712,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" mới được bàn giao
-                if (order.Status != "Confirmed")
+                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" hoặc "Paid" mới được bàn giao
+                if (order.Status != "Confirmed" && order.Status != "Paid")
                 {
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận hoặc đã thanh toán. Trạng thái hiện tại: {order.Status}"
                     };
                 }
 
@@ -1784,13 +1794,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" mới được bàn giao
-                if (order.Status != "Confirmed")
+                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" hoặc "Paid" mới được bàn giao
+                if (order.Status != "Confirmed" && order.Status != "Paid")
                 {
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận hoặc đã thanh toán. Trạng thái hiện tại: {order.Status}"
                     };
                 }
 
@@ -1929,11 +1939,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                         if (vehicle != null)
                         {
-                            // Tính phí vượt km: Có 60km free, mỗi km thừa tính $1
+                            // Tính phí vượt km: 60km free/ngày, mỗi km thừa tính $1
+                            var startTime = order.StartTime ?? DateTime.Now;
+                            var endTime = order.EndTime ?? DateTime.Now;
+                            var days = Math.Max(1, (int)(endTime - startTime).TotalDays);
+                            var freeKm = 60 * days; // 60km free per day
+                            
                             int kmUsed = returnDto.Odometer - (vehicle.RangeKm ?? 0);
-                            if (kmUsed > 60)
+                            if (kmUsed > freeKm)
                             {
-                                int excessKm = kmUsed - 60;
+                                int excessKm = kmUsed - freeKm;
                                 extraFee += excessKm * 1; // $1 per km
                             }
 
@@ -1952,8 +1967,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         // Auto update trạng thái biển số xe thành "Maintenance" sau khi trả xe
                         licensePlate.Status = "Maintenance";
                         _unitOfWork.LicensePlates.Update(licensePlate);
-                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Maintenance after return for order {OrderId}", 
-                            licensePlate.LicensePlateId, orderId);
+                        
+ 
+                        var maintenanceRecord = new Maintenance
+                        {
+                            LicensePlateId = licensePlate.LicensePlateId,
+                            Description = $"Post-rental maintenance check - Order #{orderId}",
+                            MaintenanceDate = DateTime.Now,
+                            Status = "PENDING",
+                            Cost = null 
+                        };
+                        
+                        await _unitOfWork.Maintenances.AddAsync(maintenanceRecord);
+                        _logger.LogInformation("Created maintenance record {MaintenanceId} for license plate {LicensePlateId} after return for order {OrderId}", 
+                            maintenanceRecord.MaintenanceId, licensePlate.LicensePlateId, orderId);
                     }
                 }
 
@@ -2009,6 +2036,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Message = $"Lỗi khi trả xe: {ex.Message}"
                 };
             }
+        }
+
+        public Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

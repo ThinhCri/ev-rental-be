@@ -11,6 +11,8 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<MaintenanceResponseDto> DeleteMaintenanceAsync(int maintenanceId);
         Task<MaintenanceListResponseDto> SearchMaintenancesAsync(MaintenanceSearchDto searchDto);
         Task<MaintenanceListResponseDto> GetMaintenancesByLicensePlateIdAsync(int licensePlateId);
+        Task<MaintenanceListResponseDto> GetMaintenancesByStationIdAsync(int stationId);
+        Task<MaintenanceResponseDto> CompleteMaintenanceAsync(int maintenanceId, decimal? cost = null);
     }
 }
 

@@ -1,5 +1,6 @@
 using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Models.VnPay;
+using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Vnpay;
 using Microsoft.AspNetCore.Authorization;
@@ -14,13 +15,15 @@ namespace EV_RENTAL_SYSTEM.Controllers
     {
         private readonly IVnPayService _vnPayService;
         private readonly IPaymentService _paymentService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PaymentController> _logger;
         private readonly IConfiguration _configuration;
         
-        public PaymentController(IVnPayService vnPayService, IPaymentService paymentService, ILogger<PaymentController> logger, IConfiguration configuration)
+        public PaymentController(IVnPayService vnPayService, IPaymentService paymentService, IUnitOfWork unitOfWork, ILogger<PaymentController> logger, IConfiguration configuration)
         {
             _vnPayService = vnPayService;
             _paymentService = paymentService;
+            _unitOfWork = unitOfWork;
             _logger = logger;
             _configuration = configuration;
         }
@@ -109,6 +112,66 @@ namespace EV_RENTAL_SYSTEM.Controllers
             catch (Exception ex)
             {
                 return ErrorResponse($"Error getting payment status: {ex.Message}", 500);
+            }
+        }
+
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentHistory()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return ErrorResponse("User not authenticated", 401);
+                }
+
+                var result = await _paymentService.GetPaymentHistoryAsync(userId.Value, 1, 1000);
+                return SuccessResponse(result, "Payment history retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment history");
+                return ErrorResponse($"Error getting payment history: {ex.Message}", 500);
+            }
+        }
+
+     
+        [HttpGet("all")]
+        [Authorize(Policy = "StaffOrAdmin")]
+        public async Task<IActionResult> GetAllPayments([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
+        {
+            try
+            {
+                var payments = await _unitOfWork.Payments.GetPaymentsWithPaginationAsync(pageNumber, pageSize);
+                var totalCount = await _unitOfWork.Payments.GetTotalPaymentCountAsync();
+
+                var paymentDtos = payments.Select(p => new PaymentDto
+                {
+                    PaymentId = p.PaymentId,
+                    PaymentDate = p.PaymentDate,
+                    Amount = p.Amount ?? 0,
+                    Status = p.Status ?? "Unknown",
+                    PaymentMethod = "VNPay",
+                    TransactionId = p.Transactions.FirstOrDefault()?.TransactionId.ToString() ?? "",
+                    ContractId = p.ContractId,
+                    Note = p.Status == "Success" || p.Status == "Paid" ? "Paid" : "Unpaid"
+                }).ToList();
+
+                return SuccessResponse(new
+                {
+                    Data = paymentDtos,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                }, "All payments retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all payments");
+                return ErrorResponse($"Error getting all payments: {ex.Message}", 500);
             }
         }
     }

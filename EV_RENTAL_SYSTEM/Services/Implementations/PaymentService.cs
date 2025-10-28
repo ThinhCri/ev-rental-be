@@ -40,7 +40,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                             OrderId = latestOrder.OrderId,
                             CreatedDate = DateTime.Now,
                             Status = "Active",
-                            Deposit = request.Amount * 0.3m, 
+                            Deposit = request.Amount * 0.1m, 
                             RentalFee = request.Amount,
                             ExtraFee = 0
                         };
@@ -289,7 +289,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PaymentMethod = "VNPay",
                         TransactionId = p.Transactions.FirstOrDefault()?.TransactionId.ToString() ?? "",
                         ContractId = p.ContractId,
-                        Note = "Deposit 30%"
+                        Note = "Deposit 10%"
                     })
                     .ToList();
 

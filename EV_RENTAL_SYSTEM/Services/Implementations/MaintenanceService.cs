@@ -413,6 +413,159 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 };
             }
         }
+
+        public async Task<MaintenanceListResponseDto> GetMaintenancesByStationIdAsync(int stationId)
+        {
+            try
+            {
+                // Lấy tất cả maintenance records với navigation properties
+                var allMaintenances = await _unitOfWork.Maintenances.GetAllAsync();
+                
+                // Debug log để kiểm tra data
+                _logger.LogInformation("Total maintenances: {Count}, StationId: {StationId}", allMaintenances.Count(), stationId);
+                
+                // Load navigation properties và filter với join
+                var maintenancesForStation = new List<Maintenance>();
+                foreach (var maintenance in allMaintenances)
+                {
+                    // Load LicensePlate với navigation properties
+                    var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
+                    if (licensePlate != null && licensePlate.StationId == stationId)
+                    {
+                        // Load Vehicle với navigation properties
+                        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
+                        if (vehicle != null)
+                        {
+                            // Load Station và Brand
+                            var station = await _unitOfWork.Stations.GetByIdAsync(licensePlate.StationId);
+                            var brand = await _unitOfWork.Brands.GetByIdAsync(vehicle.BrandId);
+                            
+                            // Set navigation properties
+                            maintenance.LicensePlate = licensePlate;
+                            licensePlate.Vehicle = vehicle;
+                            licensePlate.Station = station;
+                            vehicle.Brand = brand;
+                            
+                            maintenancesForStation.Add(maintenance);
+                            _logger.LogInformation("Found maintenance {MaintenanceId} for station {StationId}, LicensePlate: {PlateNumber}, Vehicle: {VehicleModel}", 
+                                maintenance.MaintenanceId, stationId, licensePlate.PlateNumber, vehicle.Model);
+                        }
+                    }
+                }
+
+                var maintenanceDtos = maintenancesForStation.Select(m => new MaintenanceDto
+                {
+                    MaintenanceId = m.MaintenanceId,
+                    Description = m.Description,
+                    Cost = m.Cost,
+                    MaintenanceDate = m.MaintenanceDate,
+                    Status = m.Status,
+                    LicensePlateId = m.LicensePlateId,
+                    PlateNumber = m.LicensePlate?.PlateNumber,
+                    VehicleModel = m.LicensePlate?.Vehicle?.Model,
+                    StationName = m.LicensePlate?.Station?.StationName,
+                    VehicleImage = m.LicensePlate?.Vehicle?.VehicleImage,
+                    BrandName = m.LicensePlate?.Vehicle?.Brand?.BrandName,
+                    VehicleId = m.LicensePlate?.VehicleId
+                }).ToList();
+
+                return new MaintenanceListResponseDto
+                {
+                    Success = true,
+                    Message = "Lấy danh sách bảo trì theo trạm thành công",
+                    Data = maintenanceDtos,
+                    TotalCount = maintenanceDtos.Count,
+                    PageNumber = 1,
+                    PageSize = maintenanceDtos.Count,
+                    TotalPages = 1
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting maintenances for station {StationId}: {Error}", stationId, ex.Message);
+                return new MaintenanceListResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi lấy danh sách bảo trì: {ex.Message}",
+                    Data = new List<MaintenanceDto>(),
+                    TotalCount = 0,
+                    PageNumber = 1,
+                    PageSize = 10,
+                    TotalPages = 0
+                };
+            }
+        }
+
+        public async Task<MaintenanceResponseDto> CompleteMaintenanceAsync(int maintenanceId, decimal? cost = null)
+        {
+            try
+            {
+                var maintenance = await _unitOfWork.Maintenances.GetByIdAsync(maintenanceId);
+                if (maintenance == null)
+                {
+                    return new MaintenanceResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy bảo trì"
+                    };
+                }
+
+                // Cập nhật maintenance status thành COMPLETED
+                maintenance.Status = "COMPLETED";
+                maintenance.Cost = cost;
+                _unitOfWork.Maintenances.Update(maintenance);
+
+                // Auto set battery 100% cho vehicle
+                var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
+                if (licensePlate != null)
+                {
+                    var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
+                    if (vehicle != null)
+                    {
+                        vehicle.Battery = 100; // Auto set battery 100%
+                        await _unitOfWork.Vehicles.UpdateAsync(vehicle);
+                        
+                        // Cập nhật license plate status thành Available
+                        licensePlate.Status = "Available";
+                        _unitOfWork.LicensePlates.Update(licensePlate);
+                        
+                        _logger.LogInformation("Completed maintenance {MaintenanceId}, set battery to 100%, vehicle {VehicleId} available", 
+                            maintenanceId, vehicle.VehicleId);
+                    }
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                var maintenanceDto = new MaintenanceDto
+                {
+                    MaintenanceId = maintenance.MaintenanceId,
+                    Description = maintenance.Description,
+                    Cost = maintenance.Cost,
+                    MaintenanceDate = maintenance.MaintenanceDate,
+                    Status = maintenance.Status,
+                    LicensePlateId = maintenance.LicensePlateId,
+                    PlateNumber = licensePlate?.PlateNumber,
+                    VehicleModel = licensePlate?.Vehicle?.Model,
+                    StationName = licensePlate?.Station?.StationName
+                };
+
+                return new MaintenanceResponseDto
+                {
+                    Success = true,
+                    Message = "Hoàn thành bảo trì thành công. Pin xe đã được set 100%",
+                    Data = maintenanceDto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing maintenance {MaintenanceId}: {Error}", maintenanceId, ex.Message);
+                return new MaintenanceResponseDto
+                {
+                    Success = false,
+                    Message = $"Lỗi khi hoàn thành bảo trì: {ex.Message}"
+                };
+            }
+        }
     }
 }
 

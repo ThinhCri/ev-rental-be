@@ -36,18 +36,32 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 foreach (var order in orders)
                 {
-                    var orderAmount = order.TotalAmount.GetValueOrDefault(0);
                     var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(order.OrderId);
+                    var rentalFee = contract?.RentalFee.GetValueOrDefault(0) ?? 0;
                     var extraFee = contract?.ExtraFee.GetValueOrDefault(0) ?? 0;
-                    var totalOrderRevenue = orderAmount + extraFee;
+                    var deposit = contract?.Deposit.GetValueOrDefault(0) ?? 0;
+                    
+                    decimal orderRevenue = 0;
+                    
+        
+                    if (order.Status == "Completed")
+                    {
+                        orderRevenue = rentalFee + extraFee;
+                    }
+          
+                    else if (order.Status == "Paid")
+                    {
+                        orderRevenue = deposit;
+                    }
 
-                    totalRevenue += totalOrderRevenue;
+
+                    totalRevenue += orderRevenue;
                     if (order.OrderDate.Date == today)
-                        todayRevenue += totalOrderRevenue;
+                        todayRevenue += orderRevenue;
                     if (order.OrderDate >= thisMonth)
-                        thisMonthRevenue += totalOrderRevenue;
+                        thisMonthRevenue += orderRevenue;
                     if (order.OrderDate >= thisYear)
-                        thisYearRevenue += totalOrderRevenue;
+                        thisYearRevenue += orderRevenue;
                 }
 
                 // Thống kê orders
@@ -123,22 +137,45 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 // Lọc theo năm
                 ordersList = ordersList.Where(o => o.OrderDate.Year == year).ToList();
 
-                // Nhóm theo tháng
-                var monthlyRevenue = ordersList
-                    .Where(o => o.TotalAmount.HasValue)
-                    .GroupBy(o => o.OrderDate.Month)
-                    .Select(g => new MonthlyRevenueDto
+                // Nhóm theo tháng và tính revenue đúng
+                var monthlyRevenue = new List<MonthlyRevenueDto>();
+                
+                for (int month = 1; month <= 12; month++)
+                {
+                    var monthOrders = ordersList.Where(o => o.OrderDate.Month == month).ToList();
+                    decimal monthRevenue = 0;
+                    
+                    foreach (var order in monthOrders)
+                    {
+                        var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(order.OrderId);
+                        var rentalFee = contract?.RentalFee.GetValueOrDefault(0) ?? 0;
+                        var extraFee = contract?.ExtraFee.GetValueOrDefault(0) ?? 0;
+                        var deposit = contract?.Deposit.GetValueOrDefault(0) ?? 0;
+                        
+     
+                        if (order.Status == "Completed")
+                        {
+                            monthRevenue += rentalFee + extraFee;
+                        }
+    
+                        else if (order.Status == "Paid")
+                        {
+                            monthRevenue += deposit;
+                        }
+
+                    }
+                    
+                    monthlyRevenue.Add(new MonthlyRevenueDto
                     {
                         Year = year,
-                        Month = g.Key,
-                        MonthName = new DateTime(year, g.Key, 1).ToString("MMMM"),
-                        Revenue = g.Sum(o => o.TotalAmount.GetValueOrDefault(0)),
-                        OrderCount = g.Count(),
-                        AverageOrderValue = g.Average(o => o.TotalAmount.GetValueOrDefault(0))
-                    })
-                    .OrderBy(m => m.Month)
-                    .ToList();
-
+                        Month = month,
+                        MonthName = new DateTime(year, month, 1).ToString("MMMM"),
+                        Revenue = monthRevenue,
+                        OrderCount = monthOrders.Count,
+                        AverageOrderValue = monthOrders.Count > 0 ? monthRevenue / monthOrders.Count : 0
+                    });
+                }
+                
                 return ServiceResponse<List<MonthlyRevenueDto>>.SuccessResult(monthlyRevenue, "Monthly revenue retrieved successfully.");
             }
             catch (Exception ex)
@@ -170,7 +207,29 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     var stationOrders = ordersList.Where(o => 
                         o.OrderLicensePlates.Any(olp => olp.LicensePlate.StationId == station.StationId)).ToList();
                     
-                    var revenue = stationOrders.Where(o => o.TotalAmount.HasValue).Sum(o => o.TotalAmount.GetValueOrDefault(0));
+                    decimal revenue = 0;
+                    
+                    foreach (var order in stationOrders)
+                    {
+                        var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(order.OrderId);
+                        var rentalFee = contract?.RentalFee.GetValueOrDefault(0) ?? 0;
+                        var extraFee = contract?.ExtraFee.GetValueOrDefault(0) ?? 0;
+                        var deposit = contract?.Deposit.GetValueOrDefault(0) ?? 0;
+                        
+
+
+                        if (order.Status == "Completed")
+                        {
+                            revenue += rentalFee + extraFee;
+                        }
+
+                        else if (order.Status == "Paid")
+                        {
+                            revenue += deposit;
+                        }
+
+                    }
+                    
                     var orderCount = stationOrders.Count;
                     var averageOrderValue = orderCount > 0 ? revenue / orderCount : 0;
 
@@ -198,7 +257,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // VehicleType has been removed; return empty breakdown
                 return ServiceResponse<List<VehicleTypeRevenueDto>>.SuccessResult(new List<VehicleTypeRevenueDto>(), "Vehicle type revenue not applicable.");
             }
             catch (Exception ex)

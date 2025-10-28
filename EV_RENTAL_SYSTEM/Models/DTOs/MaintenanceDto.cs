@@ -54,6 +54,9 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? PlateNumber { get; set; }
         public string? VehicleModel { get; set; }
         public string? StationName { get; set; }
+        public string? VehicleImage { get; set; } // Ảnh xe
+        public string? BrandName { get; set; } // Tên brand xe
+        public int? VehicleId { get; set; } // ID xe
     }
 
     /// <summary>
