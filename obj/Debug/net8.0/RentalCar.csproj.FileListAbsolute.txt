@@ -1,7 +1,0 @@
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\rpswa.dswa.cache.json
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.AssemblyInfoInputs.cache
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.AssemblyInfo.cs
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.csproj.CoreCompileInputs.cache
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\Administrator\Desktop\EV_RENTAL_SYSTEM\obj\Debug\net8.0\RentalCar.sourcelink.json

@@ -12,6 +12,14 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
         Task<bool> EmailExistsAsync(string email);
+<<<<<<< HEAD
     }
 }
 
+=======
+        Task<bool> PhoneNumberExistsAsync(string phoneNumber);
+    }
+}
+
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88

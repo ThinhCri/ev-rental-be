@@ -1,6 +1,13 @@
 using EV_RENTAL_SYSTEM.Services.Interfaces;
+<<<<<<< HEAD
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+=======
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using SixLabors.ImageSharp;
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
@@ -15,9 +22,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
         public FileService(IWebHostEnvironment environment, ILogger<FileService> logger)
         {
+<<<<<<< HEAD
             _environment = environment;
             _logger = logger;
             _uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "licenses");
+=======
+            _environment = environment ?? throw new ArgumentNullException(nameof(environment));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            
+            // Sử dụng ContentRootPath thay vì WebRootPath để tránh null
+            var contentRootPath = _environment.ContentRootPath ?? Directory.GetCurrentDirectory();
+            _uploadPath = Path.Combine(contentRootPath, "wwwroot", "uploads", "licenses");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             
             // Tạo thư mục upload nếu chưa có
             if (!Directory.Exists(_uploadPath))
@@ -78,7 +94,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 // Chuyển đổi URL thành đường dẫn file thực
                 var relativePath = filePath.TrimStart('/');
+<<<<<<< HEAD
                 var fullPath = Path.Combine(_environment.WebRootPath, relativePath);
+=======
+                var contentRootPath = _environment.ContentRootPath ?? Directory.GetCurrentDirectory();
+                var fullPath = Path.Combine(contentRootPath, "wwwroot", relativePath);
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                 if (File.Exists(fullPath))
                 {
@@ -131,14 +152,22 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         /// </summary>
         /// <param name="file">File ảnh cần kiểm tra</param>
         /// <returns>Kết quả kiểm tra</returns>
+<<<<<<< HEAD
         public async Task<(bool IsValid, string ErrorMessage)> ValidateLicenseImageAsync(IFormFile file)
+=======
+        public Task<(bool IsValid, string ErrorMessage)> ValidateLicenseImageAsync(IFormFile file)
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
         {
             try
             {
                 // 1. Kiểm tra file cơ bản
                 if (!IsValidImageFile(file))
                 {
+<<<<<<< HEAD
                     return (false, "File ảnh không hợp lệ. Chỉ chấp nhận file JPG, PNG, JPEG và kích thước tối đa 5MB");
+=======
+                    return Task.FromResult((false, "File ảnh không hợp lệ. Chỉ chấp nhận file JPG, PNG, JPEG và kích thước tối đa 5MB"));
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                 }
 
                 // 2. Kiểm tra tên file có chứa từ khóa liên quan đến bằng lái xe không
@@ -152,6 +181,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     // Không trả về lỗi, chỉ warning
                 }
 
+<<<<<<< HEAD
                 // 3. Kiểm tra kích thước ảnh (tối thiểu 300x200 pixels)
                 using (var stream = file.OpenReadStream())
                 {
@@ -177,11 +207,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
 
                 return (true, "Ảnh bằng lái xe hợp lệ");
+=======
+                // Bỏ kiểm tra kích thước ảnh theo yêu cầu
+                return Task.FromResult((true, "Ảnh bằng lái xe hợp lệ"));
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error validating license image: {FileName}", file.FileName);
+<<<<<<< HEAD
                 return (false, "Lỗi khi kiểm tra ảnh. Vui lòng thử lại");
+=======
+                return Task.FromResult((false, "Lỗi khi kiểm tra ảnh. Vui lòng thử lại"));
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             }
         }
     }

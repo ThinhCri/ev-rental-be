@@ -27,13 +27,21 @@ CREATE TABLE [User] (
     Birthday DATE,
     Created_at DATETIME DEFAULT GETDATE(),
     Status NVARCHAR(50),
+<<<<<<< HEAD
     Role_Id INT FOREIGN KEY REFERENCES Role(Role_Id),
     Phone NVARCHAR(15)
+=======
+    Role_Id INT FOREIGN KEY REFERENCES Role(Role_Id)
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 );
 
 -- Bảng LicenseType
 CREATE TABLE LicenseType (
+<<<<<<< HEAD
     License_type_Id NVARCHAR PRIMARY KEY ,
+=======
+    License_type_Id INT PRIMARY KEY IDENTITY,
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
     Type_name NVARCHAR(50) NOT NULL,
     Description NVARCHAR(255)
 );
@@ -171,11 +179,19 @@ CREATE TABLE [Transaction] (
 
 -- Insert dữ liệu mẫu
 -- Insert Roles
+<<<<<<< HEAD
+=======
+INSERT INTO Role (Role_name, Description) VALUES 
+('Admin', 'System Administrator'),
+('Station Staff', 'Station Staff Member'),
+('EV Renter', 'Electric Vehicle Renter');
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
 -- Insert License Types
 INSERT INTO LicenseType (Type_name, Description) VALUES 
 ('A1', 'Motorcycle up to 125cc'),
 ('A2', 'Motorcycle up to 175cc'),
+<<<<<<< HEAD
 ('A', 'All types of two-wheeled motorcycles'),
 ('B1', 'Car up to 9 seats'),
 ('B2', 'Unlimited car (commercial use allowed)');
@@ -190,10 +206,25 @@ INSERT INTO Brand (Brand_name) VALUES
 
 
 -- Insert sample stations
+=======
+('A', 'Unlimited motorcycle'),
+('B1', 'Car up to 9 seats'),
+('B2', 'Unlimited car');
+
+-- Insert sample brands
+INSERT INTO Brand (Brand_name) VALUES 
+('Honda'),
+('Yamaha'),
+('Suzuki'),
+('Kawasaki'),
+('Ducati');
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 -- Insert sample stations
 INSERT INTO Station (Station_name, Street, District, Province, Country) VALUES 
 ('Station 1', '123 Main Street', 'District 1', 'Ho Chi Minh City', 'Vietnam'),
 ('Station 2', '456 Le Loi', 'District 3', 'Ho Chi Minh City', 'Vietnam'),
+<<<<<<< HEAD
 ('Station 3', '789 Nguyen Hue', 'District 1', 'Ho Chi Minh City', 'Vietnam'),
 ('Station 4', '12 Binh Duong Avenue', 'Thu Dau Mot', 'Binh Duong', 'Vietnam'),
 ('Station 5', '88 Vo Nguyen Giap', 'Bien Hoa', 'Dong Nai', 'Vietnam'),
@@ -229,5 +260,10 @@ INSERT INTO LicensePlate (License_plate_Id, Status, Vehicle_Id, Condition, Stati
 
 
 
+=======
+('Station 3', '789 Nguyen Hue', 'District 1', 'Ho Chi Minh City', 'Vietnam');
+
+PRINT 'Database setup completed successfully!';
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
 

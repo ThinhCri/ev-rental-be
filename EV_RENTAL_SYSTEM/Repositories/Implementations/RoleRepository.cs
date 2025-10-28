@@ -61,3 +61,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
     }
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88

@@ -34,6 +34,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+<<<<<<< HEAD
             // Tạo claims (thông tin lưu trong token)
             var claims = new[]
             {
@@ -42,6 +43,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 new Claim(ClaimTypes.Name, user.FullName), // Tên đầy đủ
                 new Claim(ClaimTypes.Role, user.Role.RoleName), // Role (Admin, Staff, EV Renter)
                 new Claim("UserId", user.UserId.ToString()) // User ID (custom claim)
+=======
+            // Tạo claims tối giản để token ngắn hơn
+            var claims = new[]
+            {
+                new Claim("uid", user.UserId.ToString()), // User ID (ngắn hơn)
+                new Claim(ClaimTypes.Role, user.Role.RoleName), // Role (sử dụng ClaimTypes.Role)
+                new Claim("role", user.Role.RoleName), // Role (backup)
+                new Claim("email", user.Email) // Email
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             };
 
             // Tạo JWT token với các thông tin trên
@@ -106,7 +116,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
+<<<<<<< HEAD
             var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "UserId");
+=======
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "uid");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             return int.Parse(userIdClaim?.Value ?? "0");
         }
 
@@ -119,7 +133,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
+<<<<<<< HEAD
             var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+=======
+            var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "email");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             return emailClaim?.Value ?? string.Empty;
         }
     }

@@ -38,6 +38,10 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         public async Task<User> AddAsync(User user)
         {
             _context.Users.Add(user);
+<<<<<<< HEAD
+=======
+            await _context.SaveChangesAsync();
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
             return user;
         }
 
@@ -67,6 +71,18 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Users.AnyAsync(u => u.Email == email);
         }
+<<<<<<< HEAD
     }
 }
 
+=======
+
+        public async Task<bool> PhoneNumberExistsAsync(string phoneNumber)
+        {
+            return await _context.Users.AnyAsync(u => u.PhoneNumber == phoneNumber);
+        }
+    }
+}
+
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88

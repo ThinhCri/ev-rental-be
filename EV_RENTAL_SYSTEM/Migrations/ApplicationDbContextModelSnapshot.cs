@@ -52,7 +52,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComplaintId"));
 
                     b.Property<DateTime>("ComplaintDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Complaint_date");
 
                     b.Property<string>("Description")
@@ -90,7 +94,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContractId"));
 
                     b.Property<DateTime>("CreatedDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Created_date");
 
                     b.Property<decimal?>("Deposit")
@@ -159,7 +167,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LicenseId"));
 
                     b.Property<DateTime>("ExpiryDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("date")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Expiry_date");
 
                     b.Property<string>("LicenseImageUrl")
@@ -173,8 +185,14 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("License_number");
 
+<<<<<<< HEAD
                     b.Property<int>("LicenseTypeId")
                         .HasColumnType("int")
+=======
+                    b.Property<string>("LicenseTypeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("License_type_Id");
 
                     b.Property<int>("UserId")
@@ -209,7 +227,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("RegistrationDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("date")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Registration_date");
 
                     b.Property<int>("StationId")
@@ -235,6 +257,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.LicenseType", b =>
                 {
+<<<<<<< HEAD
                     b.Property<int>("LicenseTypeId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -250,11 +273,60 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
+=======
+                    b.Property<string>("LicenseTypeId")
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("License_type_Id");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Type_name");
 
                     b.HasKey("LicenseTypeId");
 
                     b.ToTable("LicenseType");
+<<<<<<< HEAD
+=======
+
+                    b.HasData(
+                        new
+                        {
+                            LicenseTypeId = "A1",
+                            Description = "Motorcycle up to 125cc",
+                            TypeName = "A1"
+                        },
+                        new
+                        {
+                            LicenseTypeId = "A2",
+                            Description = "Motorcycle up to 175cc",
+                            TypeName = "A2"
+                        },
+                        new
+                        {
+                            LicenseTypeId = "A",
+                            Description = "Unlimited motorcycle",
+                            TypeName = "A"
+                        },
+                        new
+                        {
+                            LicenseTypeId = "B1",
+                            Description = "Car up to 9 seats",
+                            TypeName = "B1"
+                        },
+                        new
+                        {
+                            LicenseTypeId = "B2",
+                            Description = "Unlimited car",
+                            TypeName = "B2"
+                        });
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Maintenance", b =>
@@ -280,7 +352,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnName("License_plate_Id");
 
                     b.Property<DateTime?>("MaintenanceDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("date")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Maintenance_date");
 
                     b.Property<string>("Status")
@@ -304,6 +380,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
                     b.Property<DateTime?>("EndTime")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
                         .HasColumnName("End_time");
 
@@ -313,6 +390,17 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.Property<DateTime?>("StartTime")
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("datetime2")
+                        .HasColumnName("End_time");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("Order_date");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Start_time");
 
                     b.Property<string>("Status")
@@ -368,6 +456,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("int")
                         .HasColumnName("Contract_Id");
 
+<<<<<<< HEAD
                     b.Property<string>("Method")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
@@ -378,6 +467,10 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime")
+=======
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Payment_date");
 
                     b.Property<string>("Status")
@@ -401,6 +494,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StepId"));
 
                     b.Property<string>("StepName")
+<<<<<<< HEAD
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("Step_name");
@@ -411,6 +505,15 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     b.Property<string>("Terms")
                         .HasMaxLength(510)
                         .HasColumnType("nvarchar(510)");
+=======
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Step_name");
+
+                    b.Property<string>("Terms")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.HasKey("StepId");
 
@@ -471,6 +574,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StationId"));
 
                     b.Property<string>("Country")
+<<<<<<< HEAD
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -495,6 +599,25 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Ward")
+=======
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Province")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StationName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Station_name");
+
+                    b.Property<string>("Street")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -520,7 +643,11 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnName("Payment_Id");
 
                     b.Property<DateTime>("TransactionDate")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Transaction_date");
 
                     b.Property<int>("UserId")
@@ -546,12 +673,20 @@ namespace EV_RENTAL_SYSTEM.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
                     b.Property<DateTime?>("Birthday")
+<<<<<<< HEAD
                         .HasColumnType("datetime")
                         .HasColumnName("Birthday");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
+=======
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                         .HasColumnName("Created_at")
                         .HasDefaultValueSql("GETDATE()");
 
@@ -571,18 +706,31 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+<<<<<<< HEAD
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)")
                         .HasColumnName("Phone");
+=======
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Phone_number");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int")
                         .HasColumnName("Role_Id");
 
                     b.Property<string>("Status")
+<<<<<<< HEAD
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+=======
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.HasKey("UserId");
 
@@ -603,14 +751,21 @@ namespace EV_RENTAL_SYSTEM.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
 
+<<<<<<< HEAD
                     b.Property<string>("Battery")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
+=======
+                    b.Property<decimal?>("Battery")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("Battery");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.Property<int>("BrandId")
                         .HasColumnType("int")
                         .HasColumnName("Brand_Id");
 
+<<<<<<< HEAD
                     b.Property<string>("Description")
                         .HasMaxLength(510)
                         .HasColumnType("nvarchar(510)");
@@ -619,28 +774,78 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+=======
+                    b.Property<decimal?>("ChargingTime")
+                        .HasColumnType("decimal(4,1)")
+                        .HasColumnName("Charging_time");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.Property<int?>("ModelYear")
                         .HasColumnType("int")
                         .HasColumnName("Model_year");
 
+<<<<<<< HEAD
                     b.Property<int?>("PricePerDay")
                         .HasColumnType("int")
                         .HasColumnName("price_per_day");
+=======
+                    b.Property<decimal?>("PricePerDay")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("Price_per_day");
+
+                    b.Property<int?>("RangeKm")
+                        .HasColumnType("int")
+                        .HasColumnName("Range_km");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.Property<int?>("SeatNumber")
                         .HasColumnType("int")
                         .HasColumnName("Seat_number");
 
+<<<<<<< HEAD
                     b.Property<string>("VehicleImage")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("vehicle_img");
+=======
+                    b.Property<int?>("StationId")
+                        .HasColumnType("int")
+                        .HasColumnName("Station_Id");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Status");
+
+                    b.Property<string>("VehicleImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Vehicle_image");
+
+                    b.Property<string>("VehicleType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("Vehicle_type");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
                     b.HasKey("VehicleId");
 
                     b.HasIndex("BrandId");
 
+<<<<<<< HEAD
+=======
+                    b.HasIndex("StationId");
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                     b.ToTable("Vehicle");
                 });
 
@@ -821,7 +1026,17 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+<<<<<<< HEAD
                     b.Navigation("Brand");
+=======
+                    b.HasOne("EV_RENTAL_SYSTEM.Models.Station", "Station")
+                        .WithMany()
+                        .HasForeignKey("StationId");
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Station");
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
                 });
 
             modelBuilder.Entity("EV_RENTAL_SYSTEM.Models.Brand", b =>

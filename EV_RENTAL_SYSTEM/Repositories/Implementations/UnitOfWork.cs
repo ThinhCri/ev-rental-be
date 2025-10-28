@@ -16,21 +16,52 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
             Roles = new RoleRepository(_context);
             LicenseTypes = new LicenseTypeRepository(_context);
             Licenses = new LicenseRepository(_context);
+<<<<<<< HEAD
+=======
+            Vehicles = new VehicleRepository(_context);
+            Brands = new BrandRepository(_context);
+            Orders = new OrderRepository(_context);
+            Stations = new StationRepository(_context);
+            Payments = new PaymentRepository(_context);
+            Transactions = new TransactionRepository(_context);
+            LicensePlates = new LicensePlateRepository(_context);
+            OrderLicensePlates = new OrderLicensePlateRepository(_context);
+            Contracts = new ContractRepository(_context);
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
         }
 
         public IUserRepository Users { get; private set; }
         public IRoleRepository Roles { get; private set; }
         public ILicenseTypeRepository LicenseTypes { get; private set; }
         public ILicenseRepository Licenses { get; private set; }
+<<<<<<< HEAD
+=======
+        public IVehicleRepository Vehicles { get; private set; }
+        public IBrandRepository Brands { get; private set; }
+        public IOrderRepository Orders { get; private set; }
+        public IStationRepository Stations { get; private set; }
+        public IPaymentRepository Payments { get; private set; }
+        public ITransactionRepository Transactions { get; private set; }
+        public ILicensePlateRepository LicensePlates { get; private set; }
+        public IOrderLicensePlateRepository OrderLicensePlates { get; private set; }
+        public IContractRepository Contracts { get; private set; }
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
 
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
 
+<<<<<<< HEAD
         public async Task BeginTransactionAsync()
         {
             _transaction = await _context.Database.BeginTransactionAsync();
+=======
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            _transaction = await _context.Database.BeginTransactionAsync();
+            return _transaction;
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
         }
 
         public async Task CommitTransactionAsync()

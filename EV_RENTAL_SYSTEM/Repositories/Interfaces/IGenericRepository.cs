@@ -54,3 +54,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task RemoveByIdAsync(object id);
     }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88

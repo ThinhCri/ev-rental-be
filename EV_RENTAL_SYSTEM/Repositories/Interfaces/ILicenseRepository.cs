@@ -29,3 +29,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<IEnumerable<License>> GetByUserIdAsync(int userId);
     }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 342ea64f1f50fa59204027b76484164ea0999d88
