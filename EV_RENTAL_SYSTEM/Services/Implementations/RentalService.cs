@@ -365,7 +365,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     OrderDate = DateTime.Now,
                     StartTime = createDto.StartTime,
                     EndTime = createDto.EndTime,
-                    Status = "Pending",
+                    Status = "Pending", 
                     TotalAmount = totalAmount
                 };
 
@@ -950,7 +950,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     {
                         licensePlate.Status = "Available";
                         _unitOfWork.LicensePlates.Update(licensePlate);
-                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after cancelling order {OrderId}",
+                        _logger.LogInformation("Updated license plate {LicensePlateId} status to Available after cancelling order {OrderId}", 
                             licensePlateId, orderId);
                     }
                 }

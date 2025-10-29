@@ -51,7 +51,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không (RoleId = 2 - Station Staff)
                 if (user.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -76,7 +75,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy thông tin nhân viên."
+                    Message = "An error occurred while retrieving staff information."
                 };
             }
         }
@@ -86,7 +85,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             try
             {
                 var users = await _userRepository.GetAllAsync();
-                var staffUsers = users.Where(u => u.RoleId == 2).ToList(); // Chỉ lấy Station Staff
+                var staffUsers = users.Where(u => u.RoleId == 2).ToList();
                 var staffDtos = new List<StaffDto>();
 
                 foreach (var user in staffUsers)
@@ -109,7 +108,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách nhân viên."
+                    Message = "An error occurred while retrieving staff list."
                 };
             }
         }
@@ -119,9 +118,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             try
             {
                 var users = await _userRepository.GetAllAsync();
-                var query = users.Where(u => u.RoleId == 2).AsQueryable(); // Chỉ lấy Station Staff
+                var query = users.Where(u => u.RoleId == 2).AsQueryable();
 
-                // Apply filters
                 if (!string.IsNullOrEmpty(searchDto.FullName))
                 {
                     query = query.Where(u => u.FullName.Contains(searchDto.FullName, StringComparison.OrdinalIgnoreCase));
@@ -139,7 +137,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 if (searchDto.StationId.HasValue)
                 {
-                    // Lấy danh sách user có StationId tương ứng
                     var stationUsers = await GetUsersByStationId(searchDto.StationId.Value);
                     var stationUserIds = stationUsers.Select(u => u.UserId).ToList();
                     query = query.Where(u => stationUserIds.Contains(u.UserId));
@@ -160,7 +157,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     query = query.Where(u => u.CreatedAt <= searchDto.CreatedTo.Value);
                 }
 
-                // Apply sorting
                 query = searchDto.SortBy?.ToLower() switch
                 {
                     "fullname" => searchDto.SortOrder?.ToLower() == "asc"
@@ -177,7 +173,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var totalCount = query.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / searchDto.PageSize);
 
-                // Apply pagination
                 var pagedUsers = query
                     .Skip((searchDto.PageNumber - 1) * searchDto.PageSize)
                     .Take(searchDto.PageSize)
@@ -207,7 +202,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi tìm kiếm nhân viên."
+                    Message = "An error occurred while searching staff."
                 };
             }
         }
@@ -248,7 +243,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách nhân viên theo trạm."
+                    Message = "An error occurred while retrieving staff by station."
                 };
             }
         }
@@ -257,7 +252,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Kiểm tra trạm có tồn tại không
                 var station = await _stationRepository.GetByIdAsync(createDto.StationId);
                 if (station == null)
                 {
@@ -268,27 +262,24 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra email đã tồn tại chưa
                 if (await _userRepository.EmailExistsAsync(createDto.Email))
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Email đã tồn tại trong hệ thống"
+                        Message = "Email already exists in the system"
                     };
                 }
 
-                // Kiểm tra số điện thoại đã tồn tại chưa
                 if (await _userRepository.PhoneNumberExistsAsync(createDto.PhoneNumber))
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Số điện thoại đã tồn tại trong hệ thống"
+                        Message = "Phone number already exists in the system"
                     };
                 }
 
-                // Tạo user entity với role Station Staff (RoleId = 2)
                 var user = new User
                 {
                     FullName = createDto.FullName,
@@ -298,26 +289,23 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Birthday = createDto.Birthday,
                     CreatedAt = DateTime.UtcNow,
                     Status = createDto.Status ?? "Active",
-                    RoleId = 2, // Station Staff
-                    StationId = createDto.StationId, // FIX: Lưu StationId
-                    Notes = createDto.Notes // FIX: Lưu Notes
+                    RoleId = 2,
+                    StationId = createDto.StationId,
+                    Notes = createDto.Notes
                 };
 
-                // Lưu vào database
                 var createdUser = await _userRepository.AddAsync(user);
 
-                // FIX: Reload user with navigation properties
                 var userWithNavProps = await _userRepository.GetByIdAsync(createdUser.UserId);
                 if (userWithNavProps == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Lỗi khi tải thông tin nhân viên sau khi tạo"
+                        Message = "Error loading staff information after creation"
                     };
                 }
 
-                // Map sang DTO để trả về
                 var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff created successfully with ID: {StaffId}", createdUser.UserId);
@@ -335,7 +323,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi tạo nhân viên mới."
+                    Message = "An error occurred while creating new staff."
                 };
             }
         }
@@ -353,18 +341,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra nhân viên có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy nhân viên với ID này."
+                        Message = "Staff not found with this ID."
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không
                 if (existingUser.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -374,7 +360,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạm có tồn tại không
                 var station = await _stationRepository.GetByIdAsync(updateDto.StationId);
                 if (station == null)
                 {
@@ -385,53 +370,47 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra email đã tồn tại chưa (trừ nhân viên hiện tại)
                 if (updateDto.Email != existingUser.Email && await _userRepository.EmailExistsAsync(updateDto.Email))
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Email đã tồn tại trong hệ thống"
+                        Message = "Email already exists in the system"
                     };
                 }
 
-                // Kiểm tra số điện thoại đã tồn tại chưa (trừ nhân viên hiện tại)
                 if (updateDto.PhoneNumber != existingUser.PhoneNumber && await _userRepository.PhoneNumberExistsAsync(updateDto.PhoneNumber))
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Số điện thoại đã tồn tại trong hệ thống"
+                        Message = "Phone number already exists in the system"
                     };
                 }
 
-                // Cập nhật thông tin nhân viên
                 existingUser.FullName = updateDto.FullName;
                 existingUser.Email = updateDto.Email;
                 existingUser.PhoneNumber = updateDto.PhoneNumber;
                 existingUser.Birthday = updateDto.Birthday;
-                existingUser.StationId = updateDto.StationId; // FIX: Cập nhật StationId
-                existingUser.Notes = updateDto.Notes; // FIX: Cập nhật Notes
+                existingUser.StationId = updateDto.StationId;
+                existingUser.Notes = updateDto.Notes;
                 if (!string.IsNullOrEmpty(updateDto.Status))
                 {
                     existingUser.Status = updateDto.Status;
                 }
 
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
-                // FIX: Reload user with navigation properties
                 var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
                 if (userWithNavProps == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Lỗi khi tải thông tin nhân viên sau khi cập nhật"
+                        Message = "Error loading staff information after update"
                     };
                 }
 
-                // Map sang DTO để trả về
                 var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff updated successfully with ID: {StaffId}", updatedUser.UserId);
@@ -449,7 +428,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật nhân viên."
+                    Message = "An error occurred while updating staff."
                 };
             }
         }
@@ -467,18 +446,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra nhân viên có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy nhân viên với ID này."
+                        Message = "Staff not found with this ID."
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không
                 if (existingUser.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -488,14 +465,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Xóa nhân viên
                 var result = await _userRepository.DeleteAsync(id);
                 if (!result)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không thể xóa nhân viên."
+                        Message = "Unable to delete staff."
                     };
                 }
 
@@ -513,7 +489,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi xóa nhân viên."
+                    Message = "An error occurred while deleting staff."
                 };
             }
         }
@@ -531,18 +507,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra nhân viên có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy nhân viên với ID này."
+                        Message = "Staff not found with this ID."
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không
                 if (existingUser.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -552,24 +526,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Cập nhật mật khẩu
                 existingUser.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
 
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
-                // FIX: Reload user with navigation properties
                 var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
                 if (userWithNavProps == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Lỗi khi tải thông tin nhân viên sau khi đổi mật khẩu"
+                        Message = "Error loading staff information after changing password"
                     };
                 }
 
-                // Map sang DTO để trả về
                 var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff password changed successfully with ID: {StaffId}", updatedUser.UserId);
@@ -577,7 +547,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = true,
-                    Message = "Mật khẩu đã được thay đổi thành công",
+                    Message = "Password changed successfully",
                     Data = staffDto
                 };
             }
@@ -587,7 +557,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi thay đổi mật khẩu."
+                    Message = "An error occurred while changing password."
                 };
             }
         }
@@ -605,18 +575,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra nhân viên có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy nhân viên với ID này."
+                        Message = "Staff not found with this ID."
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không
                 if (existingUser.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -626,24 +594,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Cập nhật trạng thái
                 existingUser.Status = status;
 
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
-                // FIX: Reload user with navigation properties
                 var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
                 if (userWithNavProps == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Lỗi khi tải thông tin nhân viên sau khi cập nhật trạng thái"
+                        Message = "Error loading staff information after updating status"
                     };
                 }
 
-                // Map sang DTO để trả về
                 var staffDto = await MapToStaffDto(userWithNavProps);
 
                 _logger.LogInformation("Staff status updated successfully with ID: {StaffId} to {Status}", updatedUser.UserId, status);
@@ -651,7 +615,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = true,
-                    Message = $"Trạng thái nhân viên đã được cập nhật thành {status}",
+                    Message = $"Staff status updated to {status}",
                     Data = staffDto
                 };
             }
@@ -661,7 +625,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật trạng thái nhân viên."
+                    Message = "An error occurred while updating staff status."
                 };
             }
         }
@@ -688,18 +652,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra nhân viên có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy nhân viên với ID này."
+                        Message = "Staff not found with this ID."
                     };
                 }
 
-                // Kiểm tra xem user có phải là nhân viên không
                 if (existingUser.RoleId != 2)
                 {
                     return new StaffResponseDto
@@ -709,14 +671,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạm mới có tồn tại không
                 var newStation = await _stationRepository.GetByIdAsync(newStationId);
                 if (newStation == null)
                 {
                     return new StaffResponseDto
                     {
                         Success = false,
-                        Message = "Trạm mới không tồn tại"
+                        Message = "New station does not exist"
                     };
                 }
                 existingUser.StationId = newStationId;
@@ -729,7 +690,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = true,
-                    Message = $"Staff tranfer to {newStation.StationName} Successfully",
+                    Message = $"Staff transferred to {newStation.StationName} successfully",
                     Data = staffDto
                 };
             }
@@ -739,12 +700,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new StaffResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi chuyển nhân viên sang trạm khác."
+                    Message = "An error occurred while transferring staff to another station."
                 };
             }
         }
 
-        // Helper methods
         private async Task<StaffDto> MapToStaffDto(User user, int? stationId = null, string? notes = null)
         {
             var staffDto = new StaffDto
