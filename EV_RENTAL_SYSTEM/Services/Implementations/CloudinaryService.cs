@@ -99,7 +99,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             catch (Exception ex)
             {
                 // Log the exception for debugging
-                Console.WriteLine($"Error deleting image: {ex.Message}");
                 return false;
             }
         }

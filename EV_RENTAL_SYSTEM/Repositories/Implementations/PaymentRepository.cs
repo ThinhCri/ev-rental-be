@@ -32,6 +32,16 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public async Task<Payment?> GetPaymentByContractIdAsync(int contractId)
+        {
+            return await _context.Payments
+                .Where(p => p.ContractId == contractId)
+                .Include(p => p.Transactions)
+                .Include(p => p.Contract)
+                .ThenInclude(c => c.Order)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId)
         {
             return await _context.Payments

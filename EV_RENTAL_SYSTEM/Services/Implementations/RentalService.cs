@@ -495,7 +495,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 var licensePlateIds = orderLicensePlates.Select(olp => olp.LicensePlateId).ToList();
 
-                // Cập nhật trạng thái biển số xe về Available
+                // Cập nhật trạng thái biển số xe về Available để người khác có thể đặt
                 foreach (var licensePlateId in licensePlateIds)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(licensePlateId);
@@ -508,6 +508,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
+                // Xóa các mối quan hệ Order_LicensePlate
                 foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     _unitOfWork.OrderLicensePlates.Remove(orderLicensePlate);
@@ -516,6 +517,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
                 foreach (var contract in contracts)
                 {
+                    // Delete all payments associated with this contract first
+                    var payments = await _unitOfWork.Payments.GetPaymentsByContractIdAsync(contract.ContractId);
+                    foreach (var payment in payments)
+                    {
+                        // Delete all transactions associated with this payment first
+                        var transactions = await _unitOfWork.Transactions.GetTransactionsByPaymentIdAsync(payment.PaymentId);
+                        foreach (var transaction in transactions)
+                        {
+                            _unitOfWork.Transactions.Remove(transaction);
+                        }
+
+                        _unitOfWork.Payments.Remove(payment);
+                    }
 
                     _unitOfWork.Contracts.Remove(contract);
                 }
@@ -960,7 +974,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạng thái Order hợp lệ cho staff confirmation
                 if (order.Status != "Confirmed" && order.Status != "Active")
                 {
                     return new ServiceResponse<RentalResponseDto>

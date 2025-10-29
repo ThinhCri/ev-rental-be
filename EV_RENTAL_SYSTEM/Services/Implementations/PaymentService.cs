@@ -1,5 +1,6 @@
 using EV_RENTAL_SYSTEM.Models;
 using EV_RENTAL_SYSTEM.Models.DTOs;
+using EV_RENTAL_SYSTEM.Models.VnPay;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -21,20 +22,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Tạo Transaction ID trước để sử dụng chung
                 var transactionId = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
 
-                // Tìm Contract từ OrderId
                 Contract? contract = null;
                 if (request.OrderId.HasValue)
                 {
                     contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(request.OrderId.Value);
                 }
                 
-                // Nếu không tìm thấy Contract, tạo mới
                 if (contract == null)
                 {
-                    // Tìm Order gần nhất của user
                     var orders = await _unitOfWork.Orders.GetUserOrdersAsync(userId);
                     var latestOrder = orders.FirstOrDefault();
                     
@@ -45,7 +42,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                             OrderId = latestOrder.OrderId,
                             CreatedDate = DateTime.Now,
                             Status = "Active",
-                            Deposit = request.Amount * 0.2m, // 20% cọc
+                            Deposit = request.Amount * 0.3m, 
                             RentalFee = request.Amount,
                             ExtraFee = 0
                         };
@@ -63,7 +60,34 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Tạo Payment record
+                var existingPayment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
+                if (existingPayment != null)
+                {
+                    if (existingPayment.Status == "Success")
+                    {
+                        return new PaymentResponseDto
+                        {
+                            Success = false,
+                            Message = "This order has been paid successfully"
+                        };
+                    }
+                    
+                    if (existingPayment.Status == "Pending" || existingPayment.Status == "Unpaid" || existingPayment.Status == "Failed")
+                    {
+                        return new PaymentResponseDto
+                        {
+                            Success = false,
+                            Message = "Payment is already in progress for this order"
+                        };
+                    }
+                    
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "This order already has a payment record"
+                    };
+                }
+
                 var payment = new Payment
                 {
                     Amount = request.Amount,
@@ -75,10 +99,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Payments.AddAsync(payment);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo Transaction record với Transaction ID đã tạo
                 var transaction = new Transaction
                 {
-                    Amount = request.Amount,
                     PaymentId = payment.PaymentId,
                     UserId = userId,
                     TransactionDate = DateTime.Now
@@ -103,7 +125,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PaymentMethod = "VNPay",
                         TransactionId = transactionId,
                         ContractId = payment.ContractId,
-                        Description = request.Description
+                        Note = request.Description
                     }
                 };
             }
@@ -154,7 +176,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạng thái hiện tại
                 if (payment.Status == "Success")
                 {
                     _logger.LogInformation("Payment {PaymentId} already processed successfully", payment.PaymentId);
@@ -171,12 +192,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                             PaymentMethod = "VNPay",
                             TransactionId = callbackData.TransactionId,
                             ContractId = payment.ContractId,
-                            Description = callbackData.Description
+                            Note = callbackData.Description
                         }
                     };
                 }
 
-                // Cập nhật trạng thái payment
                 var paymentStatus = callbackData.Status switch
                 {
                     "00" => "Success",
@@ -192,15 +212,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 {
                     try
                     {
-                        // Lấy Contract từ payment
                         var contract = await _unitOfWork.Contracts.GetByIdAsync(payment.ContractId);
                         if (contract != null)
                         {
-                            // Lấy Order từ Contract
                             var order = await _unitOfWork.Orders.GetByIdAsync(contract.OrderId);
                             if (order != null)
                             {
-                                // Lấy OrderLicensePlates
                                 var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(order.OrderId);
                                 foreach (var orderLicensePlate in orderLicensePlates)
                                 {
@@ -239,7 +256,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PaymentMethod = "VNPay",
                         TransactionId = callbackData.TransactionId,
                         ContractId = payment.ContractId,
-                        Description = callbackData.Description
+                        Note = callbackData.Description
                     }
                 };
             }
@@ -273,7 +290,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         PaymentMethod = "VNPay",
                         TransactionId = p.Transactions.FirstOrDefault()?.TransactionId.ToString() ?? "",
                         ContractId = p.ContractId,
-                        Description = "Thanh toán thuê xe điện"
+                        Note = "Deposit 30%"
                     })
                     .ToList();
 
@@ -323,7 +340,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     PaymentMethod = "VNPay",
                     TransactionId = transactionId,
                     ContractId = payment.ContractId,
-                    Description = "Thanh toán thuê xe điện"
+                    Note = "Deposit 30%"
                 };
             }
             catch (Exception ex)
@@ -352,6 +369,257 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 _logger.LogError(ex, "Error updating payment {PaymentId} status to {Status}", paymentId, status);
                 return false;
+            }
+        }
+
+        public async Task<PaymentResponseDto> CreatePaymentAsync(CreatePaymentRequestDto request, int userId)
+        {
+            try
+            {
+                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(request.OrderId);
+                if (contract == null)
+                {
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy hợp đồng cho đơn hàng này"
+                    };
+                }
+
+                var existingPayment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
+                if (existingPayment != null)
+                {
+                    if (existingPayment.Status == "Success")
+                    {
+                        return new PaymentResponseDto
+                        {
+                            Success = false,
+                            Message = "This order has been paid successfully"
+                        };
+                    }
+                    
+                    if (existingPayment.Status == "Pending" || existingPayment.Status == "Unpaid" || existingPayment.Status == "Failed")
+                    {
+                        return new PaymentResponseDto
+                        {
+                            Success = false,
+                            Message = "Payment is already in progress for this order"
+                        };
+                    }
+                    
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "This order already has a payment record"
+                    };
+                }
+
+                var payment = new Payment
+                {
+                    Amount = request.Amount,
+                    Status = "Pending",
+                    ContractId = contract.ContractId,
+                    PaymentDate = DateTime.Now,
+                    Method = "VNPay",
+                    Note = request.Note
+                };
+
+                await _unitOfWork.BeginTransactionAsync();
+                Transaction? transactionRecord = null;
+                try
+                {
+                    await _unitOfWork.Payments.AddAsync(payment);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    transactionRecord = new Transaction
+                    {
+                        PaymentId = payment.PaymentId,
+                        UserId = userId,
+                        TransactionDate = DateTime.Now,
+                        Status = "Pending"
+                    };
+
+                    await _unitOfWork.Transactions.AddAsync(transactionRecord);
+                    await _unitOfWork.SaveChangesAsync();
+                    
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+
+                _logger.LogInformation("Created payment {PaymentId} for user {UserId} with contract {ContractId}", 
+                    payment.PaymentId, userId, contract.ContractId);
+
+                return new PaymentResponseDto
+                {
+                    Success = true,
+                    Message = "Tạo thanh toán thành công",
+                    Data = new PaymentDto
+                    {
+                        PaymentId = payment.PaymentId,
+                        PaymentDate = payment.PaymentDate,
+                        Amount = payment.Amount ?? 0,
+                        Status = payment.Status ?? "Pending",
+                        PaymentMethod = "VNPay",
+                        TransactionId = transactionRecord?.TransactionId.ToString() ?? "0",
+                        ContractId = payment.ContractId,
+                        OrderId = request.OrderId,
+                        Note = request.Note
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating payment for user {UserId}", userId);
+                return new PaymentResponseDto
+                {
+                    Success = false,
+                    Message = "Lỗi khi tạo thanh toán"
+                };
+            }
+        }
+
+        public async Task<PaymentResponseDto> ProcessPaymentSuccessAsync(PaymentResponseModel vnPayResponse)
+        {
+            try
+            {
+                // Tìm payment dựa trên OrderId từ VnPay response
+                if (!int.TryParse(vnPayResponse.OrderId, out int orderId))
+                {
+                    _logger.LogWarning("Invalid OrderId format: {OrderId}", vnPayResponse.OrderId);
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "OrderId không hợp lệ"
+                    };
+                }
+                
+                // Tìm contract từ orderId
+                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                if (contract == null)
+                {
+                    _logger.LogWarning("Contract not found for order {OrderId}", orderId);
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy hợp đồng"
+                    };
+                }
+
+                // Tìm payment từ contract
+                var payment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
+                if (payment == null)
+                {
+                    _logger.LogWarning("Payment not found for contract {ContractId}", contract.ContractId);
+                    return new PaymentResponseDto
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy thanh toán"
+                    };
+                }
+
+
+                payment.Status = "Success";
+                payment.Method = "VNPay";
+                _unitOfWork.Payments.Update(payment);
+
+                var transaction = payment.Transactions.FirstOrDefault();
+                if (transaction != null)
+                {
+                    transaction.Status = "Success";
+                    _unitOfWork.Transactions.Update(transaction);
+                }
+
+                if (contract?.Order != null)
+                {
+                    contract.Order.Status = "Paid";
+                    _unitOfWork.Orders.Update(contract.Order);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Payment {PaymentId} processed successfully", payment.PaymentId);
+
+                return new PaymentResponseDto
+                {
+                    Success = true,
+                    Message = "Thanh toán thành công",
+                    Data = new PaymentDto
+                    {
+                        PaymentId = payment.PaymentId,
+                        PaymentDate = payment.PaymentDate,
+                        Amount = payment.Amount ?? 0,
+                        Status = "Success",
+                        PaymentMethod = "VNPay",
+                        TransactionId = vnPayResponse.TransactionId,
+                        OrderId = orderId,
+                        ContractId = payment.ContractId,
+                        Note = payment.Note
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing payment success for VnPay response {TransactionId}", vnPayResponse.TransactionId);
+                return new PaymentResponseDto
+                {
+                    Success = false,
+                    Message = "Lỗi khi xử lý thanh toán thành công"
+                };
+            }
+        }
+
+        public async Task<PaymentStatusDto> GetPaymentStatusByOrderIdAsync(int orderId)
+        {
+            try
+            {
+                // Tìm contract từ orderId
+                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                if (contract == null)
+                {
+                    return new PaymentStatusDto
+                    {
+                        OrderId = orderId,
+                        HasPayment = false,
+                        PaymentStatus = "No Payment",
+                        PaymentDate = null
+                    };
+                }
+
+                // Tìm payment của contract này
+                var payment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
+                if (payment == null)
+                {
+                    return new PaymentStatusDto
+                    {
+                        OrderId = orderId,
+                        HasPayment = false,
+                        PaymentStatus = "No Payment",
+                        PaymentDate = null
+                    };
+                }
+
+                return new PaymentStatusDto
+                {
+                    OrderId = orderId,
+                    HasPayment = true,
+                    PaymentStatus = payment.Status ?? "Unknown",
+                    PaymentDate = payment.PaymentDate
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment status for order {OrderId}", orderId);
+                return new PaymentStatusDto
+                {
+                    OrderId = orderId,
+                    HasPayment = false,
+                    PaymentStatus = "Error",
+                    PaymentDate = null
+                };
             }
         }
     }

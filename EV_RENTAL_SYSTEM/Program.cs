@@ -7,6 +7,7 @@ using EV_RENTAL_SYSTEM.Repositories.Implementations;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Implementations;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
+using EV_RENTAL_SYSTEM.Services.Vnpay;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -196,21 +197,16 @@ using (var scope = app.Services.CreateScope())
             var pendingMigrations = context.Database.GetPendingMigrations();
             if (pendingMigrations.Any())
             {
-                Console.WriteLine($"Found {pendingMigrations.Count()} pending migrations. Applying...");
                 context.Database.Migrate();
-                Console.WriteLine("✓ Database migration completed successfully.");
             }
             else
             {
-                Console.WriteLine("✓ Database is up to date.");
             }
         }
         else
         {
             // Database chưa tồn tại, tạo mới
-            Console.WriteLine("Creating new database...");
             context.Database.EnsureCreated();
-            Console.WriteLine("✓ Database created successfully.");
         }
 
         // ========================================
@@ -244,26 +240,20 @@ END");
         // - 4 Sample Vehicles (xe mẫu)
         // - 4 Sample License Plates (biển số mẫu)
         // ========================================
-        Console.WriteLine("Starting data seeding...");
         await dataSeedingService.SeedDataAsync();
-        Console.WriteLine("✓ Data seeding completed successfully.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ Error during database setup: {ex.Message}");
         // Fallback to EnsureCreated if migration fails
         try
         {
             context.Database.EnsureCreated();
-            Console.WriteLine("✓ Database created using EnsureCreated fallback.");
             
             // Try to seed data even with fallback
             await dataSeedingService.SeedDataAsync();
-            Console.WriteLine("✓ Data seeding completed with fallback.");
         }
         catch (Exception fallbackEx)
         {
-            Console.WriteLine($"❌ Fallback also failed: {fallbackEx.Message}");
         }
     }
 }
