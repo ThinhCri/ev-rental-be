@@ -13,7 +13,7 @@ namespace EV_RENTAL_SYSTEM.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251014125546_AddBookingForOthersToOrder")]
-    partial class AddBookingForOthersToOrder
+    partial class UpdateOrderAndContractStructure
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -339,28 +339,13 @@ namespace EV_RENTAL_SYSTEM.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("End_time");
 
-                    b.Property<bool>("IsBookingForOthers")
-                        .HasColumnType("bit")
-                        .HasColumnName("Is_Booking_For_Others");
-
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("Order_date");
 
-                    b.Property<string>("RenterLicenseImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("Renter_License_ImageUrl");
-
-                    b.Property<string>("RenterName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("Renter_Name");
-
-                    b.Property<string>("RenterPhone")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasColumnName("Renter_Phone");
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("StartTime")
                         .HasColumnType("datetime2")

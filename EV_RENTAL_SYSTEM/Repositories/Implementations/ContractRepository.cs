@@ -15,10 +15,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Contracts
                 .Where(c => c.OrderId == orderId)
-                .Include(c => c.Order)
-                .ThenInclude(o => o.User)
-                .Include(c => c.Payments)
-                .ThenInclude(p => p.Transactions)
                 .ToListAsync();
         }
 

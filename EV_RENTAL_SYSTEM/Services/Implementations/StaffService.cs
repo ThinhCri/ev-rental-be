@@ -719,17 +719,18 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Message = "Trạm mới không tồn tại"
                     };
                 }
+                existingUser.StationId = newStationId;
+                var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
-                // Cập nhật trạm cho nhân viên (có thể cần thêm trường StationId vào User model)
-                // Hiện tại chưa có trường StationId trong User model, nên sẽ trả về thông báo
-                // Trong thực tế, cần thêm trường StationId vào User model hoặc tạo bảng UserStation
+                var staffDto = await MapToStaffDto(updatedUser);
 
-                _logger.LogInformation("Staff transfer station requested for ID: {StaffId} to station: {StationId}", id, newStationId);
+                _logger.LogInformation("Staff transferred successfully from station to station {StationId} for staff ID: {StaffId}", newStationId, id);
 
                 return new StaffResponseDto
                 {
                     Success = true,
-                    Message = $"Yêu cầu chuyển nhân viên sang trạm {newStation.StationName} đã được ghi nhận"
+                    Message = $"Staff tranfer to {newStation.StationName} Successfully",
+                    Data = staffDto
                 };
             }
             catch (Exception ex)
@@ -757,7 +758,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 Status = user.Status,
                 RoleName = user.Role?.RoleName ?? "Unknown",
                 Notes = notes ?? user.Notes,
-                // FIX: Initialize with default values
                 StationId = 0,
                 StationName = ""
             };

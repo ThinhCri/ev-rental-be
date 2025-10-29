@@ -10,11 +10,15 @@ namespace EV_RENTAL_SYSTEM.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Ensure Available_Vehicle column exists (guarded)
+            // Add columns only if they do not exist (guarded)
             migrationBuilder.Sql(@"
 IF COL_LENGTH('Station', 'Available_Vehicle') IS NULL
 BEGIN
-    ALTER TABLE [Station] ADD [Available_Vehicle] int NOT NULL CONSTRAINT DF_Station_Available_Vehicle_M2 DEFAULT(0);
+    ALTER TABLE [Station] ADD [Available_Vehicle] int NOT NULL CONSTRAINT DF_Station_Available_Vehicle DEFAULT(0);
+END
+IF COL_LENGTH('Station', 'Total_Vehicle') IS NULL
+BEGIN
+    ALTER TABLE [Station] ADD [Total_Vehicle] int NOT NULL CONSTRAINT DF_Station_Total_Vehicle DEFAULT(0);
 END
 ");
 
@@ -51,7 +55,13 @@ UPDATE [Station] SET [Available_Vehicle] = 0 WHERE [Available_Vehicle] IS NULL;
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // No-op: keep counters
+            migrationBuilder.DropColumn(
+                name: "Available_Vehicle",
+                table: "Station");
+
+            migrationBuilder.DropColumn(
+                name: "Total_Vehicle",
+                table: "Station");
         }
     }
 }

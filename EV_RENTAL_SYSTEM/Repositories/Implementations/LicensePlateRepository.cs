@@ -39,5 +39,23 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .Include(lp => lp.Station)
                 .FirstOrDefaultAsync(lp => lp.PlateNumber == plateNumber);
         }
+
+        public async Task<int> GetVehiclesByStationIdAsync(int stationId)
+        {
+            return await _context.LicensePlates
+                .Where(lp => lp.StationId == stationId)
+                .Select(lp => lp.VehicleId)
+                .Distinct()
+                .CountAsync();
+        }
+
+        public async Task<int> GetAvailableVehiclesByStationIdAsync(int stationId)
+        {
+            return await _context.LicensePlates
+                .Where(lp => lp.StationId == stationId && lp.Status == "Available")
+                .Select(lp => lp.VehicleId)
+                .Distinct()
+                .CountAsync();
+        }
     }
 }

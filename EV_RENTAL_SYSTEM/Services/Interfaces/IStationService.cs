@@ -12,6 +12,7 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<StationListResponseDto> GetStationsByProvinceAsync(string province);
         Task<StationResponseDto> GetStationWithVehiclesAsync(int stationId);
         Task<StationListResponseDto> SearchStationsAsync(StationSearchDto searchDto);
+        Task UpdateAllStationCountersAsync();
     }
 }
 

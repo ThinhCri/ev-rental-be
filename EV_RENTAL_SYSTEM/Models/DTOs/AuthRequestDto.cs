@@ -50,7 +50,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         [DateOnlyValidation(ErrorMessage = "Ngày sinh phải có định dạng yyyy-MM-dd (ví dụ: 1990-01-15)")]
         public DateTime? Birthday { get; set; }
 
-        // Thông tin bằng lái xe (bắt buộc nếu muốn thuê xe)
         [Required(ErrorMessage = "Ảnh bằng lái xe là bắt buộc để thuê xe")]
         [LicenseImageValidation(ErrorMessage = "Ảnh bằng lái xe không hợp lệ. Vui lòng upload ảnh rõ nét, kích thước tối thiểu 300x200px, định dạng JPG/PNG")]
         public IFormFile LicenseImage { get; set; } = null!;
@@ -83,14 +82,15 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
     /// </summary>
     public class UserDto
     {
-        public int UserId { get; set; } // ID user
-        public string FullName { get; set; } = string.Empty; // Họ tên
-        public string Email { get; set; } = string.Empty; // Email
-        public string PhoneNumber { get; set; } = string.Empty; // Số điện thoại
-        public DateTime? Birthday { get; set; } // Ngày sinh
-        public DateTime CreatedAt { get; set; } // Ngày tạo tài khoản
-        public string? Status { get; set; } // Trạng thái tài khoản
-        public string RoleName { get; set; } = string.Empty; // Tên role (Admin, Staff, EV Renter)
+        public int UserId { get; set; } 
+        public string FullName { get; set; } = string.Empty; 
+        public string Email { get; set; } = string.Empty; 
+        public string PhoneNumber { get; set; } = string.Empty; 
+        public DateTime? Birthday { get; set; } 
+        public DateTime CreatedAt { get; set; } 
+        public string? Status { get; set; } 
+        public string RoleName { get; set; } = string.Empty; 
+        public int? StationId { get; set; }
         public string? DriverLicenseNumber { get; set; }   
         public string? DriverLicenseImage { get; set; }
     }

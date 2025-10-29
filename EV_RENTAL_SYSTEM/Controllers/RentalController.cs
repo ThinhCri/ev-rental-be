@@ -421,13 +421,20 @@ namespace EV_RENTAL_SYSTEM.Controllers
         /// </summary>
         /// <param name="id">Rental ID</param>
         /// <returns>Cancel result</returns>
-        [HttpPut("{id}/cancel")]
+        [HttpDelete("{id}")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CancelRental(int id)
         {
             try
             {
-                var result = await _rentalService.CancelRentalAsync(id);
+                var userIdClaim = User.FindFirst("uid")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim == null)
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+                
+                var userId = int.Parse(userIdClaim);
+                var result = await _rentalService.CancelRentalAsync(id, userId);
                 
                 if (!result.Success)
                 {
