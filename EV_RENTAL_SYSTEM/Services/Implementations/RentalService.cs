@@ -2038,10 +2038,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        public Task<RentalResponseDto> CancelRentalAsync(int orderId, int userId)
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }
 

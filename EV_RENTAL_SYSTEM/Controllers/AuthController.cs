@@ -8,9 +8,6 @@ using AutoMapper;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
-    /// <summary>
-    /// Authentication controller for user registration, login, and logout
-    /// </summary>
     public class AuthController : BaseController
     {
         private readonly IAuthService _authService;
@@ -26,11 +23,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             _mapper = mapper;
         }
 
-        /// <summary>
-        /// User login endpoint
-        /// </summary>
-        /// <param name="loginRequest">Login credentials</param>
-        /// <returns>Login result with JWT token</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
         {
@@ -47,11 +39,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// User registration endpoint
-        /// </summary>
-        /// <param name="registerRequest">Registration information</param>
-        /// <returns>Registration result with JWT token</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterRequestDto registerRequest)
         {
@@ -68,10 +55,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// User logout endpoint
-        /// </summary>
-        /// <returns>Logout confirmation</returns>
         [HttpPost("logout")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> Logout()
@@ -109,10 +92,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             }
         }
 
-        /// <summary>
-        /// Validate JWT token endpoint
-        /// </summary>
-        /// <returns>Token validation result</returns>
         [HttpGet("validate")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> ValidateToken()
@@ -142,10 +121,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return SuccessResponse<object?>(null, "Token is valid");
         }
 
-        /// <summary>
-        /// Get current user information endpoint
-        /// </summary>
-        /// <returns>Current user information</returns>
         [HttpGet("me")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetCurrentUser()
@@ -176,12 +151,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             }
         }
 
-        /// <summary>
-        /// Get current user's order history endpoint
-        /// </summary>
-        /// <param name="pageNumber">Page number (default 1)</param>
-        /// <param name="pageSize">Page size (default 10)</param>
-        /// <returns>User's order history</returns>
         [HttpGet("order-history")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetOrderHistory([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)

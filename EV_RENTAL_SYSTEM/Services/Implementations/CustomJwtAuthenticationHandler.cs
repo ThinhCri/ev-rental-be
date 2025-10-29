@@ -28,7 +28,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Lấy token từ header Authorization (không cần Bearer prefix)
                 var authHeader = Request.Headers["Authorization"].FirstOrDefault();
                 
                 if (string.IsNullOrEmpty(authHeader))
@@ -36,7 +35,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return AuthenticateResult.NoResult();
                 }
 
-                // Nếu có Bearer prefix, loại bỏ nó
                 string token = authHeader;
                 if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
@@ -48,7 +46,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return AuthenticateResult.NoResult();
                 }
 
-                // Validate token
                 var jwtSettings = _configuration.GetSection("JwtSettings");
                 var secretKey = jwtSettings["SecretKey"];
                 var issuer = jwtSettings["Issuer"];
@@ -94,7 +91,3 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         }
     }
 }
-
-
-
-

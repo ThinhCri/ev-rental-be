@@ -5,81 +5,68 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {
-    /// <summary>
-    /// DTO cho request đăng nhập
-    /// </summary>
     public class LoginRequestDto
     {
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// DTO cho request đăng ký
-    /// </summary>
     public class RegisterRequestDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Họ tên không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Full name is required")]
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        [MaxLength(255, ErrorMessage = "Email không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
-        [MaxLength(255, ErrorMessage = "Mật khẩu không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
+        [MaxLength(255, ErrorMessage = "Password cannot exceed 255 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Xác nhận mật khẩu là bắt buộc")]
-        [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp")]
+        [Required(ErrorMessage = "Confirm password is required")]
+        [Compare("Password", ErrorMessage = "Confirm password does not match")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [DateOnlyValidation(ErrorMessage = "Ngày sinh phải có định dạng yyyy-MM-dd (ví dụ: 1990-01-15)")]
+        [DateOnlyValidation(ErrorMessage = "Birthday must be in yyyy-MM-dd format (e.g., 1990-01-15)")]
         public DateTime? Birthday { get; set; }
 
-        [Required(ErrorMessage = "Ảnh bằng lái xe là bắt buộc để thuê xe")]
-        [LicenseImageValidation(ErrorMessage = "Ảnh bằng lái xe không hợp lệ. Vui lòng upload ảnh rõ nét, kích thước tối thiểu 300x200px, định dạng JPG/PNG")]
+        [Required(ErrorMessage = "License image is required for vehicle rental")]
+        [LicenseImageValidation(ErrorMessage = "Invalid license image. Please upload a clear image, minimum size 300x200px, JPG/PNG format")]
         public IFormFile LicenseImage { get; set; } = null!;
 
-        [Required(ErrorMessage = "Số bằng lái xe là bắt buộc")]
-        [MaxLength(50, ErrorMessage = "Số bằng lái xe không được quá 50 ký tự")]
+        [Required(ErrorMessage = "License number is required")]
+        [MaxLength(50, ErrorMessage = "License number cannot exceed 50 characters")]
         public string LicenseNumber { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Ngày hết hạn bằng lái xe là bắt buộc")]
+        [Required(ErrorMessage = "License expiry date is required")]
         public DateTime LicenseExpiryDate { get; set; }
 
-        [Required(ErrorMessage = "Loại bằng lái xe là bắt buộc")]
+        [Required(ErrorMessage = "License type is required")]
         public LicenseTypeEnum LicenseTypeId { get; set; }
     }
 
-
-    /// <summary>
-    /// DTO cho response xác thực (đăng nhập/đăng ký)
-    /// </summary>
     public class AuthResponseDto
     {
-        public bool Success { get; set; } // Có thành công hay không
-        public string Message { get; set; } = string.Empty; // Thông báo kết quả
-        public string? Token { get; set; } // JWT token (nếu thành công)
-        public UserDto? User { get; set; } // Thông tin user (nếu thành công)
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? Token { get; set; }
+        public UserDto? User { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho thông tin user (trả về cho client)
-    /// </summary>
     public class UserDto
     {
         public int UserId { get; set; } 
@@ -95,79 +82,67 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? DriverLicenseImage { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho admin tạo user mới
-    /// </summary>
     public class CreateUserDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Họ tên không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Full name is required")]
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        [MaxLength(255, ErrorMessage = "Email không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         public DateTime? Birthday { get; set; }
 
-        [Required(ErrorMessage = "Role là bắt buộc")]
+        [Required(ErrorMessage = "Role is required")]
         public int RoleId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
         public string? Status { get; set; } = "Active";
     }
 
-    /// <summary>
-    /// DTO cho admin cập nhật user
-    /// </summary>
     public class UpdateUserDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Họ tên không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Full name is required")]
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        [MaxLength(255, ErrorMessage = "Email không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         public DateTime? Birthday { get; set; }
 
-        [Required(ErrorMessage = "Role là bắt buộc")]
+        [Required(ErrorMessage = "Role is required")]
         public int RoleId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
         public string? Status { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho admin đổi mật khẩu user
-    /// </summary>
     public class ChangeUserPasswordDto
     {
-        [Required(ErrorMessage = "Mật khẩu mới là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        [Required(ErrorMessage = "New password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string NewPassword { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// DTO cho response API user
-    /// </summary>
     public class UserResponseDto
     {
         public bool Success { get; set; }
@@ -175,9 +150,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public UserDto? Data { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho danh sách user
-    /// </summary>
     public class UserListResponseDto
     {
         public bool Success { get; set; }
@@ -189,9 +161,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int TotalPages { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho tìm kiếm user
-    /// </summary>
     public class UserSearchDto
     {
         public string? FullName { get; set; }
@@ -203,79 +172,70 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime? CreatedTo { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string? SortBy { get; set; } = "CreatedAt"; // FullName, Email, CreatedAt
-        public string? SortOrder { get; set; } = "desc"; // asc, desc
+        public string? SortBy { get; set; } = "CreatedAt";
+        public string? SortOrder { get; set; } = "desc";
     }
 
-    /// <summary>
-    /// DTO cho admin tạo nhân viên mới
-    /// </summary>
     public class CreateStaffDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Họ tên không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Full name is required")]
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        [MaxLength(255, ErrorMessage = "Email không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         public DateTime? Birthday { get; set; }
 
-        [Required(ErrorMessage = "Trạm làm việc là bắt buộc")]
+        [Required(ErrorMessage = "Station is required")]
         public int StationId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
         public string? Status { get; set; } = "Active";
 
-        [MaxLength(255, ErrorMessage = "Ghi chú không được quá 255 ký tự")]
+        [MaxLength(255, ErrorMessage = "Notes cannot exceed 255 characters")]
         public string? Notes { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho admin cập nhật nhân viên
-    /// </summary>
     public class UpdateStaffDto
     {
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Họ tên không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Full name is required")]
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
         public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email là bắt buộc")]
-        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
-        [MaxLength(255, ErrorMessage = "Email không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [MaxLength(20, ErrorMessage = "Số điện thoại không được quá 20 ký tự")]
+        [Required(ErrorMessage = "Phone number is required")]
+        [Phone(ErrorMessage = "Invalid phone number format")]
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         public DateTime? Birthday { get; set; }
 
-        [Required(ErrorMessage = "Trạm làm việc là bắt buộc")]
+        [Required(ErrorMessage = "Station is required")]
         public int StationId { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Trạng thái không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
         public string? Status { get; set; }
 
-        [MaxLength(255, ErrorMessage = "Ghi chú không được quá 255 ký tự")]
+        [MaxLength(255, ErrorMessage = "Notes cannot exceed 255 characters")]
         public string? Notes { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho thông tin nhân viên (trả về cho client)
-    /// </summary>
     public class StaffDto
     {
         public int UserId { get; set; }
@@ -291,9 +251,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? Notes { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho response API nhân viên
-    /// </summary>
     public class StaffResponseDto
     {
         public bool Success { get; set; }
@@ -301,9 +258,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public StaffDto? Data { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho danh sách nhân viên
-    /// </summary>
     public class StaffListResponseDto
     {
         public bool Success { get; set; }
@@ -315,9 +269,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int TotalPages { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho tìm kiếm nhân viên
-    /// </summary>
     public class StaffSearchDto
     {
         public string? FullName { get; set; }
@@ -329,7 +280,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime? CreatedTo { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string? SortBy { get; set; } = "CreatedAt"; // FullName, Email, CreatedAt, StationName
-        public string? SortOrder { get; set; } = "desc"; // asc, desc
+        public string? SortBy { get; set; } = "CreatedAt";
+        public string? SortOrder { get; set; } = "desc";
     }
 }
