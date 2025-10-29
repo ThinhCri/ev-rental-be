@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VNPay Hash Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>VNPay Hash Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        // Test data từ logs
+        const testData = "vnp_Amount=7500000000&vnp_Command=pay&vnp_CreateDate=20251012000132&vnp_CurrCode=VND&vnp_ExpireDate=20251012001632&vnp_IpAddr=127.0.0.1&vnp_Locale=vn&vnp_OrderInfo=thue+xe&vnp_OrderType=other&vnp_ReturnUrl=https%3a%2f%2fwebhook.site%2feda25083-b805-45bf-a7e4-738920d427b7&vnp_TmnCode=2QXUI4J4&vnp_TxnRef=EV202510120001323597&vnp_Version=2.1.0";
+        const secret = "RAOEXHYVSDDIIENYWSLDLLDTDIXDCHKE";
+        
+        // Tạo hash
+        const hash = CryptoJS.HmacSHA256(testData + secret, secret).toString(CryptoJS.enc.Hex).toLowerCase();
+        
+        document.getElementById('result').innerHTML = `
+            <p><strong>Test Data:</strong> ${testData}</p>
+            <p><strong>Secret:</strong> ${secret}</p>
+            <p><strong>Generated Hash:</strong> ${hash}</p>
+            <p><strong>Expected Hash (from logs):</strong> 8e29c60715b056bd176cc56cc47e962a9667387998aef817dc4b54b7d8d0690e</p>
+            <p><strong>Match:</strong> ${hash === '8e29c60715b056bd176cc56cc47e962a9667387998aef817dc4b54b7d8d0690e' ? '✅ YES' : '❌ NO'}</p>
+        `;
+    </script>
+</body>
+</html>
+
+
+
