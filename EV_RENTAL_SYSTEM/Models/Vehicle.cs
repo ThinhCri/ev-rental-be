@@ -35,10 +35,10 @@ namespace EV_RENTAL_SYSTEM.Models
         public string? VehicleImage { get; set; }
 
         [Column("Battery", TypeName = "decimal(5,2)")]
-        public decimal? Battery { get; set; } // Dung lượng pin (kWh)
+        public decimal? Battery { get; set; }
 
         [Column("Range_km")]
-        public int? RangeKm { get; set; } // Tầm hoạt động (km)
+        public int? RangeKm { get; set; }
 
         // Navigation properties
         [ForeignKey("BrandId")]

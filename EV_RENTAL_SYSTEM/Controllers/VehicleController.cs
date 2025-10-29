@@ -7,9 +7,6 @@ using EV_RENTAL_SYSTEM.Data;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
-    /// <summary>
-    /// Vehicle management controller
-    /// </summary>
     public class VehicleController : BaseController
     {
         private readonly IVehicleService _vehicleService;
@@ -23,10 +20,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Get all vehicles endpoint
-        /// </summary>
-        /// <returns>List of all vehicles</returns>
         [HttpGet]
         public async Task<IActionResult> GetAllVehicles()
         {
@@ -40,11 +33,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get vehicle by ID endpoint
-        /// </summary>
-        /// <param name="id">Vehicle ID</param>
-        /// <returns>Vehicle information</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVehicleById(int id)
         {
@@ -58,11 +46,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Create new vehicle endpoint (Admin only)
-        /// </summary>
-        /// <param name="createDto">Vehicle information</param>
-        /// <returns>Vehicle creation result</returns>
         [HttpPost]
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> CreateVehicle([FromForm] CreateVehicleDto createDto)
@@ -80,12 +63,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return CreatedAtAction(nameof(GetVehicleById), new { id = result.Data?.VehicleId }, result);
         }
 
-        /// <summary>
-        /// Update vehicle information endpoint (Admin and Staff only)
-        /// </summary>
-        /// <param name="id">Vehicle ID</param>
-        /// <param name="updateDto">Update information</param>
-        /// <returns>Update result</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> UpdateVehicle(int id, [FromForm] UpdateVehicleDto updateDto)
@@ -103,11 +80,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Delete vehicle endpoint (Admin only)
-        /// </summary>
-        /// <param name="id">Vehicle ID</param>
-        /// <returns>Delete result</returns>
         [HttpDelete("{id}")]
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteVehicle(int id)
@@ -122,10 +94,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get available vehicles endpoint
-        /// </summary>
-        /// <returns>List of available vehicles</returns>
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailableVehicles()
         {
@@ -139,11 +107,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get vehicles by station endpoint
-        /// </summary>
-        /// <param name="stationId">Station ID</param>
-        /// <returns>List of vehicles in station</returns>
         [HttpGet("station/{stationId}")]
         public async Task<IActionResult> GetVehiclesByStation(int stationId)
         {
@@ -157,11 +120,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get license plates by status endpoint (xem xe nào đang ở trạng thái gì)
-        /// </summary>
-        /// <param name="status">License plate status (Available, Rented, Maintenance, Reserved)</param>
-        /// <returns>List of license plates with status</returns>
         [HttpGet("license-plates/status/{status}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetLicensePlatesByStatus(string status)
@@ -208,7 +166,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = $"Lấy danh sách biển số xe trạng thái '{status}' thành công",
+                    Message = $"Successfully retrieved license plates with status '{status}'",
                     Data = licensePlates,
                     Count = licensePlates.Count
                 });
@@ -216,7 +174,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting license plates by status {Status}: {Error}", status, ex.Message);
-                return ErrorResponse($"Lỗi khi lấy danh sách xe: {ex.Message}", 500);
+                return ErrorResponse($"Error retrieving vehicle list: {ex.Message}", 500);
             }
         }
     }

@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {
-    /// <summary>
-    /// DTO cho thông tin xe (trả về cho client)
-    /// </summary>
     public class VehicleDto
     {
         public int VehicleId { get; set; }
@@ -18,98 +15,89 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public decimal? PricePerDay { get; set; }
         public int? SeatNumber { get; set; }
         public string? VehicleImage { get; set; }
-        public decimal? Battery { get; set; } // Dung lượng pin (kWh)
-        public int? RangeKm { get; set; } // Tầm hoạt động (km)
-        public string? Status { get; set; } // Trạng thái xe
-        public int? StationId { get; set; } // ID trạm xe đang đậu
-        public string? StationName { get; set; } // Tên trạm xe đang đậu
-        public string? StationStreet { get; set; } // Địa chỉ trạm xe (cho Google Maps)
-        public bool IsAvailable { get; set; } = true; // Trạng thái có sẵn để thuê
-        public int AvailableLicensePlates { get; set; } = 0; // Số biển số có sẵn
-        public List<string> LicensePlateNumbers { get; set; } = new List<string>(); // Danh sách biển số xe
+        public decimal? Battery { get; set; }
+        public int? RangeKm { get; set; }
+        public string? Status { get; set; }
+        public int? StationId { get; set; }
+        public string? StationName { get; set; }
+        public string? StationStreet { get; set; }
+        public bool IsAvailable { get; set; } = true;
+        public int AvailableLicensePlates { get; set; } = 0;
+        public List<string> LicensePlateNumbers { get; set; } = new List<string>();
     }
 
-    /// <summary>
-    /// DTO cho request tạo xe mới
-    /// </summary>
     public class CreateVehicleDto
     {
-        [Required(ErrorMessage = "Tên model xe là bắt buộc")]
-        [MaxLength(100, ErrorMessage = "Tên model không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Vehicle model name is required")]
+        [MaxLength(100, ErrorMessage = "Model name cannot exceed 100 characters")]
         public string Model { get; set; } = string.Empty;
 
-        [Range(1900, 2030, ErrorMessage = "Năm sản xuất phải từ 1900 đến 2030")]
+        [Range(1900, 2030, ErrorMessage = "Model year must be between 1900 and 2030")]
         public int? ModelYear { get; set; }
 
-        [Required(ErrorMessage = "Thương hiệu là bắt buộc")]
+        [Required(ErrorMessage = "Brand is required")]
         public int BrandId { get; set; }
 
 
-        [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
+        [MaxLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string? Description { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Giá thuê hàng ngày phải lớn hơn 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Daily rental price must be greater than 0")]
         public decimal? PricePerDay { get; set; }
 
-        [Range(1, 50, ErrorMessage = "Số ghế phải từ 1 đến 50")]
+        [Range(1, 50, ErrorMessage = "Seat number must be between 1 and 50")]
         public int? SeatNumber { get; set; }
 
         public IFormFile? VehicleImageFile { get; set; }
 
-        [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
+        [Range(0, 999.99, ErrorMessage = "Battery capacity must be between 0 and 999.99 kWh")]
         public decimal? Battery { get; set; }
 
 
-        [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
+        [Range(0, 9999, ErrorMessage = "Range must be between 0 and 9999 km")]
         public int? RangeKm { get; set; }
 
-        public int? StationId { get; set; } // ID trạm xe đang đậu
+        public int? StationId { get; set; }
 
-        [Required(ErrorMessage = "Biển số xe là bắt buộc")]
-        [MaxLength(50, ErrorMessage = "Biển số xe không được quá 50 ký tự")]
+        [Required(ErrorMessage = "License plate number is required")]
+        [MaxLength(50, ErrorMessage = "License plate number cannot exceed 50 characters")]
         public string LicensePlateNumber { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// DTO cho request cập nhật xe
-    /// </summary>
     public class UpdateVehicleDto
     {
-        [Required(ErrorMessage = "Tên model xe là bắt buộc")]
-        [MaxLength(100, ErrorMessage = "Tên model không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Vehicle model name is required")]
+        [MaxLength(100, ErrorMessage = "Model name cannot exceed 100 characters")]
         public string Model { get; set; } = string.Empty;
 
-        [Range(1900, 2030, ErrorMessage = "Năm sản xuất phải từ 1900 đến 2030")]
+        [Range(1900, 2030, ErrorMessage = "Model year must be between 1900 and 2030")]
         public int? ModelYear { get; set; }
 
-        [Required(ErrorMessage = "Thương hiệu là bắt buộc")]
+        [Required(ErrorMessage = "Brand is required")]
         public int BrandId { get; set; }
 
 
-        [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
+        [MaxLength(255, ErrorMessage = "Description cannot exceed 255 characters")]
         public string? Description { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "Giá thuê hàng ngày phải lớn hơn 0")]
+        [Range(0, double.MaxValue, ErrorMessage = "Daily rental price must be greater than 0")]
         public decimal? PricePerDay { get; set; }
 
-        [Range(1, 50, ErrorMessage = "Số ghế phải từ 1 đến 50")]
+        [Range(1, 50, ErrorMessage = "Seat number must be between 1 and 50")]
         public int? SeatNumber { get; set; }
 
         public IFormFile? VehicleImageFile { get; set; }
 
-        [Range(0, 999.99, ErrorMessage = "Dung lượng pin phải từ 0 đến 999.99 kWh")]
+        [Range(0, 999.99, ErrorMessage = "Battery capacity must be between 0 and 999.99 kWh")]
         public decimal? Battery { get; set; }
 
 
-        [Range(0, 9999, ErrorMessage = "Tầm hoạt động phải từ 0 đến 9999 km")]
+        [Range(0, 9999, ErrorMessage = "Range must be between 0 and 9999 km")]
         public int? RangeKm { get; set; }
 
-        public int? StationId { get; set; } // ID trạm xe đang đậu
+        public int? StationId { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho response API
-    /// </summary>
     public class VehicleResponseDto
     {
         public bool Success { get; set; }
@@ -117,9 +105,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public VehicleDto? Data { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho danh sách xe
-    /// </summary>
     public class VehicleListResponseDto
     {
         public bool Success { get; set; }
@@ -131,9 +116,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int TotalPages { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho tìm kiếm xe
-    /// </summary>
     public class VehicleSearchDto
     {
         public string? Model { get; set; }

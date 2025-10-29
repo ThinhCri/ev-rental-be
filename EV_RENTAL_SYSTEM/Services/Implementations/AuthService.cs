@@ -14,7 +14,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IJwtService _jwtService;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
-        private readonly IFileService _fileService;
         private readonly ICloudService _cloudService;
 
         public AuthService(
@@ -22,14 +21,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             IJwtService jwtService,
             IMapper mapper,
             ILogger<AuthService> logger,
-            IFileService fileService,
             ICloudService cloudService)
         {
             _unitOfWork = unitOfWork;
             _jwtService = jwtService;
             _mapper = mapper;
             _logger = logger;
-            _fileService = fileService;
             _cloudService = cloudService;
         }
 
@@ -136,15 +133,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                var imageValidation = await _fileService.ValidateLicenseImageAsync(registerRequest.LicenseImage);
-                if (!imageValidation.IsValid)
-                {
-                    return new AuthResponseDto
-                    {
-                        Success = false,
-                        Message = $"Invalid license image: {imageValidation.ErrorMessage}"
-                    };
-                }
+                // License image validation is now handled by CloudService
 
                 var existingLicense = await _unitOfWork.Licenses.GetByLicenseNumberAsync(registerRequest.LicenseNumber);
                 if (existingLicense != null)

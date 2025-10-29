@@ -127,11 +127,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while getting all vehicles");
-                return new VehicleListResponseDto
-                {
-                    Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe."
-                };
+                    return new VehicleListResponseDto
+                    {
+                        Success = false,
+                        Message = "An error occurred while retrieving vehicle list."
+                    };
             }
         }
 
@@ -157,7 +157,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Biển số xe này đã tồn tại trong hệ thống"
+                        Message = "This license plate number already exists in the system"
                     };
                 }
 
@@ -175,7 +175,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         return new VehicleResponseDto
                         {
                             Success = false,
-                            Message = "Lỗi khi upload ảnh xe. Vui lòng thử lại."
+                            Message = "Error uploading vehicle image. Please try again."
                         };
                     }
                 }
@@ -261,7 +261,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy xe với ID này."
+                        Message = "Vehicle with this ID not found."
                     };
                 }
 
@@ -295,7 +295,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         return new VehicleResponseDto
                         {
                             Success = false,
-                            Message = "Lỗi khi upload ảnh xe. Vui lòng thử lại."
+                            Message = "Error uploading vehicle image. Please try again."
                         };
                     }
                 }
@@ -324,7 +324,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         return new VehicleResponseDto
                         {
                             Success = false,
-                            Message = "Trạm mới không tồn tại"
+                            Message = "New station does not exist"
                         };
                     }
 
@@ -414,7 +414,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật thông tin xe."
+                    Message = "An error occurred while updating vehicle information."
                 };
             }
         }
@@ -430,7 +430,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy xe với ID này."
+                        Message = "Vehicle with this ID not found."
                     };
                 }
 
@@ -462,11 +462,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var result = await _vehicleRepository.DeleteAsync(id);
                 if (!result)
                 {
-                    return new VehicleResponseDto
-                    {
-                        Success = false,
-                        Message = "Không thể xóa xe này."
-                    };
+                return new VehicleResponseDto
+                {
+                    Success = false,
+                    Message = "Cannot delete this vehicle."
+                };
                 }
 
                 // Cập nhật bộ đếm của trạm sau khi xóa
@@ -504,7 +504,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi xóa xe."
+                    Message = "An error occurred while deleting vehicle."
                 };
             }
         }
@@ -548,7 +548,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe có sẵn."
+                    Message = "An error occurred while retrieving available vehicles."
                 };
             }
         }
@@ -591,7 +591,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách xe theo trạm."
+                    Message = "An error occurred while retrieving vehicles by station."
                 };
             }
         }
@@ -632,7 +632,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new VehicleResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy xe với ID này."
+                        Message = "Vehicle with this ID not found."
                     };
                 }
 
@@ -640,7 +640,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = true,
-                    Message = "Cập nhật trạng thái xe thành công."
+                    Message = "Vehicle status updated successfully."
                 };
             }
             catch (Exception ex)
@@ -649,7 +649,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new VehicleResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật trạng thái xe."
+                    Message = "An error occurred while updating vehicle status."
                 };
             }
         }
