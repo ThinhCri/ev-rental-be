@@ -64,7 +64,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy thông tin user."
+                    Message = "An error occurred while retrieving user information."
                 };
             }
         }
@@ -97,7 +97,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi lấy danh sách user."
+                    Message = "An error occurred while retrieving user list."
                 };
             }
         }
@@ -109,7 +109,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var users = await _userRepository.GetAllAsync();
                 var query = users.AsQueryable();
 
-                // Apply filters
                 if (!string.IsNullOrEmpty(searchDto.FullName))
                 {
                     query = query.Where(u => u.FullName.Contains(searchDto.FullName, StringComparison.OrdinalIgnoreCase));
@@ -145,7 +144,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     query = query.Where(u => u.CreatedAt <= searchDto.CreatedTo.Value);
                 }
 
-                // Apply sorting
                 query = searchDto.SortBy?.ToLower() switch
                 {
                     "fullname" => searchDto.SortOrder?.ToLower() == "asc" 
@@ -162,7 +160,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var totalCount = query.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / searchDto.PageSize);
 
-                // Apply pagination
                 var pagedUsers = query
                     .Skip((searchDto.PageNumber - 1) * searchDto.PageSize)
                     .Take(searchDto.PageSize)
@@ -193,7 +190,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserListResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi tìm kiếm user."
+                    Message = "An error occurred while searching users."
                 };
             }
         }
@@ -202,7 +199,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Kiểm tra role có tồn tại không
                 var role = await _roleRepository.GetByIdAsync(createDto.RoleId);
                 if (role == null)
                 {
@@ -213,36 +209,31 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra email đã tồn tại chưa
                 if (await _userRepository.EmailExistsAsync(createDto.Email))
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Email đã tồn tại trong hệ thống"
+                        Message = "Email already exists in the system"
                     };
                 }
 
-                // Kiểm tra số điện thoại đã tồn tại chưa
                 if (await _userRepository.PhoneNumberExistsAsync(createDto.PhoneNumber))
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Số điện thoại đã tồn tại trong hệ thống"
+                        Message = "Phone number already exists in the system"
                     };
                 }
 
-                // Tạo user entity
                 var user = _mapper.Map<User>(createDto);
                 user.Password = BCrypt.Net.BCrypt.HashPassword(createDto.Password);
                 user.CreatedAt = DateTime.UtcNow;
                 user.Role = role;
 
-                // Lưu vào database
                 var createdUser = await _userRepository.AddAsync(user);
 
-                // Map sang DTO để trả về
                 var userDto = _mapper.Map<UserDto>(createdUser);
                 userDto.RoleName = role.RoleName;
 
@@ -261,7 +252,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi tạo user mới."
+                    Message = "An error occurred while creating new user."
                 };
             }
         }
@@ -279,18 +270,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra user có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy user với ID này."
+                        Message = "User with this ID not found."
                     };
                 }
 
-                // Kiểm tra role có tồn tại không
                 var role = await _roleRepository.GetByIdAsync(updateDto.RoleId);
                 if (role == null)
                 {
@@ -301,27 +290,24 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra email đã tồn tại chưa (trừ user hiện tại)
                 if (updateDto.Email != existingUser.Email && await _userRepository.EmailExistsAsync(updateDto.Email))
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Email đã tồn tại trong hệ thống"
+                        Message = "Email already exists in the system"
                     };
                 }
 
-                // Kiểm tra số điện thoại đã tồn tại chưa (trừ user hiện tại)
                 if (updateDto.PhoneNumber != existingUser.PhoneNumber && await _userRepository.PhoneNumberExistsAsync(updateDto.PhoneNumber))
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Số điện thoại đã tồn tại trong hệ thống"
+                        Message = "Phone number already exists in the system"
                     };
                 }
 
-                // Cập nhật thông tin user
                 existingUser.FullName = updateDto.FullName;
                 existingUser.Email = updateDto.Email;
                 existingUser.PhoneNumber = updateDto.PhoneNumber;
@@ -333,10 +319,8 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     existingUser.Status = updateDto.Status;
                 }
 
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
 
-                // Map sang DTO để trả về
                 var userDto = _mapper.Map<UserDto>(updatedUser);
                 userDto.RoleName = role.RoleName;
 
@@ -355,7 +339,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật user."
+                    Message = "An error occurred while updating user."
                 };
             }
         }
@@ -373,25 +357,23 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra user có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy user với ID này."
+                        Message = "User with this ID not found."
                     };
                 }
 
-                // Xóa user
                 var result = await _userRepository.DeleteAsync(id);
                 if (!result)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Không thể xóa user."
+                        Message = "Unable to delete user."
                     };
                 }
 
@@ -409,7 +391,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi xóa user."
+                    Message = "An error occurred while deleting user."
                 };
             }
         }
@@ -427,33 +409,25 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra user có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy user với ID này."
+                        Message = "User with this ID not found."
                     };
                 }
 
-                // Cập nhật mật khẩu
                 existingUser.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
-
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
-
-                // Map sang DTO để trả về
                 var userDto = _mapper.Map<UserDto>(updatedUser);
                 userDto.RoleName = updatedUser.Role.RoleName;
-
                 _logger.LogInformation("User password changed successfully with ID: {UserId}", updatedUser.UserId);
-
                 return new UserResponseDto
                 {
                     Success = true,
-                    Message = "Mật khẩu đã được thay đổi thành công",
+                    Message = "Password changed successfully",
                     Data = userDto
                 };
             }
@@ -463,7 +437,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi thay đổi mật khẩu."
+                    Message = "An error occurred while changing password."
                 };
             }
         }
@@ -481,44 +455,34 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra user có tồn tại không
                 var existingUser = await _userRepository.GetByIdAsync(id);
                 if (existingUser == null)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy user với ID này."
+                        Message = "User with this ID not found."
                     };
                 }
 
-                // Cập nhật trạng thái
                 existingUser.Status = status;
-
-                // Lưu vào database
                 var updatedUser = await _userRepository.UpdateAsync(existingUser);
-
-                // FIX: Reload user with navigation properties
                 var userWithNavProps = await _userRepository.GetByIdAsync(updatedUser.UserId);
                 if (userWithNavProps == null)
                 {
                     return new UserResponseDto
                     {
                         Success = false,
-                        Message = "Lỗi khi tải thông tin user sau khi cập nhật trạng thái"
+                        Message = "Error loading user information after updating status"
                     };
                 }
-
-                // Map sang DTO để trả về
                 var userDto = _mapper.Map<UserDto>(userWithNavProps);
                 userDto.RoleName = userWithNavProps.Role.RoleName;
-
                 _logger.LogInformation("User status updated successfully with ID: {UserId} to {Status}", updatedUser.UserId, status);
-
                 return new UserResponseDto
                 {
                     Success = true,
-                    Message = $"Trạng thái user đã được cập nhật thành {status}",
+                    Message = $"User status updated to {status}",
                     Data = userDto
                 };
             }
@@ -528,7 +492,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new UserResponseDto
                 {
                     Success = false,
-                    Message = "Đã xảy ra lỗi khi cập nhật trạng thái user."
+                    Message = "An error occurred while updating user status."
                 };
             }
         }

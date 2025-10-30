@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {
-    /// <summary>
-    /// DTO cho thông tin thanh toán
-    /// </summary>
     public class PaymentDto
     {
         public int PaymentId { get; set; }
@@ -18,26 +15,20 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? Note{ get; set; }
     }
 
-    /// <summary>
-    /// DTO cho request tạo thanh toán VNPay
-    /// </summary>
     public class VnPayPaymentRequestDto
     {
-        [Required(ErrorMessage = "Số tiền là bắt buộc")]
-        [Range(1000, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 1,000 VND")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Range(1000, double.MaxValue, ErrorMessage = "Amount must be greater than 1,000 VND")]
         public decimal Amount { get; set; }
 
-        [Required(ErrorMessage = "Mô tả thanh toán là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Payment description is required")]
+        [MaxLength(255, ErrorMessage = "Description must not exceed 255 characters")]
         public string Description { get; set; } = string.Empty;
 
         public int? OrderId { get; set; }
         public int? ContractId { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho response tạo thanh toán VNPay
-    /// </summary>
     public class VnPayPaymentResponseDto
     {
         public bool Success { get; set; }
@@ -48,9 +39,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string Description { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// DTO cho callback VNPay
-    /// </summary>
     public class VnPayCallbackDto
     {
         public bool Success { get; set; }
@@ -69,9 +57,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string SecureHashType { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// DTO cho response API
-    /// </summary>
     public class PaymentResponseDto
     {
         public bool Success { get; set; }
@@ -79,9 +64,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public PaymentDto? Data { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho danh sách thanh toán
-    /// </summary>
     public class PaymentListResponseDto
     {
         public bool Success { get; set; }
@@ -93,33 +75,27 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int TotalPages { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho request tạo thanh toán
-    /// </summary>
     public class CreatePaymentRequestDto
     {
-        [Required(ErrorMessage = "Số tiền là bắt buộc")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 0")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal Amount { get; set; }
 
-        [Required(ErrorMessage = "Mô tả thanh toán là bắt buộc")]
-        [MaxLength(255, ErrorMessage = "Mô tả không được quá 255 ký tự")]
+        [Required(ErrorMessage = "Payment description is required")]
+        [MaxLength(255, ErrorMessage = "Description must not exceed 255 characters")]
         public string Description { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Tên khách hàng là bắt buộc")]
-        [MaxLength(100, ErrorMessage = "Tên khách hàng không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Customer name is required")]
+        [MaxLength(100, ErrorMessage = "Customer name must not exceed 100 characters")]
         public string CustomerName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Order ID là bắt buộc")]
+        [Required(ErrorMessage = "Order ID is required")]
         public int OrderId { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Ghi chú không được quá 500 ký tự")]
+        [MaxLength(500, ErrorMessage = "Note must not exceed 500 characters")]
         public string? Note { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho payment status
-    /// </summary>
     public class PaymentStatusDto
     {
         public int OrderId { get; set; }
@@ -128,4 +104,3 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public DateTime? PaymentDate { get; set; }
     }
 }
-

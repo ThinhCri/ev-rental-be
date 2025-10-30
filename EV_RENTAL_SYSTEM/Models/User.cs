@@ -26,7 +26,7 @@ namespace EV_RENTAL_SYSTEM.Models
 
         [Required]
         [MaxLength(20)]
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [Phone(ErrorMessage = "Invalid phone number")]
         [Column("Phone_number")]
         public string PhoneNumber { get; set; } = string.Empty;
 
@@ -43,10 +43,10 @@ namespace EV_RENTAL_SYSTEM.Models
         public int RoleId { get; set; }
 
         [Column("Station_Id")]
-        public int? StationId { get; set; } // Trạm mà staff quản lý (chỉ dành cho Station Staff)
+        public int? StationId { get; set; }
 
         [MaxLength(4000)]
-        public string? Notes { get; set; } // Lưu JSON mapping orderId -> renter license image URL
+        public string? Notes { get; set; }
 
         // Navigation properties
         [ForeignKey("RoleId")]

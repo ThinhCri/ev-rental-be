@@ -84,7 +84,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var uri = new Uri(imageUrl);
                 var pathSegments = uri.AbsolutePath.Split('/');
 
-                // Check for ImgCar folder
                 var carFolderIndex = Array.IndexOf(pathSegments, "ImgCar");
                 if (carFolderIndex != -1 && carFolderIndex + 1 < pathSegments.Length)
                 {
@@ -94,7 +93,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return result.Result == "ok";
                 }
 
-                // Check for ImgLicense folder
                 var licenseFolderIndex = Array.IndexOf(pathSegments, "ImgLicense");
                 if (licenseFolderIndex != -1 && licenseFolderIndex + 1 < pathSegments.Length)
                 {
@@ -104,7 +102,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return result.Result == "ok";
                 }
 
-                // Check for VehicleConditions folder
                 var vehicleFolderIndex = Array.IndexOf(pathSegments, "VehicleConditions");
                 if (vehicleFolderIndex != -1 && vehicleFolderIndex + 1 < pathSegments.Length)
                 {
@@ -114,7 +111,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return result.Result == "ok";
                 }
 
-                // Fallback: Try to extract from the end of URL if folder structure is different
                 var fileName = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
                 if (string.IsNullOrEmpty(fileName)) return false;
 
@@ -124,7 +120,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
             catch (Exception ex)
             {
-                // Log the exception for debugging
                 return false;
             }
         }

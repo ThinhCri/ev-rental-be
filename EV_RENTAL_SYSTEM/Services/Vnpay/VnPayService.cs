@@ -16,10 +16,8 @@ namespace EV_RENTAL_SYSTEM.Services.Vnpay
         {
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(_configuration["TimeZoneId"] ?? "SE Asia Standard Time");
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
-            // Sử dụng OrderId nếu có, nếu không thì dùng tick
             var txnRef = model.OrderId?.ToString() ?? DateTime.Now.Ticks.ToString();
             var pay = new VnPayLibrary();
-            // Use configured callback URL or fallback to current request
             var configuredCallbackUrl = _configuration["Vnpay:PaymentBackReturnUrl"];
             var urlCallBack = !string.IsNullOrEmpty(configuredCallbackUrl) 
                 ? configuredCallbackUrl 
@@ -52,7 +50,6 @@ namespace EV_RENTAL_SYSTEM.Services.Vnpay
 
             return paymentUrl;
         }
-
 
         public PaymentResponseModel PaymentExecute(IQueryCollection collections)
         {

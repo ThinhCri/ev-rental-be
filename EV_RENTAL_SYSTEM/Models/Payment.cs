@@ -22,12 +22,9 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Contract_Id")]
         public int ContractId { get; set; }
 
-        // Navigation properties
         [ForeignKey("ContractId")]
         public virtual Contract Contract { get; set; } = null!;
 
         public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }
-
-

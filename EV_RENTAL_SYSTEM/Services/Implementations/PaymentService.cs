@@ -53,7 +53,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         return new PaymentResponseDto
                         {
                             Success = false,
-                            Message = "Không tìm thấy đơn thuê để thanh toán"
+                            Message = "No rental order found for payment"
                         };
                     }
                 }
@@ -114,7 +114,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = true,
-                    Message = "Tạo thanh toán thành công",
+                    Message = "Payment created successfully",
                     Data = new PaymentDto
                     {
                         PaymentId = payment.PaymentId,
@@ -134,7 +134,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = false,
-                    Message = "Lỗi khi tạo thanh toán"
+                    Message = "Error creating payment"
                 };
             }
         }
@@ -148,7 +148,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Transaction ID không hợp lệ"
+                        Message = "Invalid transaction ID"
                     };
                 }
 
@@ -160,7 +160,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy giao dịch"
+                        Message = "Transaction not found"
                     };
                 }
 
@@ -171,7 +171,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy thanh toán"
+                        Message = "Payment not found"
                     };
                 }
 
@@ -181,7 +181,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = true,
-                        Message = "Thanh toán đã được xử lý thành công trước đó",
+                        Message = "Payment has already been processed successfully",
                         Data = new PaymentDto
                         {
                             PaymentId = payment.PaymentId,
@@ -245,7 +245,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = true,
-                    Message = paymentStatus == "Success" ? "Thanh toán thành công" : "Thanh toán thất bại",
+                    Message = paymentStatus == "Success" ? "Payment successful" : "Payment failed",
                     Data = new PaymentDto
                     {
                         PaymentId = payment.PaymentId,
@@ -265,7 +265,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = false,
-                    Message = "Lỗi khi xử lý callback thanh toán"
+                    Message = "Error processing payment callback"
                 };
             }
         }
@@ -298,7 +298,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy lịch sử thanh toán thành công",
+                    Message = "Payment history retrieved successfully",
                     Data = pagedPayments,
                     TotalCount = totalCount,
                     PageNumber = pageNumber,
@@ -312,7 +312,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentListResponseDto
                 {
                     Success = false,
-                    Message = "Lỗi khi lấy lịch sử thanh toán",
+                    Message = "Error retrieving payment history",
                     Data = new List<PaymentDto>(),
                     TotalCount = 0,
                     PageNumber = pageNumber,
@@ -381,7 +381,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy hợp đồng cho đơn hàng này"
+                        Message = "Contract not found for this order"
                     };
                 }
 
@@ -453,7 +453,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = true,
-                    Message = "Tạo thanh toán thành công",
+                    Message = "Payment created successfully",
                     Data = new PaymentDto
                     {
                         PaymentId = payment.PaymentId,
@@ -474,7 +474,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = false,
-                    Message = "Lỗi khi tạo thanh toán"
+                    Message = "Error creating payment"
                 };
             }
         }
@@ -483,18 +483,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Tìm payment dựa trên OrderId từ VnPay response
                 if (!int.TryParse(vnPayResponse.OrderId, out int orderId))
                 {
                     _logger.LogWarning("Invalid OrderId format: {OrderId}", vnPayResponse.OrderId);
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "OrderId không hợp lệ"
+                        Message = "Invalid OrderId format"
                     };
                 }
                 
-                // Tìm contract từ orderId
                 var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
                 if (contract == null)
                 {
@@ -502,11 +500,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy hợp đồng"
+                        Message = "Contract not found"
                     };
                 }
 
-                // Tìm payment từ contract
                 var payment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
                 if (payment == null)
                 {
@@ -514,7 +511,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new PaymentResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy thanh toán"
+                        Message = "Payment not found"
                     };
                 }
 
@@ -547,7 +544,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = true,
-                    Message = "Thanh toán thành công",
+                    Message = "Payment successful",
                     Data = new PaymentDto
                     {
                         PaymentId = payment.PaymentId,
@@ -567,7 +564,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new PaymentResponseDto
                 {
                     Success = false,
-                    Message = "Lỗi khi xử lý thanh toán thành công"
+                    Message = "Error processing payment success"
                 };
             }
         }
@@ -576,7 +573,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Tìm contract từ orderId
                 var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
                 if (contract == null)
                 {
@@ -589,7 +585,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Tìm payment của contract này
                 var payment = await _unitOfWork.Payments.GetPaymentByContractIdAsync(contract.ContractId);
                 if (payment == null)
                 {

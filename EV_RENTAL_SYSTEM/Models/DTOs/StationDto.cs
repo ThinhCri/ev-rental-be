@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EV_RENTAL_SYSTEM.Models.DTOs
 {
-    /// <summary>
-    /// DTO cho thông tin trạm xe (trả về cho client)
-    /// </summary>
     public class StationDto
     {
         public int StationId { get; set; }
@@ -13,58 +10,49 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? District { get; set; }
         public string? Province { get; set; }
         public string? Country { get; set; }
-        public string? FullAddress { get; set; } // Địa chỉ đầy đủ
-        public int VehicleCount { get; set; } // Số lượng xe trong trạm
-        public int AvailableVehicleCount { get; set; } // Số xe có sẵn
+        public string? FullAddress { get; set; }
+        public int VehicleCount { get; set; }
+        public int AvailableVehicleCount { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho request tạo trạm mới
-    /// </summary>
     public class CreateStationDto
     {
-        [Required(ErrorMessage = "Tên trạm là bắt buộc")]
-        [MaxLength(100, ErrorMessage = "Tên trạm không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Station name is required")]
+        [MaxLength(100, ErrorMessage = "Station name must not exceed 100 characters")]
         public string StationName { get; set; } = string.Empty;
 
-        [MaxLength(100, ErrorMessage = "Tên đường không được quá 100 ký tự")]
+        [MaxLength(100, ErrorMessage = "Street name must not exceed 100 characters")]
         public string? Street { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Quận/Huyện không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "District name must not exceed 50 characters")]
         public string? District { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Tỉnh/Thành phố không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Province name must not exceed 50 characters")]
         public string? Province { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Quốc gia không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Country name must not exceed 50 characters")]
         public string? Country { get; set; } = "Vietnam";
     }
 
-    /// <summary>
-    /// DTO cho request cập nhật trạm
-    /// </summary>
     public class UpdateStationDto
     {
-        [Required(ErrorMessage = "Tên trạm là bắt buộc")]
-        [MaxLength(100, ErrorMessage = "Tên trạm không được quá 100 ký tự")]
+        [Required(ErrorMessage = "Station name is required")]
+        [MaxLength(100, ErrorMessage = "Station name must not exceed 100 characters")]
         public string StationName { get; set; } = string.Empty;
 
-        [MaxLength(100, ErrorMessage = "Tên đường không được quá 100 ký tự")]
+        [MaxLength(100, ErrorMessage = "Street name must not exceed 100 characters")]
         public string? Street { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Quận/Huyện không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "District name must not exceed 50 characters")]
         public string? District { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Tỉnh/Thành phố không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Province name must not exceed 50 characters")]
         public string? Province { get; set; }
 
-        [MaxLength(50, ErrorMessage = "Quốc gia không được quá 50 ký tự")]
+        [MaxLength(50, ErrorMessage = "Country name must not exceed 50 characters")]
         public string? Country { get; set; } = "Vietnam";
     }
 
-    /// <summary>
-    /// DTO cho response API
-    /// </summary>
     public class StationResponseDto
     {
         public bool Success { get; set; }
@@ -72,9 +60,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public StationDto? Data { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho danh sách trạm
-    /// </summary>
     public class StationListResponseDto
     {
         public bool Success { get; set; }
@@ -86,9 +71,6 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public int TotalPages { get; set; }
     }
 
-    /// <summary>
-    /// DTO cho tìm kiếm trạm
-    /// </summary>
     public class StationSearchDto
     {
         public string? StationName { get; set; }
@@ -96,8 +78,7 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? District { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
-        public string? SortBy { get; set; } = "StationName"; // StationName, Province, District
-        public string? SortOrder { get; set; } = "asc"; // asc, desc
+        public string? SortBy { get; set; } = "StationName";
+        public string? SortOrder { get; set; } = "asc";
     }
 }
-

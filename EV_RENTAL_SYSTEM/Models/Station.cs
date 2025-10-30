@@ -32,10 +32,7 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("Available_Vehicle")]
         public int AvailableVehicle { get; set; }
 
-        // Navigation properties
         public virtual ICollection<LicensePlate> LicensePlates { get; set; } = new List<LicensePlate>();
-        public virtual ICollection<User> Staff { get; set; } = new List<User>(); // Staff quản lý trạm này
+        public virtual ICollection<User> Staff { get; set; } = new List<User>();
     }
 }
-
-
