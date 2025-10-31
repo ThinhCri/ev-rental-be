@@ -56,6 +56,7 @@ builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRevenueService, RevenueService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Background Services
 builder.Services.AddHostedService<OrderCleanupService>();

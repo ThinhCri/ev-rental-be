@@ -13,24 +13,22 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IMapper _mapper;
         private readonly ILogger<RentalService> _logger;
         private readonly ICloudService _cloudService;
+        private readonly IEmailService _emailService;
 
-        public RentalService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<RentalService> logger, ICloudService cloudService)
+        public RentalService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<RentalService> logger, ICloudService cloudService, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _cloudService = cloudService;
+            _emailService = emailService;
         }
 
-        /// <summary>
-        /// Helper method to populate RentalDto from Order entity
-        /// </summary>
-        private async Task<RentalDto> PopulateRentalDtoAsync(Order order)
+                                private async Task<RentalDto> PopulateRentalDtoAsync(Order order)
         {
             var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(order.OrderId);
             
-            // Lấy thông tin xe từ Order_LicensePlate
-            var vehicles = new List<RentalVehicleDto>();
+                        var vehicles = new List<RentalVehicleDto>();
             if (order.OrderLicensePlates != null && order.OrderLicensePlates.Any())
             {
                 foreach (var orderLicensePlate in order.OrderLicensePlates)
@@ -119,12 +117,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
             }
 
-            // Xử lý trường Status để hiển thị đúng
-            var displayStatus = order.Status;
+                        var displayStatus = order.Status;
             if (!string.IsNullOrEmpty(order.Status) && order.Status.Contains("|License:"))
             {
-                displayStatus = order.Status.Split('|')[0]; // Lấy phần trước "|License:"
-            }
+                displayStatus = order.Status.Split('|')[0];             }
 
             return new RentalDto
             {
@@ -140,8 +136,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 LicenseImageUrl = licenseImageUrl,
                 ContractId = contract?.ContractId,
                 
-                // Thêm thông tin bằng lái xe
-                LicenseId = licenseId,
+                                LicenseId = licenseId,
                 LicenseNumber = licenseNumber,
                 LicenseType = licenseType,
                 LicenseExpiryDate = licenseExpiryDate,
@@ -189,7 +184,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách đơn thuê thành công",
+                    Message = "Rentals retrieved successfully",
                     Data = rentalDtos,
                     TotalCount = rentalDtos.Count,
                     PageNumber = 1,
@@ -203,7 +198,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy danh sách đơn thuê: {ex.Message}",
+                    Message = $"Error retrieving rental list: {ex.Message}",
                     Data = new List<RentalDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -223,7 +218,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
@@ -232,7 +227,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = "Lấy thông tin đơn thuê thành công",
+                    Message = "Rental information retrieved successfully",
                     Data = rentalDto
                 };
             }
@@ -242,7 +237,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy thông tin đơn thuê: {ex.Message}"
+                    Message = $"Error retrieving rental information: {ex.Message}"
                 };
             }
         }
@@ -263,7 +258,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy lịch sử thuê xe thành công",
+                    Message = "Rental history retrieved successfully",
                     Data = rentalDtos,
                     TotalCount = rentalDtos.Count,
                     PageNumber = 1,
@@ -277,7 +272,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy lịch sử thuê xe: {ex.Message}",
+                    Message = $"Error retrieving rental history: {ex.Message}",
                     Data = new List<RentalDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -301,8 +296,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return licenseValidationResult;
                 }
 
-                // Validate date range
-                if (createDto.StartTime >= createDto.EndTime)
+                                if (createDto.StartTime >= createDto.EndTime)
                 {
                     return new RentalResponseDto
                     {
@@ -319,8 +313,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         Message = "Thời gian bắt đầu không thể trong quá khứ"
                     };
                 }
-                // Xử lý ảnh bằng lái xe cho đặt hộ
-                string? renterLicenseImageUrl = null;
+                                string? renterLicenseImageUrl = null;
                 if (createDto.IsBookingForOthers && createDto.RenterLicenseImage != null)
                 {
                     renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(createDto.RenterLicenseImage);
@@ -337,8 +330,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra có biển số Available không
-                var allLicensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
+                                var allLicensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
                 var availableLicensePlates = allLicensePlates
                     .Where(lp => lp.VehicleId == createDto.VehicleId && lp.Status == "Available")
                     .ToList();
@@ -433,8 +425,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
                 else
                 {
-                    // Nếu không có biển số Available, rollback transaction
-                    await _unitOfWork.RollbackTransactionAsync();
+                                        await _unitOfWork.RollbackTransactionAsync();
                     return new RentalResponseDto
                     {
                         Success = false,
@@ -475,8 +466,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 _logger.LogError(ex, "Error creating rental for user {UserId}: {Error}", userId, ex.Message);
                 
-                // Rollback transaction nếu có lỗi
-                await _unitOfWork.RollbackTransactionAsync();
+                                await _unitOfWork.RollbackTransactionAsync();
                 
                 return new RentalResponseDto
                 {
@@ -490,10 +480,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        /// <summary>
-        /// Tạo đơn thuê với thanh toán bắt buộc (tạo đơn hàng thực tế trong DB)
-        /// </summary>
-        public async Task<RentalResponseDto> CreateRentalWithMandatoryPaymentAsync(CreateRentalDto createDto, int userId)
+                                public async Task<RentalResponseDto> CreateRentalWithMandatoryPaymentAsync(CreateRentalDto createDto, int userId)
         {
             var transaction = await _unitOfWork.BeginTransactionAsync();
             try
@@ -501,17 +488,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 _logger.LogInformation("Creating rental with mandatory payment for user {UserId} with vehicle {VehicleId}", 
                     userId, createDto.VehicleId);
 
-                // ========================================
-                // VALIDATION 1: Kiểm tra 1 bằng lái chỉ thuê 1 xe
-                // ========================================
-                var licenseValidationResult = await ValidateLicenseUsageAsync(createDto, userId);
+                                                                var licenseValidationResult = await ValidateLicenseUsageAsync(createDto, userId);
                 if (!licenseValidationResult.Success)
                 {
                     return licenseValidationResult;
                 }
 
-                // Validate date range
-                if (createDto.StartTime >= createDto.EndTime)
+                                if (createDto.StartTime >= createDto.EndTime)
                 {
                     return new RentalResponseDto
                     {
@@ -529,8 +512,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra xe có khả dụng không (với buffer 1 ngày)
-                if (!await IsVehicleAvailableAsync(createDto.VehicleId, createDto.StartTime, createDto.EndTime))
+                                if (!await IsVehicleAvailableAsync(createDto.VehicleId, createDto.StartTime, createDto.EndTime))
                 {
                     return new RentalResponseDto
                     {
@@ -539,8 +521,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Lấy thông tin xe và tính toán chi phí
-                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(createDto.VehicleId);
+                                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(createDto.VehicleId);
                 if (vehicle == null)
                 {
                     return new RentalResponseDto
@@ -557,8 +538,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     totalAmount = vehicle.PricePerDay.Value * days;
                 }
 
-                // Kiểm tra có biển số Available không
-                var allLicensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
+                                var allLicensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
                 var availableLicensePlates = allLicensePlates
                     .Where(lp => lp.VehicleId == createDto.VehicleId && lp.Status == "Available")
                     .ToList();
@@ -572,29 +552,25 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Xử lý ảnh bằng lái xe cho đặt hộ
-                string? renterLicenseImageUrl = null;
+                                string? renterLicenseImageUrl = null;
                 if (createDto.IsBookingForOthers && createDto.RenterLicenseImage != null)
                 {
                     renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(createDto.RenterLicenseImage);
                 }
 
-                // Tạo đơn hàng thực tế trong database
-                var order = new Order
+                                var order = new Order
                 {
                     UserId = userId,
                     OrderDate = DateTime.Now,
                     StartTime = createDto.StartTime,
                     EndTime = createDto.EndTime,
-                    Status = "Pending Payment", // Trạng thái chờ thanh toán
-                    TotalAmount = totalAmount
+                    Status = "Pending Payment",                     TotalAmount = totalAmount
                 };
 
                 await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Xử lý ảnh GPLX cho đặt hộ và lưu thông tin bằng lái xe thực tế
-                if (createDto.IsBookingForOthers && !string.IsNullOrEmpty(renterLicenseImageUrl))
+                                if (createDto.IsBookingForOthers && !string.IsNullOrEmpty(renterLicenseImageUrl))
                 {
                     var currentUser = await _unitOfWork.Users.GetByIdAsync(userId);
                     if (currentUser != null)
@@ -620,20 +596,17 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
                 else
                 {
-                    // Trường hợp đặt cho chính mình: lưu thông tin bằng lái xe của user
-                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
+                                        var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
                     var userLicense = userLicenses?.FirstOrDefault();
                     if (userLicense != null)
                     {
-                        // Lưu thông tin bằng lái xe thực tế vào Order (sử dụng trường Status để lưu thêm thông tin)
-                        order.Status = $"Pending Payment|License:{userLicense.LicenseNumber}";
+                                                order.Status = $"Pending Payment|License:{userLicense.LicenseNumber}";
                         _unitOfWork.Orders.Update(order);
                         await _unitOfWork.SaveChangesAsync();
                     }
                 }
 
-                // Tạo contract
-                var contractCode = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
+                                var contractCode = $"EV{DateTime.Now:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}";
                 var contract = new Contract
                 {
                     OrderId = order.OrderId,
@@ -648,8 +621,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.Contracts.AddAsync(contract);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo Order_LicensePlate và reserve biển số
-                var availableLicensePlate = availableLicensePlates.FirstOrDefault();
+                                var availableLicensePlate = availableLicensePlates.FirstOrDefault();
                 if (availableLicensePlate != null)
                 {
                     availableLicensePlate.Status = "Reserved";
@@ -666,8 +638,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-                // Reload order với đầy đủ navigation properties
-                var createdOrder = await _unitOfWork.Orders.GetByIdAsync(order.OrderId);
+                                var createdOrder = await _unitOfWork.Orders.GetByIdAsync(order.OrderId);
                 if (createdOrder == null)
                 {
                     return new RentalResponseDto
@@ -687,9 +658,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     Success = true,
                     Message = "Tạo đơn thuê thành công. Vui lòng thanh toán để hoàn tất đơn hàng.",
                     RequiresPayment = true,
-                    OrderId = order.OrderId, // Trả về OrderId thật
-                    ContractId = contract.ContractId, // Trả về ContractId thật
-                    Data = rentalDto
+                    OrderId = order.OrderId,                     ContractId = contract.ContractId,                     Data = rentalDto
                 };
             }
             catch (Exception ex)
@@ -709,27 +678,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        /// <summary>
-        /// Validate license usage - 1 bằng lái chỉ được thuê 1 xe tại một thời điểm
-        /// </summary>
-        private async Task<RentalResponseDto> ValidateLicenseUsageAsync(CreateRentalDto createDto, int userId)
+                                private async Task<RentalResponseDto> ValidateLicenseUsageAsync(CreateRentalDto createDto, int userId)
         {
             try
             {
-                // Lấy thông tin bằng lái xe thực tế được sử dụng
-                string? actualLicenseNumber = null;
+                                string? actualLicenseNumber = null;
                 
                 if (createDto.IsBookingForOthers)
                 {
-                    // Trường hợp đặt hộ: bằng lái xe thực tế sẽ được lưu sau khi upload ảnh
-                    // Tạm thời cho phép (sẽ validate sau khi có thông tin bằng lái)
-                    _logger.LogInformation("Booking for others - license validation will be done after image upload");
+                                                            _logger.LogInformation("Booking for others - license validation will be done after image upload");
                     return new RentalResponseDto { Success = true };
                 }
                 else
                 {
-                    // Trường hợp đặt cho chính mình: lấy bằng lái xe của user
-                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
+                                        var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(userId);
                     var userLicense = userLicenses?.FirstOrDefault();
                     if (userLicense == null)
                     {
@@ -742,8 +704,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     actualLicenseNumber = userLicense.LicenseNumber;
                 }
 
-                // Kiểm tra bằng lái xe này có đang được sử dụng trong đơn hàng active không
-                if (!string.IsNullOrEmpty(actualLicenseNumber))
+                                if (!string.IsNullOrEmpty(actualLicenseNumber))
                 {
                     var conflictingOrders = await GetActiveOrdersByLicenseNumberAsync(actualLicenseNumber);
                     if (conflictingOrders.Any())
@@ -770,15 +731,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách đơn hàng active theo số bằng lái xe
-        /// </summary>
-        private async Task<IEnumerable<Models.Order>> GetActiveOrdersByLicenseNumberAsync(string licenseNumber)
+                                private async Task<IEnumerable<Models.Order>> GetActiveOrdersByLicenseNumberAsync(string licenseNumber)
         {
             try
             {
-                // Lấy tất cả đơn hàng active
-                var allOrders = await _unitOfWork.Orders.GetAllAsync();
+                                var allOrders = await _unitOfWork.Orders.GetAllAsync();
                 var activeOrders = allOrders.Where(o => 
                     o.Status == "Pending" || 
                     o.Status == "Pending Payment" ||
@@ -791,11 +748,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 foreach (var order in activeOrders)
                 {
-                    // Kiểm tra thông tin bằng lái xe từ trường Status
-                    if (!string.IsNullOrEmpty(order.Status) && order.Status.Contains("|License:"))
+                                        if (!string.IsNullOrEmpty(order.Status) && order.Status.Contains("|License:"))
                     {
-                        var licenseInfo = order.Status.Split('|')[1]; // Lấy phần "License:ABC123"
-                        var actualLicenseNumber = licenseInfo.Replace("License:", "");
+                        var licenseInfo = order.Status.Split('|')[1];                         var actualLicenseNumber = licenseInfo.Replace("License:", "");
                         
                         if (actualLicenseNumber == licenseNumber)
                         {
@@ -804,8 +759,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         }
                     }
 
-                    // Kiểm tra bằng lái xe của user đặt hàng (fallback)
-                    var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
+                                        var userLicenses = await _unitOfWork.Licenses.GetByUserIdAsync(order.UserId);
                     var userLicense = userLicenses?.FirstOrDefault();
                     
                     if (userLicense != null && userLicense.LicenseNumber == licenseNumber)
@@ -814,23 +768,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         continue;
                     }
 
-                    // Kiểm tra trường hợp đặt hộ (lưu trong User.Notes)
-                    if (!string.IsNullOrWhiteSpace(order.User?.Notes))
+                                        if (!string.IsNullOrWhiteSpace(order.User?.Notes))
                     {
                         try
                         {
                             var renterImages = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, string>>(order.User.Notes);
                             if (renterImages != null && renterImages.ContainsKey(order.OrderId))
                             {
-                                // Đây là đơn hàng đặt hộ, cần kiểm tra thêm logic khác
-                                // Tạm thời bỏ qua validation cho đặt hộ vì chưa có thông tin bằng lái chi tiết
-                                _logger.LogInformation("Found booking for others order {OrderId}, skipping license validation for now", order.OrderId);
+                                                                                                _logger.LogInformation("Found booking for others order {OrderId}, skipping license validation for now", order.OrderId);
                             }
                         }
                         catch
                         {
-                            // Ignore parsing errors
-                        }
+                                                    }
                     }
                 }
 
@@ -853,17 +803,15 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
-                // Xử lý upload ảnh bằng lái xe (đặt hộ) nếu có
-                if (updateDto.RenterLicenseImage != null)
+                                if (updateDto.RenterLicenseImage != null)
                 {
                     var renterLicenseImageUrl = await _cloudService.UploadLicenseImageAsync(updateDto.RenterLicenseImage);
                     
-                    // Lưu vào User.Notes
-                    var currentUser = await _unitOfWork.Users.GetByIdAsync(order.UserId);
+                                        var currentUser = await _unitOfWork.Users.GetByIdAsync(order.UserId);
                     if (currentUser != null)
                     {
                         var renterImages = new Dictionary<int, string>();
@@ -885,16 +833,14 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Cập nhật thông tin
-                if (updateDto.StartTime.HasValue) order.StartTime = updateDto.StartTime.Value;
+                                if (updateDto.StartTime.HasValue) order.StartTime = updateDto.StartTime.Value;
                 if (updateDto.EndTime.HasValue) order.EndTime = updateDto.EndTime.Value;
                 if (!string.IsNullOrEmpty(updateDto.Status)) order.Status = updateDto.Status;
 
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload order với đầy đủ thông tin
-                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
                 var rentalDto = await PopulateRentalDtoAsync(updatedOrder!);
 
                 return new RentalResponseDto
@@ -925,7 +871,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
@@ -942,8 +888,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 var licensePlateIds = orderLicensePlates.Select(olp => olp.LicensePlateId).ToList();
 
-                // Cập nhật trạng thái biển số xe về Available để người khác có thể đặt
-                foreach (var licensePlateId in licensePlateIds)
+                                foreach (var licensePlateId in licensePlateIds)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(licensePlateId);
                     if (licensePlate != null && (licensePlate.Status == "Reserved" || licensePlate.Status == "Rented"))
@@ -955,8 +900,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Xóa các mối quan hệ Order_LicensePlate
-                foreach (var orderLicensePlate in orderLicensePlates)
+                                foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     _unitOfWork.OrderLicensePlates.Remove(orderLicensePlate);
                 }
@@ -964,12 +908,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
                 foreach (var contract in contracts)
                 {
-                    // Delete all payments associated with this contract first
-                    var payments = await _unitOfWork.Payments.GetPaymentsByContractIdAsync(contract.ContractId);
+                                        var payments = await _unitOfWork.Payments.GetPaymentsByContractIdAsync(contract.ContractId);
                     foreach (var payment in payments)
                     {
-                        // Delete all transactions associated with this payment first
-                        var transactions = await _unitOfWork.Transactions.GetTransactionsByPaymentIdAsync(payment.PaymentId);
+                                                var transactions = await _unitOfWork.Transactions.GetTransactionsByPaymentIdAsync(payment.PaymentId);
                         foreach (var transaction in transactions)
                         {
                             _unitOfWork.Transactions.Remove(transaction);
@@ -1013,7 +955,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
@@ -1063,8 +1005,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                  
                     if (!await IsVehicleAvailableAsync(vehicle.VehicleId, searchDto.StartTime, searchDto.EndTime))
                     {
-                        continue; // Bỏ qua xe không khả dụng
-                    }
+                        continue;                     }
 
                     var availableLicensePlate = vehicle.LicensePlates.FirstOrDefault(lp => lp.Status == "Available");
                     
@@ -1073,8 +1014,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         VehicleId = vehicle.VehicleId,
                         Model = vehicle.Model ?? "",
                         BrandName = vehicle.Brand?.BrandName ?? "",
-                        VehicleType = "Electric", // Tạm thời
-                        PricePerDay = vehicle.PricePerDay,
+                        VehicleType = "Electric",                         PricePerDay = vehicle.PricePerDay,
                         SeatNumber = vehicle.SeatNumber,
                         VehicleImage = vehicle.VehicleImage,
                         StationName = availableLicensePlate?.Station?.StationName ?? "Unknown Station",
@@ -1196,13 +1136,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Kiểm tra xe có tồn tại không
-                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
+                                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(vehicleId);
                 if (vehicle == null)
                     return false;
 
-                // Kiểm tra xe có biển số Available không
-                var licensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
+                                var licensePlates = await _unitOfWork.LicensePlates.GetAllAsync();
                 var availableLicensePlates = licensePlates
                     .Where(lp => lp.VehicleId == vehicleId && lp.Status == "Available")
                     .ToList();
@@ -1210,11 +1148,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 if (!availableLicensePlates.Any())
                     return false;
 
-                // Kiểm tra xe có bị thuê trong khoảng thời gian này không (với buffer 1 ngày)
-                var orders = await _unitOfWork.Orders.GetAllAsync();
+                                var orders = await _unitOfWork.Orders.GetAllAsync();
                 
-                // Thêm buffer 1 ngày sau mỗi lần thuê để xe có thời gian bảo trì
-                var bufferTime = TimeSpan.FromDays(1);
+                                var bufferTime = TimeSpan.FromDays(1);
                 var startTimeWithBuffer = startTime;
                 var endTimeWithBuffer = endTime;
                 
@@ -1226,8 +1162,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     !(endTimeWithBuffer <= o.StartTime.Value || startTimeWithBuffer >= o.EndTime.Value.Add(bufferTime)))
                     .ToList();
 
-                // Kiểm tra xem có xe nào trong danh sách bị conflict không
-                foreach (var order in conflictingOrders)
+                                foreach (var order in conflictingOrders)
                 {
                     var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(order.OrderId);
                     var orderVehicleIds = orderLicensePlates
@@ -1259,7 +1194,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new ServiceResponse<ContractSummaryDto>
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
@@ -1278,27 +1213,24 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     ContractCode = contract.ContractCode ?? "",
                     RentalFee = contract.RentalFee ?? 0,
                     Deposit = contract.Deposit ?? 0,
-                    OverKmFee = 0, // Sẽ tính sau khi có thông tin km thực tế
-                    ElectricityFee = 0, // Sẽ tính sau khi có thông tin điện năng
-                    TotalAmount = (contract.RentalFee ?? 0) + (contract.Deposit ?? 0),
+                    OverKmFee = 0,                     ElectricityFee = 0,                     TotalAmount = (contract.RentalFee ?? 0) + (contract.Deposit ?? 0),
                     Status = contract.Status ?? "Pending",
                     CreatedDate = contract.CreatedDate,
-                    ExpiryDate = DateTime.Now.AddMinutes(2), // QR code hết hạn sau 2 phút
-                    FeeDetails = new List<ContractFeeDetailDto>
+                    ExpiryDate = DateTime.Now.AddMinutes(2),                     FeeDetails = new List<ContractFeeDetailDto>
                     {
                         new ContractFeeDetailDto
                         {
                             FeeType = "Rental",
-                            FeeName = "Phí thuê xe",
+                            FeeName = "Rental fee",
                             Amount = contract.RentalFee ?? 0,
-                            Description = $"Thuê xe từ {order.StartTime:dd/MM/yyyy HH:mm} đến {order.EndTime:dd/MM/yyyy HH:mm}"
+                            Description = $"Rental from {order.StartTime:dd/MM/yyyy HH:mm} to {order.EndTime:dd/MM/yyyy HH:mm}"
                         },
                         new ContractFeeDetailDto
                         {
                             FeeType = "Deposit",
-                            FeeName = "Phí cọc",
+                            FeeName = "Deposit fee",
                             Amount = contract.Deposit ?? 0,
-                            Description = "Phí cọc xe (sẽ hoàn trả khi trả xe)"
+                            Description = "Vehicle deposit (refundable upon return)"
                         }
                     }
                 };
@@ -1306,7 +1238,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new ServiceResponse<ContractSummaryDto>
                 {
                     Success = true,
-                    Message = "Lấy thông tin hợp đồng thành công",
+                    Message = "Contract information retrieved successfully",
                     Data = contractSummary
                 };
             }
@@ -1316,7 +1248,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new ServiceResponse<ContractSummaryDto>
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy thông tin hợp đồng"
+                    Message = "Server error retrieving contract information"
                 };
             }
         }
@@ -1331,17 +1263,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new ServiceResponse<PaymentQrResponseDto>
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
-                // Kiểm tra trạng thái Order
-                if (order.Status != "Pending")
+                                if (order.Status != "Pending")
                 {
                     return new ServiceResponse<PaymentQrResponseDto>
                     {
                         Success = false,
-                        Message = $"Không thể xác nhận hợp đồng. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Cannot confirm contract. Current status: {order.Status}"
                     };
                 }
 
@@ -1355,41 +1286,37 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra trạng thái Contract
-                if (contract.Status != "Pending")
+                                if (contract.Status != "Pending")
                 {
                     return new ServiceResponse<PaymentQrResponseDto>
                     {
                         Success = false,
-                        Message = $"Không thể xác nhận hợp đồng. Trạng thái hợp đồng hiện tại: {contract.Status}"
+                        Message = $"Cannot confirm contract. Contract status: {contract.Status}"
                     };
                 }
 
-                // Cập nhật trạng thái order thành "Confirmed"
-                order.Status = "Confirmed";
+                                order.Status = "Confirmed";
                 _unitOfWork.Contracts.Update(contract);
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Tạo QR code thanh toán (mock)
-                var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=EV{orderId}_{contract.ContractCode}";
+                                var qrCodeUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=EV{orderId}_{contract.ContractCode}";
                 var paymentUrl = $"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?orderId={orderId}&contractCode={contract.ContractCode}";
 
                 var response = new PaymentQrResponseDto
                 {
                     Success = true,
-                    Message = "Tạo QR code thanh toán thành công",
+                    Message = "QR code payment created successfully",
                     QrCodeUrl = qrCodeUrl,
                     PaymentUrl = paymentUrl,
-                    ExpiryDate = DateTime.Now.AddMinutes(2), // QR code hết hạn sau 2 phút
-                    ContractCode = contract.ContractCode ?? "",
+                    ExpiryDate = DateTime.Now.AddMinutes(2),                     ContractCode = contract.ContractCode ?? "",
                     TotalAmount = (contract.RentalFee ?? 0) + (contract.Deposit ?? 0)
                 };
 
                 return new ServiceResponse<PaymentQrResponseDto>
                 {
                     Success = true,
-                    Message = "Xác nhận hợp đồng thành công",
+                    Message = "Contract confirmed successfully",
                     Data = response
                 };
             }
@@ -1399,7 +1326,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new ServiceResponse<PaymentQrResponseDto>
                 {
                     Success = false,
-                    Message = "Lỗi server khi xác nhận hợp đồng"
+                    Message = "Server error confirming contract"
                 };
             }
         }
@@ -1414,7 +1341,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new ServiceResponse<RentalResponseDto>
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
@@ -1439,24 +1366,20 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 if (request.IsConfirmed)
                 {
-                    // Staff xác nhận đúng người
-                    if (request.Action == "Handover")
+                                        if (request.Action == "Handover")
                     {
-                        // Chỉ cho phép bàn giao xe khi trạng thái là "Confirmed"
-                        if (order.Status != "Confirmed")
+                                                if (order.Status != "Confirmed")
                         {
                             return new ServiceResponse<RentalResponseDto>
                             {
                                 Success = false,
-                                Message = "Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận"
+                                Message = "Vehicle can only be handed over when rental is confirmed"
                             };
                         }
 
-                        // Bàn giao xe
-                        order.Status = "Active";
+                                                order.Status = "Active";
                         
-                        // Cập nhật trạng thái xe thành "Rented"
-                        var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                         foreach (var orderLicensePlate in orderLicensePlates)
                         {
                             var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
@@ -1471,8 +1394,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                     else if (request.Action == "Return")
                     {
-                        // Chỉ cho phép trả xe khi trạng thái là "Active"
-                        if (order.Status != "Active")
+                                                if (order.Status != "Active")
                         {
                             return new ServiceResponse<RentalResponseDto>
                             {
@@ -1481,11 +1403,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                             };
                         }
 
-                        // Trả xe
-                        order.Status = "Completed";
+                                                order.Status = "Completed";
                         
-                        // Cập nhật trạng thái xe thành "Available"
-                        var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                         foreach (var orderLicensePlate in orderLicensePlates)
                         {
                             var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
@@ -1509,11 +1429,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
                 else
                 {
-                    // Staff từ chối xác nhận
-                    order.Status = "Rejected";
+                                        order.Status = "Rejected";
                     
-                    // Cập nhật trạng thái xe thành "Available" khi bị từ chối
-                    var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                        var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                     foreach (var orderLicensePlate in orderLicensePlates)
                     {
                         var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
@@ -1528,11 +1446,9 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 }
 
                 _unitOfWork.Orders.Update(order);
-                // Trạng thái hợp đồng bám theo Order, không cập nhật trực tiếp Contract.Status anymore
-                await _unitOfWork.SaveChangesAsync();
+                                await _unitOfWork.SaveChangesAsync();
 
-                // Reload order with full navigation properties and create response
-                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
                 if (updatedOrder == null)
                 {
                     return new ServiceResponse<RentalResponseDto>
@@ -1580,11 +1496,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 {
                     var rentalDto = await PopulateRentalDtoAsync(order);
                     
-                    // Thêm thông tin thời gian còn lại
-                    var timeElapsed = DateTime.Now - order.OrderDate;
+                                        var timeElapsed = DateTime.Now - order.OrderDate;
                     var timeRemaining = TimeSpan.FromMinutes(15) - timeElapsed;
                     
-                    rentalDto.Status = $"Pending ({timeRemaining.TotalMinutes:F0} phút còn lại)";
+                    rentalDto.Status = $"Pending ({timeRemaining.TotalMinutes:F0} minutes remaining)";
                     rentalDtos.Add(rentalDto);
                 }
 
@@ -1625,8 +1540,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Kiểm tra order có thể hủy không
-                if (order.Status != "Pending" && order.Status != "Pending Payment")
+                                if (order.Status != "Pending" && order.Status != "Pending Payment")
                 {
                     return new RentalResponseDto
                     {
@@ -1637,12 +1551,10 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _logger.LogInformation("Staff cancelling order {OrderId} with reason: {Reason}", orderId, reason);
 
-                // Cập nhật status đơn hàng
-                order.Status = "Cancelled";
+                                order.Status = "Cancelled";
                 _unitOfWork.Orders.Update(order);
 
-                // Giải phóng biển số xe nếu có
-                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
@@ -1656,8 +1568,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Cập nhật contract status nếu có
-                var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
+                                var contracts = await _unitOfWork.Contracts.GetContractsByOrderIdAsync(orderId);
                 foreach (var contract in contracts)
                 {
                     contract.Status = "Cancelled";
@@ -1674,7 +1585,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = $"Đã hủy đơn hàng thành công. Lý do: {reason}",
+                    Message = $"Order cancelled successfully. Reason: {reason}",
                     Data = rentalDto
                 };
             }
@@ -1695,10 +1606,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             }
         }
 
-        /// <summary>
-        /// Bàn giao xe cho khách hàng - Staff thực hiện
-        /// </summary>
-        public async Task<RentalResponseDto> HandoverVehicleAsync(int orderId)
+                                public async Task<RentalResponseDto> HandoverVehicleAsync(int orderId)
         {
             try
             {
@@ -1708,26 +1616,23 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
-                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" hoặc "Paid" mới được bàn giao
-                if (order.Status != "Confirmed" && order.Status != "Paid")
+                                if (order.Status != "Confirmed" && order.Status != "Paid")
                 {
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận hoặc đã thanh toán. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Vehicle can only be handed over when rental is confirmed or paid. Current status: {order.Status}"
                     };
                 }
 
-                // Cập nhật trạng thái đơn hàng thành "Active" (xe đang được thuê)
-                order.Status = "Active";
+                                order.Status = "Active";
                 _unitOfWork.Orders.Update(order);
 
-                // Cập nhật trạng thái biển số xe thành "Rented"
-                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
@@ -1742,8 +1647,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload order với đầy đủ thông tin
-                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
                 if (updatedOrder == null)
                 {
                     return new RentalResponseDto
@@ -1760,7 +1664,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = "Bàn giao xe thành công",
+                    Message = "Vehicle handed over successfully",
                     Data = rentalDto,
                     OrderId = rentalDto.OrderId,
                     ContractId = rentalDto.ContractId
@@ -1772,15 +1676,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi bàn giao xe: {ex.Message}"
+                    Message = $"Error handing over vehicle: {ex.Message}"
                 };
             }
         }
 
-        /// <summary>
-        /// Bàn giao xe với thông tin chi tiết (ảnh, note, odometer, battery)
-        /// </summary>
-        public async Task<RentalResponseDto> HandoverVehicleWithDetailsAsync(int orderId, HandoverVehicleDto handoverDto)
+                                public async Task<RentalResponseDto> HandoverVehicleWithDetailsAsync(int orderId, HandoverVehicleDto handoverDto)
         {
             try
             {
@@ -1790,45 +1691,38 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
-                // Kiểm tra trạng thái đơn hàng phải là "Confirmed" hoặc "Paid" mới được bàn giao
-                if (order.Status != "Confirmed" && order.Status != "Paid")
+                                if (order.Status != "Confirmed" && order.Status != "Paid")
                 {
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = $"Chỉ có thể bàn giao xe khi đơn thuê đã được xác nhận hoặc đã thanh toán. Trạng thái hiện tại: {order.Status}"
+                        Message = $"Vehicle can only be handed over when rental is confirmed or paid. Current status: {order.Status}"
                     };
                 }
 
-                // Upload ảnh xe
-                string? vehicleImageUrl = null;
+                                string? vehicleImageUrl = null;
                 if (handoverDto.VehicleImage != null)
                 {
                     vehicleImageUrl = await _cloudService.UploadVehicleImageAsync(handoverDto.VehicleImage);
                 }
 
-                // Lấy thông tin biển số xe và cập nhật
-                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 foreach (var orderLicensePlate in orderLicensePlates)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(orderLicensePlate.LicensePlateId);
                     if (licensePlate != null && licensePlate.Status == "Reserved")
                     {
-                        // Cập nhật trạng thái biển số thành "Rented"
-                        licensePlate.Status = "Rented";
+                                                licensePlate.Status = "Rented";
                         _unitOfWork.LicensePlates.Update(licensePlate);
 
-                        // Cập nhật thông tin xe (odometer và battery hiện tại)
-                        var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
+                                                var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                         if (vehicle != null)
                         {
-                            vehicle.RangeKm = handoverDto.Odometer; // Lưu odometer hiện tại vào RangeKm
-                            vehicle.Battery = handoverDto.Battery; // Cập nhật % pin
-                            await _unitOfWork.Vehicles.UpdateAsync(vehicle);
+                            vehicle.RangeKm = handoverDto.Odometer;                             vehicle.Battery = handoverDto.Battery;                             await _unitOfWork.Vehicles.UpdateAsync(vehicle);
                         }
 
                         _logger.LogInformation("Updated license plate {LicensePlateId} and vehicle during handover for order {OrderId}", 
@@ -1836,8 +1730,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Lưu ảnh xe vào Contract.HandoverImage
-                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
                 if (contract != null && !string.IsNullOrEmpty(vehicleImageUrl))
                 {
                     contract.HandoverImage = vehicleImageUrl;
@@ -1845,21 +1738,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     _logger.LogInformation("Saved handover image to Contract {ContractId} for order {OrderId}", contract.ContractId, orderId);
                 }
 
-                // Lưu ghi chú vào order (tạm thời lưu vào trường Notes của User - có thể cải thiện sau bằng cách thêm bảng Notes)
-                if (!string.IsNullOrWhiteSpace(handoverDto.Notes))
+                                if (!string.IsNullOrWhiteSpace(handoverDto.Notes))
                 {
-                    // Lưu note vào order (có thể dùng trường Notes hoặc thêm bảng mới)
-                    // Tạm thời bỏ qua vì Order model chưa có trường Notes
-                    _logger.LogInformation("Handover note for order {OrderId}: {Note}", orderId, handoverDto.Notes);
+                                                            _logger.LogInformation("Handover note for order {OrderId}: {Note}", orderId, handoverDto.Notes);
                 }
 
-                // Cập nhật trạng thái đơn hàng thành "Active"
-                order.Status = "Active";
+                                order.Status = "Active";
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload order với đầy đủ thông tin
-                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
                 if (updatedOrder == null)
                 {
                     return new RentalResponseDto
@@ -1876,7 +1764,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = "Bàn giao xe thành công",
+                    Message = "Vehicle handed over successfully",
                     Data = rentalDto,
                     OrderId = rentalDto.OrderId,
                     ContractId = rentalDto.ContractId
@@ -1888,15 +1776,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new RentalResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi bàn giao xe: {ex.Message}"
+                    Message = $"Error handing over vehicle: {ex.Message}"
                 };
             }
         }
 
-        /// <summary>
-        /// Trả xe với thông tin chi tiết và tính phí phát sinh
-        /// </summary>
-        public async Task<RentalResponseDto> ReturnVehicleAsync(int orderId, ReturnVehicleDto returnDto)
+                                public async Task<RentalResponseDto> ReturnVehicleAsync(int orderId, ReturnVehicleDto returnDto)
         {
             try
             {
@@ -1906,12 +1791,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new RentalResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy đơn thuê"
+                        Message = "Rental not found"
                     };
                 }
 
-                // Kiểm tra trạng thái đơn hàng phải là "Active"
-                if (order.Status != "Active")
+                                if (order.Status != "Active")
                 {
                     return new RentalResponseDto
                     {
@@ -1920,15 +1804,13 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     };
                 }
 
-                // Upload ảnh xe khi trả
-                string? vehicleImageUrl = null;
+                                string? vehicleImageUrl = null;
                 if (returnDto.VehicleImage != null)
                 {
                     vehicleImageUrl = await _cloudService.UploadVehicleImageAsync(returnDto.VehicleImage);
                 }
 
-                // Lấy thông tin xe và tính phí phát sinh
-                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
+                                var orderLicensePlates = await _unitOfWork.OrderLicensePlates.GetByOrderIdAsync(orderId);
                 decimal extraFee = 0;
 
                 foreach (var orderLicensePlate in orderLicensePlates)
@@ -1939,33 +1821,25 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                         if (vehicle != null)
                         {
-                            // Tính phí vượt km: 60km free/ngày, mỗi km thừa tính $1
-                            var startTime = order.StartTime ?? DateTime.Now;
+                                                        var startTime = order.StartTime ?? DateTime.Now;
                             var endTime = order.EndTime ?? DateTime.Now;
                             var days = Math.Max(1, (int)(endTime - startTime).TotalDays);
-                            var freeKm = 60 * days; // 60km free per day
-                            
+                            var freeKm = 60 * days;                             
                             int kmUsed = returnDto.Odometer - (vehicle.RangeKm ?? 0);
                             if (kmUsed > freeKm)
                             {
                                 int excessKm = kmUsed - freeKm;
-                                extraFee += excessKm * 1; // $1 per km
-                            }
+                                extraFee += excessKm * 1;                             }
 
-                            // Tính phí pin thấp: Nếu pin dưới 50%, phụ thu $10
-                            if (returnDto.Battery < 50)
+                                                        if (returnDto.Battery < 50)
                             {
                                 extraFee += 10;
                             }
 
-                            // Cập nhật thông tin xe
-                            vehicle.RangeKm = returnDto.Odometer; // Cập nhật km mới
-                            vehicle.Battery = returnDto.Battery; // Cập nhật % pin
-                            await _unitOfWork.Vehicles.UpdateAsync(vehicle);
+                                                        vehicle.RangeKm = returnDto.Odometer;                             vehicle.Battery = returnDto.Battery;                             await _unitOfWork.Vehicles.UpdateAsync(vehicle);
                         }
 
-                        // Auto update trạng thái biển số xe thành "Maintenance" sau khi trả xe
-                        licensePlate.Status = "Maintenance";
+                                                licensePlate.Status = "Maintenance";
                         _unitOfWork.LicensePlates.Update(licensePlate);
                         
  
@@ -1984,13 +1858,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     }
                 }
 
-                // Cập nhật extra fee và ảnh xe vào contract
-                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
+                                var contract = await _unitOfWork.Contracts.GetContractByOrderIdAsync(orderId);
                 if (contract != null)
                 {
                     contract.ExtraFee = extraFee;
-                    // Lưu ảnh xe khi trả vào Contract.ReturnImage
-                    if (!string.IsNullOrEmpty(vehicleImageUrl))
+                                        if (!string.IsNullOrEmpty(vehicleImageUrl))
                     {
                         contract.ReturnImage = vehicleImageUrl;
                         _logger.LogInformation("Saved return image to Contract {ContractId} for order {OrderId}", contract.ContractId, orderId);
@@ -1998,13 +1870,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     _unitOfWork.Contracts.Update(contract);
                 }
 
-                // Cập nhật trạng thái đơn hàng thành "Completed"
-                order.Status = "Completed";
+                                order.Status = "Completed";
                 _unitOfWork.Orders.Update(order);
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload order với đầy đủ thông tin
-                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
+                                var updatedOrder = await _unitOfWork.Orders.GetByIdAsync(orderId);
                 if (updatedOrder == null)
                 {
                     return new RentalResponseDto
@@ -2018,10 +1888,49 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _logger.LogInformation("Vehicle returned successfully for order {OrderId} with extra fee {ExtraFee}", orderId, extraFee);
 
+                try
+                {
+                    var user = await _unitOfWork.Users.GetByIdAsync(order.UserId);
+                    if (user != null && !string.IsNullOrEmpty(user.Email))
+                    {
+                        var emailSubject = "Vehicle Return Successful - Thank You!";
+                        var emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                                <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+                                    <h2 style='color: #2c3e50; text-align: center;'>Thank You for Using EV Rental System</h2>
+                                    <h3 style='color: #34495e;'>Hello {user.FullName},</h3>
+                                    <p>Your vehicle has been successfully returned. We appreciate your trust in our service!</p>
+                                    <div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;'>
+                                        <p><strong>Order ID:</strong> #{orderId}</p>
+                                        <p><strong>Return Date:</strong> {DateTime.Now:dd/MM/yyyy HH:mm}</p>
+                                        <p><strong>Extra Fee:</strong> ${extraFee:F2}</p>
+                                    </div>
+                                    <p>We hope you enjoyed your rental experience. If you have any feedback, please don't hesitate to contact us.</p>
+                                    <p style='text-align: center; margin-top: 30px;'>
+                                        <a href='#' style='background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Book Again</a>
+                                    </p>
+                                    <p style='text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 30px;'>
+                                        Best regards,<br>
+                                        <strong>EV Rental System Team</strong>
+                                    </p>
+                                </div>
+                            </body>
+                            </html>";
+                        
+                        await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
+                        _logger.LogInformation("Thank you email sent successfully to {Email}", user.Email);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Error sending thank you email for order {OrderId}", orderId);
+                }
+
                 return new RentalResponseDto
                 {
                     Success = true,
-                    Message = $"Trả xe thành công. Phí phát sinh: ${extraFee}",
+                    Message = $"Vehicle returned successfully. Extra fee: ${extraFee}",
                     Data = rentalDto,
                     OrderId = rentalDto.OrderId,
                     ContractId = rentalDto.ContractId
@@ -2041,4 +1950,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
       
     }
 }
+
+
+
+
+
+
+
 

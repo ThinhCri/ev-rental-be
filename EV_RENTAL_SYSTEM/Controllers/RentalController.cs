@@ -6,9 +6,6 @@ using System.Security.Claims;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
-    /// <summary>
-    /// Rental management controller
-    /// </summary>
     public class RentalController : BaseController
     {
         private readonly IRentalService _rentalService;
@@ -20,10 +17,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get all rentals endpoint (Admin and Staff only)
-        /// </summary>
-        /// <returns>List of all rentals</returns>
         [HttpGet]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetAllRentals()
@@ -49,17 +42,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy danh sách đơn thuê",
+                    Message = "Server error retrieving rental list",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get rental by ID endpoint
-        /// </summary>
-        /// <param name="id">Rental ID</param>
-        /// <returns>Rental information</returns>
         [HttpGet("{id}")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetRentalById(int id)
@@ -85,16 +73,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy thông tin đơn thuê",
+                    Message = "Server error retrieving rental information",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get current user's rental history endpoint
-        /// </summary>
-        /// <returns>User's rental history</returns>
         [HttpGet("my-rentals")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetMyRentals()
@@ -107,7 +91,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return Unauthorized(new 
                     { 
                         Success = false,
-                        Message = "Token không hợp lệ" 
+                        Message = "Invalid token" 
                     });
                 }
 
@@ -130,17 +114,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy lịch sử thuê xe",
+                    Message = "Server error retrieving rental history",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get rental details endpoint
-        /// </summary>
-        /// <param name="id">Rental ID</param>
-        /// <returns>Detailed rental information</returns>
         [HttpGet("{id}/details")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetRentalDetails(int id)
@@ -166,17 +145,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy chi tiết đơn thuê",
+                    Message = "Server error retrieving rental details",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Search available vehicles endpoint
-        /// </summary>
-        /// <param name="searchDto">Search criteria</param>
-        /// <returns>List of available vehicles</returns>
         [HttpPost("available-vehicles")]
         public async Task<IActionResult> GetAvailableVehicles([FromBody] AvailableVehiclesSearchDto searchDto)
         {
@@ -187,26 +161,25 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu tìm kiếm không hợp lệ"
+                        Message = "Invalid search data"
                     });
                 }
 
-                // Validate date range
                 if (searchDto.StartTime >= searchDto.EndTime)
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                        Message = "End time must be after start time"
                     });
                 }
 
-                if (searchDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                if (searchDto.StartTime < DateTime.Now.AddMinutes(-5))
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                        Message = "Start time cannot be in the past"
                     });
                 }
 
@@ -229,17 +202,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tìm kiếm xe có sẵn",
+                    Message = "Server error searching available vehicles",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Create new rental endpoint (với thanh toán bắt buộc)
-        /// </summary>
-        /// <param name="createDto">Rental information</param>
-        /// <returns>Rental creation result</returns>
         [HttpPost("with-payment")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CreateRentalWithPayment([FromForm] CreateRentalDto createDto)
@@ -249,19 +217,17 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 _logger.LogInformation("CreateRentalWithPayment called - VehicleId: {VehicleId}, IsBookingForOthers: {IsBookingForOthers}", 
                     createDto?.VehicleId, createDto?.IsBookingForOthers);
 
-                // Kiểm tra JSON parsing
                 if (createDto == null)
                 {
                     _logger.LogWarning("CreateRentalWithPayment: createDto is null");
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "JSON không hợp lệ hoặc bị lỗi cú pháp",
-                        Hint = "Kiểm tra dấu phẩy, ngoặc vuông và format JSON"
+                        Message = "Invalid or malformed JSON",
+                        Hint = "Check commas, brackets and JSON format"
                     });
                 }
 
-                // Kiểm tra model validation
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values
@@ -282,7 +248,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ",
+                        Message = "Invalid data",
                         Errors = errors,
                         FieldErrors = fieldErrors,
                         ReceivedData = new
@@ -297,22 +263,21 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     });
                 }
 
-                // Validate date range
                 if (createDto.StartTime >= createDto.EndTime)
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                        Message = "End time must be after start time"
                     });
                 }
 
-                if (createDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                if (createDto.StartTime < DateTime.Now.AddMinutes(-5))
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                        Message = "Start time cannot be in the past"
                     });
                 }
 
@@ -334,7 +299,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return Unauthorized(new 
                     { 
                         Success = false,
-                        Message = "Token không hợp lệ" 
+                        Message = "Invalid token" 
                     });
                 }
 
@@ -352,10 +317,10 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = "Thông tin đơn thuê đã sẵn sàng. Vui lòng thanh toán để hoàn tất.",
+                    Message = "Rental information is ready. Please complete payment.",
                     Data = result.Data,
                     RequiresPayment = true,
-                    PaymentRequired = true // Flag cho frontend
+                    PaymentRequired = true
                 });
             }
             catch (Exception ex)
@@ -364,17 +329,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tạo đơn thuê",
+                    Message = "Server error creating rental",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Create new rental endpoint (cách cũ - không bắt buộc thanh toán)
-        /// </summary>
-        /// <param name="createDto">Rental information</param>
-        /// <returns>Rental creation result</returns>
         [HttpPost]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> CreateRental([FromForm] CreateRentalDto createDto)
@@ -384,19 +344,17 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 _logger.LogInformation("CreateRental called - VehicleId: {VehicleId}, IsBookingForOthers: {IsBookingForOthers}", 
                     createDto?.VehicleId, createDto?.IsBookingForOthers);
 
-                // Kiểm tra JSON parsing
                 if (createDto == null)
                 {
                     _logger.LogWarning("CreateRental: createDto is null");
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "JSON không hợp lệ hoặc bị lỗi cú pháp",
-                        Hint = "Kiểm tra dấu phẩy, ngoặc vuông và format JSON"
+                        Message = "Invalid or malformed JSON",
+                        Hint = "Check commas, brackets and JSON format"
                     });
                 }
 
-                // Kiểm tra model validation
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values
@@ -417,7 +375,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ",
+                        Message = "Invalid data",
                         Errors = errors,
                         FieldErrors = fieldErrors,
                         ReceivedData = new
@@ -432,22 +390,21 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     });
                 }
 
-                // Validate date range
                 if (createDto.StartTime >= createDto.EndTime)
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                        Message = "End time must be after start time"
                     });
                 }
 
-                if (createDto.StartTime < DateTime.Now.AddMinutes(-5)) // Cho phép 5 phút trước
+                if (createDto.StartTime < DateTime.Now.AddMinutes(-5))
                 {
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian bắt đầu không thể trong quá khứ"
+                        Message = "Start time cannot be in the past"
                     });
                 }
 
@@ -469,7 +426,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return Unauthorized(new 
                     { 
                         Success = false,
-                        Message = "Token không hợp lệ" 
+                        Message = "Invalid token" 
                     });
                 }
 
@@ -487,10 +444,10 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = "Tạo đơn thuê thành công",
+                    Message = "Rental created successfully",
                     Data = result.Data,
-                    OrderId = result.OrderId, // Thêm OrderId vào response
-                    ContractId = result.ContractId // Thêm ContractId vào response
+                    OrderId = result.OrderId,
+                    ContractId = result.ContractId
                 });
             }
             catch (Exception ex)
@@ -499,18 +456,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tạo đơn thuê",
+                    Message = "Server error creating rental",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Update rental endpoint (Admin and Staff only)
-        /// </summary>
-        /// <param name="id">Rental ID</param>
-        /// <param name="updateDto">Update information</param>
-        /// <returns>Update result</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> UpdateRental(int id, [FromForm] UpdateRentalDto updateDto)
@@ -522,7 +473,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu cập nhật không hợp lệ"
+                        Message = "Invalid update data"
                     });
                 }
 
@@ -545,7 +496,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi cập nhật đơn thuê",
+                    Message = "Server error updating rental",
                     Error = ex.Message
                 });
             }
@@ -584,17 +535,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi hủy đơn thuê",
+                    Message = "Server error cancelling rental",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Complete rental endpoint (Admin and Staff only)
-        /// </summary>
-        /// <param name="id">Rental ID</param>
-        /// <returns>Complete result</returns>
         [HttpPut("{id}/complete")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> CompleteRental(int id)
@@ -620,17 +566,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi hoàn thành đơn thuê",
+                    Message = "Server error completing rental",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Search rentals endpoint (Admin and Staff only)
-        /// </summary>
-        /// <param name="searchDto">Search criteria</param>
-        /// <returns>List of matching rentals</returns>
         [HttpPost("search")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> SearchRentals([FromBody] RentalSearchDto searchDto)
@@ -642,7 +583,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu tìm kiếm không hợp lệ"
+                        Message = "Invalid search data"
                     });
                 }
 
@@ -665,19 +606,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tìm kiếm đơn thuê",
+                    Message = "Server error searching rentals",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Calculate rental cost endpoint
-        /// </summary>
-        /// <param name="vehicleId">Vehicle ID</param>
-        /// <param name="startTime">Start time</param>
-        /// <param name="endTime">End time</param>
-        /// <returns>Rental cost calculation</returns>
         [HttpGet("calculate-cost")]
         public async Task<IActionResult> CalculateRentalCost([FromQuery] int vehicleId, [FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
         {
@@ -688,7 +622,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                        Message = "End time must be after start time"
                     });
                 }
 
@@ -697,7 +631,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = "Tính toán chi phí thành công",
+                    Message = "Cost calculated successfully",
                     Data = new
                     {
                         VehicleId = vehicleId,
@@ -714,19 +648,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tính toán chi phí",
+                    Message = "Server error calculating cost",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Check vehicle availability endpoint
-        /// </summary>
-        /// <param name="vehicleId">Vehicle ID</param>
-        /// <param name="startTime">Start time</param>
-        /// <param name="endTime">End time</param>
-        /// <returns>Vehicle availability status</returns>
         [HttpGet("check-availability")]
         public async Task<IActionResult> CheckVehicleAvailability([FromQuery] int vehicleId, [FromQuery] DateTime startTime, [FromQuery] DateTime endTime)
         {
@@ -737,7 +664,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Thời gian kết thúc phải sau thời gian bắt đầu"
+                        Message = "End time must be after start time"
                     });
                 }
 
@@ -746,7 +673,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return Ok(new
                 {
                     Success = true,
-                    Message = "Kiểm tra tính khả dụng thành công",
+                    Message = "Availability check completed successfully",
                     Data = new
                     {
                         VehicleId = vehicleId,
@@ -762,17 +689,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi kiểm tra tính khả dụng",
+                    Message = "Server error checking availability",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Lấy thông tin bảng hợp đồng để hiển thị
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <returns>Contract summary information</returns>
         [HttpGet("{orderId}/contract-summary")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> GetContractSummary(int orderId)
@@ -798,17 +720,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy thông tin hợp đồng",
+                    Message = "Server error retrieving contract information",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Xác nhận hợp đồng và tạo QR code thanh toán
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <returns>QR code payment information</returns>
         [HttpPost("{orderId}/confirm-contract")]
         [Authorize(Policy = "AuthenticatedUser")]
         public async Task<IActionResult> ConfirmContract(int orderId)
@@ -834,16 +751,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi xác nhận hợp đồng",
+                    Message = "Server error confirming contract",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách đơn hàng pending để staff quản lý
-        /// </summary>
-        /// <returns>List of pending orders with timeout information</returns>
         [HttpGet("pending-orders")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetPendingOrders()
@@ -869,18 +782,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy danh sách đơn hàng chờ xử lý",
+                    Message = "Server error retrieving pending orders",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Staff hủy đơn hàng thủ công
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <param name="reason">Lý do hủy</param>
-        /// <returns>Cancellation result</returns>
         [HttpPost("{orderId}/staff-cancel")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> StaffCancelOrder(int orderId, [FromBody] string reason)
@@ -892,7 +799,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Lý do hủy đơn hàng là bắt buộc"
+                        Message = "Cancellation reason is required"
                     });
                 }
 
@@ -915,18 +822,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi hủy đơn hàng",
+                    Message = "Server error cancelling order",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Staff xác nhận GPLX và cập nhật trạng thái xe
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <param name="request">Staff confirmation request</param>
-        /// <returns>Confirmation result</returns>
         [HttpPost("{orderId}/staff-confirm")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> StaffConfirmRental(int orderId, [FromBody] StaffConfirmationDto request)
@@ -955,17 +856,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi xác nhận đơn thuê",
+                    Message = "Server error confirming rental",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Bàn giao xe cho khách hàng - Staff thực hiện
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <returns>Handover result</returns>
         [HttpPut("{orderId}/handover")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> HandoverVehicle(int orderId)
@@ -991,18 +887,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi bàn giao xe",
+                    Message = "Server error handing over vehicle",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Bàn giao xe với thông tin chi tiết (ảnh, note, odometer, battery)
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <param name="handoverDto">Handover details</param>
-        /// <returns>Handover result</returns>
         [HttpPut("{orderId}/handover-details")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> HandoverVehicleWithDetails(int orderId, [FromForm] HandoverVehicleDto handoverDto)
@@ -1014,7 +904,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ"
+                        Message = "Invalid data"
                     });
                 }
 
@@ -1028,7 +918,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ",
+                        Message = "Invalid data",
                         Errors = errors
                     });
                 }
@@ -1052,18 +942,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi bàn giao xe",
+                    Message = "Server error handing over vehicle",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Trả xe với thông tin chi tiết và tính phí phát sinh
-        /// </summary>
-        /// <param name="orderId">Order ID</param>
-        /// <param name="returnDto">Return details</param>
-        /// <returns>Return result</returns>
         [HttpPut("{orderId}/return")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> ReturnVehicle(int orderId, [FromForm] ReturnVehicleDto returnDto)
@@ -1075,7 +959,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ"
+                        Message = "Invalid data"
                     });
                 }
 
@@ -1089,7 +973,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ",
+                        Message = "Invalid data",
                         Errors = errors
                     });
                 }
@@ -1113,11 +997,10 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi trả xe",
+                    Message = "Server error returning vehicle",
                     Error = ex.Message
                 });
             }
         }
     }
-
 }

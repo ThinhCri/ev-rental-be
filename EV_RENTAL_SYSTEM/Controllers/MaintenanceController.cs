@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EV_RENTAL_SYSTEM.Controllers
 {
-    /// <summary>
-    /// Maintenance management controller
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class MaintenanceController : BaseController
@@ -21,10 +18,6 @@ namespace EV_RENTAL_SYSTEM.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get all maintenances endpoint (Staff and Admin only)
-        /// </summary>
-        /// <returns>List of all maintenances</returns>
         [HttpGet]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetAllMaintenances()
@@ -50,17 +43,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy danh sách bảo trì",
+                    Message = "Server error retrieving maintenance list",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get maintenance by ID endpoint
-        /// </summary>
-        /// <param name="id">Maintenance ID</param>
-        /// <returns>Maintenance information</returns>
         [HttpGet("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetMaintenanceById(int id)
@@ -86,17 +74,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy thông tin bảo trì",
+                    Message = "Server error retrieving maintenance information",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get maintenances by license plate ID endpoint
-        /// </summary>
-        /// <param name="licensePlateId">License Plate ID</param>
-        /// <returns>List of maintenances for the license plate</returns>
         [HttpGet("license-plate/{licensePlateId}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetMaintenancesByLicensePlateId(int licensePlateId)
@@ -122,17 +105,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy danh sách bảo trì",
+                    Message = "Server error retrieving maintenance list",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Get maintenances by station ID endpoint
-        /// </summary>
-        /// <param name="stationId">Station ID</param>
-        /// <returns>List of maintenances for the station</returns>
         [HttpGet("station/{stationId}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> GetMaintenancesByStationId(int stationId)
@@ -158,18 +136,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi lấy danh sách bảo trì",
+                    Message = "Server error retrieving maintenance list",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Complete maintenance endpoint (auto set battery 100%)
-        /// </summary>
-        /// <param name="id">Maintenance ID</param>
-        /// <param name="cost">Optional cost</param>
-        /// <returns>Maintenance completion result</returns>
         [HttpPut("{id}/complete")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> CompleteMaintenance(int id, [FromBody] decimal? cost = null)
@@ -195,17 +167,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi hoàn thành bảo trì",
+                    Message = "Server error completing maintenance",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Create new maintenance endpoint
-        /// </summary>
-        /// <param name="createDto">Maintenance information</param>
-        /// <returns>Maintenance creation result</returns>
         [HttpPost]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> CreateMaintenance([FromBody] CreateMaintenanceDto createDto)
@@ -217,7 +184,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ"
+                        Message = "Invalid data"
                     });
                 }
 
@@ -231,7 +198,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu không hợp lệ",
+                        Message = "Invalid data",
                         Errors = errors
                     });
                 }
@@ -255,18 +222,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tạo bảo trì",
+                    Message = "Server error creating maintenance",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Update maintenance endpoint
-        /// </summary>
-        /// <param name="id">Maintenance ID</param>
-        /// <param name="updateDto">Update information</param>
-        /// <returns>Update result</returns>
         [HttpPut("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> UpdateMaintenance(int id, [FromBody] UpdateMaintenanceDto updateDto)
@@ -278,7 +239,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu cập nhật không hợp lệ"
+                        Message = "Invalid update data"
                     });
                 }
 
@@ -301,17 +262,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi cập nhật bảo trì",
+                    Message = "Server error updating maintenance",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Delete maintenance endpoint
-        /// </summary>
-        /// <param name="id">Maintenance ID</param>
-        /// <returns>Delete result</returns>
         [HttpDelete("{id}")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> DeleteMaintenance(int id)
@@ -337,17 +293,12 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi xóa bảo trì",
+                    Message = "Server error deleting maintenance",
                     Error = ex.Message
                 });
             }
         }
 
-        /// <summary>
-        /// Search maintenances endpoint
-        /// </summary>
-        /// <param name="searchDto">Search criteria</param>
-        /// <returns>List of matching maintenances</returns>
         [HttpPost("search")]
         [Authorize(Policy = "StaffOrAdmin")]
         public async Task<IActionResult> SearchMaintenances([FromBody] MaintenanceSearchDto searchDto)
@@ -359,7 +310,7 @@ namespace EV_RENTAL_SYSTEM.Controllers
                     return BadRequest(new
                     {
                         Success = false,
-                        Message = "Dữ liệu tìm kiếm không hợp lệ"
+                        Message = "Invalid search data"
                     });
                 }
 
@@ -382,11 +333,10 @@ namespace EV_RENTAL_SYSTEM.Controllers
                 return StatusCode(500, new
                 {
                     Success = false,
-                    Message = "Lỗi server khi tìm kiếm bảo trì",
+                    Message = "Server error searching maintenance",
                     Error = ex.Message
                 });
             }
         }
     }
 }
-

@@ -25,10 +25,7 @@ namespace EV_RENTAL_SYSTEM.Models
         [Column("License_plate_Id")]
         public int LicensePlateId { get; set; }
 
-        // Navigation properties
         [ForeignKey("LicensePlateId")]
         public virtual LicensePlate LicensePlate { get; set; } = null!;
     }
 }
-
-

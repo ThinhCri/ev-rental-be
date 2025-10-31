@@ -37,7 +37,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách bảo trì thành công",
+                    Message = "Maintenances retrieved successfully",
                     Data = maintenanceDtos,
                     TotalCount = maintenanceDtos.Count,
                     PageNumber = 1,
@@ -51,7 +51,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy danh sách bảo trì: {ex.Message}",
+                    Message = $"Error retrieving maintenance list: {ex.Message}",
                     Data = new List<MaintenanceDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -71,7 +71,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy bảo trì"
+                        Message = "Maintenance not found"
                     };
                 }
 
@@ -91,7 +91,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = true,
-                    Message = "Lấy thông tin bảo trì thành công",
+                    Message = "Maintenance information retrieved successfully",
                     Data = maintenanceDto
                 };
             }
@@ -101,7 +101,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy thông tin bảo trì: {ex.Message}"
+                    Message = $"Error retrieving maintenance information: {ex.Message}"
                 };
             }
         }
@@ -110,18 +110,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Kiểm tra biển số xe có tồn tại không
                 var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(createDto.LicensePlateId);
                 if (licensePlate == null)
                 {
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy biển số xe với ID này"
+                        Message = "License plate not found with this ID"
                     };
                 }
 
-                // Tạo bảo trì mới
                 var maintenance = new Maintenance
                 {
                     Description = createDto.Description,
@@ -133,13 +131,11 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 await _unitOfWork.Maintenances.AddAsync(maintenance);
 
-                // Cập nhật trạng thái biển số xe thành "Maintenance"
                 licensePlate.Status = "Maintenance";
                 _unitOfWork.LicensePlates.Update(licensePlate);
 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload với đầy đủ thông tin
                 var createdMaintenance = await _unitOfWork.Maintenances.GetByIdAsync(maintenance.MaintenanceId);
                 var maintenanceDto = new MaintenanceDto
                 {
@@ -160,7 +156,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = true,
-                    Message = "Tạo bảo trì thành công",
+                    Message = "Maintenance created successfully",
                     Data = maintenanceDto
                 };
             }
@@ -170,7 +166,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi tạo bảo trì: {ex.Message}"
+                    Message = $"Error creating maintenance: {ex.Message}"
                 };
             }
         }
@@ -185,13 +181,12 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy bảo trì"
+                        Message = "Maintenance not found"
                     };
                 }
 
                 var wasCompleted = maintenance.Status == "Completed";
 
-                // Cập nhật thông tin
                 if (updateDto.Description != null)
                     maintenance.Description = updateDto.Description;
                 if (updateDto.Cost.HasValue)
@@ -203,7 +198,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 _unitOfWork.Maintenances.Update(maintenance);
 
-                // Nếu trạng thái chuyển sang "Completed", auto update battery 100% và status Available
                 if (updateDto.Status == "Completed" && !wasCompleted)
                 {
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
@@ -212,7 +206,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                         licensePlate.Status = "Available";
                         _unitOfWork.LicensePlates.Update(licensePlate);
 
-                        // Update vehicle battery to 100%
                         var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                         if (vehicle != null)
                         {
@@ -224,7 +217,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
 
                 await _unitOfWork.SaveChangesAsync();
 
-                // Reload với đầy đủ thông tin
                 var updatedMaintenance = await _unitOfWork.Maintenances.GetByIdAsync(maintenanceId);
                 var maintenanceDto = new MaintenanceDto
                 {
@@ -242,7 +234,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = true,
-                    Message = "Cập nhật bảo trì thành công",
+                    Message = "Maintenance updated successfully",
                     Data = maintenanceDto
                 };
             }
@@ -252,7 +244,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi cập nhật bảo trì: {ex.Message}"
+                    Message = $"Error updating maintenance: {ex.Message}"
                 };
             }
         }
@@ -267,21 +259,19 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy bảo trì"
+                        Message = "Maintenance not found"
                     };
                 }
 
-                // Nếu bảo trì đã hoàn thành, không cho phép xóa
                 if (maintenance.Status == "Completed")
                 {
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không thể xóa bảo trì đã hoàn thành"
+                        Message = "Cannot delete completed maintenance"
                     };
                 }
 
-                // Cập nhật trạng thái biển số xe về "Available" nếu bảo trì đang Scheduled hoặc In Progress
                 var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
                 if (licensePlate != null && (maintenance.Status == "Scheduled" || maintenance.Status == "In Progress"))
                 {
@@ -295,7 +285,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = true,
-                    Message = "Xóa bảo trì thành công"
+                    Message = "Maintenance deleted successfully"
                 };
             }
             catch (Exception ex)
@@ -304,7 +294,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi xóa bảo trì: {ex.Message}"
+                    Message = $"Error deleting maintenance: {ex.Message}"
                 };
             }
         }
@@ -345,7 +335,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = true,
-                    Message = "Tìm kiếm bảo trì thành công",
+                    Message = "Maintenance search completed successfully",
                     Data = maintenanceDtos,
                     TotalCount = maintenanceDtos.Count,
                     PageNumber = searchDto.PageNumber,
@@ -359,7 +349,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi tìm kiếm bảo trì: {ex.Message}",
+                    Message = $"Error searching maintenance: {ex.Message}",
                     Data = new List<MaintenanceDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -390,7 +380,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách bảo trì theo biển số thành công",
+                    Message = "Maintenances by license plate retrieved successfully",
                     Data = maintenanceDtos,
                     TotalCount = maintenanceDtos.Count,
                     PageNumber = 1,
@@ -404,7 +394,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy danh sách bảo trì: {ex.Message}",
+                    Message = $"Error retrieving maintenance list: {ex.Message}",
                     Data = new List<MaintenanceDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -418,29 +408,22 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         {
             try
             {
-                // Lấy tất cả maintenance records với navigation properties
                 var allMaintenances = await _unitOfWork.Maintenances.GetAllAsync();
                 
-                // Debug log để kiểm tra data
                 _logger.LogInformation("Total maintenances: {Count}, StationId: {StationId}", allMaintenances.Count(), stationId);
                 
-                // Load navigation properties và filter với join
                 var maintenancesForStation = new List<Maintenance>();
                 foreach (var maintenance in allMaintenances)
                 {
-                    // Load LicensePlate với navigation properties
                     var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
                     if (licensePlate != null && licensePlate.StationId == stationId)
                     {
-                        // Load Vehicle với navigation properties
                         var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                         if (vehicle != null)
                         {
-                            // Load Station và Brand
                             var station = await _unitOfWork.Stations.GetByIdAsync(licensePlate.StationId);
                             var brand = await _unitOfWork.Brands.GetByIdAsync(vehicle.BrandId);
                             
-                            // Set navigation properties
                             maintenance.LicensePlate = licensePlate;
                             licensePlate.Vehicle = vehicle;
                             licensePlate.Station = station;
@@ -472,7 +455,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = true,
-                    Message = "Lấy danh sách bảo trì theo trạm thành công",
+                    Message = "Maintenances by station retrieved successfully",
                     Data = maintenanceDtos,
                     TotalCount = maintenanceDtos.Count,
                     PageNumber = 1,
@@ -486,7 +469,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceListResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi lấy danh sách bảo trì: {ex.Message}",
+                    Message = $"Error retrieving maintenance list: {ex.Message}",
                     Data = new List<MaintenanceDto>(),
                     TotalCount = 0,
                     PageNumber = 1,
@@ -506,26 +489,23 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     return new MaintenanceResponseDto
                     {
                         Success = false,
-                        Message = "Không tìm thấy bảo trì"
+                        Message = "Maintenance not found"
                     };
                 }
 
-                // Cập nhật maintenance status thành COMPLETED
                 maintenance.Status = "COMPLETED";
                 maintenance.Cost = cost;
                 _unitOfWork.Maintenances.Update(maintenance);
 
-                // Auto set battery 100% cho vehicle
                 var licensePlate = await _unitOfWork.LicensePlates.GetByIdAsync(maintenance.LicensePlateId);
                 if (licensePlate != null)
                 {
                     var vehicle = await _unitOfWork.Vehicles.GetByIdAsync(licensePlate.VehicleId);
                     if (vehicle != null)
                     {
-                        vehicle.Battery = 100; // Auto set battery 100%
+                        vehicle.Battery = 100;
                         await _unitOfWork.Vehicles.UpdateAsync(vehicle);
                         
-                        // Cập nhật license plate status thành Available
                         licensePlate.Status = "Available";
                         _unitOfWork.LicensePlates.Update(licensePlate);
                         
@@ -552,7 +532,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = true,
-                    Message = "Hoàn thành bảo trì thành công. Pin xe đã được set 100%",
+                    Message = "Maintenance completed successfully. Vehicle battery set to 100%",
                     Data = maintenanceDto
                 };
             }
@@ -562,7 +542,7 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 return new MaintenanceResponseDto
                 {
                     Success = false,
-                    Message = $"Lỗi khi hoàn thành bảo trì: {ex.Message}"
+                    Message = $"Error completing maintenance: {ex.Message}"
                 };
             }
         }
