@@ -48,7 +48,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             await SeedLicenseTypesAsync();
             await SeedBrandsAsync();
             await SeedStationsAsync();
-            await SeedProcessStepsAsync();
             await SeedSampleVehiclesAsync();
             await SeedSampleLicensePlatesAsync();
         }
@@ -216,29 +215,6 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                 };
 
                 _context.Stations.AddRange(stations);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task SeedProcessStepsAsync()
-        {
-            if (!await _context.ProcessSteps.AnyAsync())
-            {
-                var processSteps = new List<ProcessStep>
-                {
-                    new ProcessStep { StepName = "Application Review", Terms = "Review customer application and documents" },
-                    new ProcessStep { StepName = "License Verification", Terms = "Verify driving license and identity" },
-                    new ProcessStep { StepName = "Payment Processing", Terms = "Process rental payment and deposit" },
-                    new ProcessStep { StepName = "Vehicle Assignment", Terms = "Assign vehicle to customer" },
-                    new ProcessStep { StepName = "Contract Signing", Terms = "Sign rental contract" },
-                    new ProcessStep { StepName = "Vehicle Handover", Terms = "Hand over vehicle to customer" },
-                    new ProcessStep { StepName = "Rental Monitoring", Terms = "Monitor rental period" },
-                    new ProcessStep { StepName = "Vehicle Return", Terms = "Process vehicle return" },
-                    new ProcessStep { StepName = "Final Inspection", Terms = "Inspect vehicle condition" },
-                    new ProcessStep { StepName = "Payment Settlement", Terms = "Settle final payment" }
-                };
-
-                _context.ProcessSteps.AddRange(processSteps);
                 await _context.SaveChangesAsync();
             }
         }

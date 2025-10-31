@@ -42,8 +42,6 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .ThenInclude(v => v.Brand)
                 .Include(c => c.Payments)
                 .ThenInclude(p => p.Transactions)
-                .Include(c => c.ContractProcessings)
-                .ThenInclude(cp => cp.ProcessStep)
                 .FirstOrDefaultAsync(c => c.ContractId == contractId);
         }
 

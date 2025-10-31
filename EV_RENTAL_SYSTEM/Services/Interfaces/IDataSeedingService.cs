@@ -9,7 +9,6 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task SeedLicenseTypesAsync();
         Task SeedBrandsAsync();
         Task SeedStationsAsync();
-        Task SeedProcessStepsAsync();
         Task SeedSampleVehiclesAsync();
         Task SeedSampleLicensePlatesAsync();
     }

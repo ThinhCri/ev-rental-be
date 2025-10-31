@@ -12,7 +12,7 @@ namespace EV_RENTAL_SYSTEM.Data
     /// - Migration tự động chạy khi app start
     /// 
     /// CHO TEAM:
-    /// - Khi thay đổi model, tạo migration: dotnet ef migrations add <Name>
+    /// - Khi thay đổi model, tạo migration: dotnet ef migrations add [Name]
     /// - Chạy migration: dotnet ef database update
     /// - Data seeding sẽ tự động chạy sau migration
     /// 
@@ -20,7 +20,7 @@ namespace EV_RENTAL_SYSTEM.Data
     /// - User, Role, License, LicenseType
     /// - Vehicle, Brand, Station, LicensePlate
     /// - Order, Contract, Payment, Transaction
-    /// - Complaint, Maintenance, ProcessStep
+    /// - Complaint, Maintenance
     /// </summary>
     public class ApplicationDbContext : DbContext
     {
@@ -41,9 +41,7 @@ namespace EV_RENTAL_SYSTEM.Data
         public DbSet<Order_LicensePlate> OrderLicensePlates { get; set; }
         public DbSet<Complaint> Complaints { get; set; }
         public DbSet<Maintenance> Maintenances { get; set; }
-        public DbSet<ProcessStep> ProcessSteps { get; set; }
         public DbSet<Contract> Contracts { get; set; }
-        public DbSet<ContractProcessing> ContractProcessings { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
@@ -151,19 +149,6 @@ namespace EV_RENTAL_SYSTEM.Data
                 .HasOne(c => c.Order)
                 .WithMany(o => o.Contracts)
                 .HasForeignKey(c => c.OrderId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // ContractProcessing relationships
-            modelBuilder.Entity<ContractProcessing>()
-                .HasOne(cp => cp.Contract)
-                .WithMany(c => c.ContractProcessings)
-                .HasForeignKey(cp => cp.ContractId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<ContractProcessing>()
-                .HasOne(cp => cp.ProcessStep)
-                .WithMany(ps => ps.ContractProcessings)
-                .HasForeignKey(cp => cp.StepId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Payment relationships

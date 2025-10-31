@@ -37,6 +37,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IStationRepository, StationRepository>();
 builder.Services.AddScoped<IMaintenanceRepository, MaintenanceRepository>();
+builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 
 // Cloudinary Configuration
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
@@ -56,6 +57,7 @@ builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRevenueService, RevenueService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IMaintenanceService, MaintenanceService>();
+builder.Services.AddScoped<IComplaintService, ComplaintService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Background Services

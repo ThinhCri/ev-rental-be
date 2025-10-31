@@ -44,7 +44,6 @@ namespace EV_RENTAL_SYSTEM.Models
         [ForeignKey("OrderId")]
         public virtual Order Order { get; set; } = null!;
 
-        public virtual ICollection<ContractProcessing> ContractProcessings { get; set; } = new List<ContractProcessing>();
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }
 }
