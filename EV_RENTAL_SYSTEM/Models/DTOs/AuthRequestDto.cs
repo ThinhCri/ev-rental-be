@@ -136,6 +136,28 @@ namespace EV_RENTAL_SYSTEM.Models.DTOs
         public string? Status { get; set; }
     }
 
+    public class UpdateUserProfileDto
+    {
+        [MaxLength(255, ErrorMessage = "Full name cannot exceed 255 characters")]
+        public string? FullName { get; set; }
+
+        [MaxLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
+        public string? Email { get; set; }
+
+        [MaxLength(20, ErrorMessage = "Phone number cannot exceed 20 characters")]
+        public string? PhoneNumber { get; set; }
+
+        [MaxLength(50, ErrorMessage = "License number cannot exceed 50 characters")]
+        public string? LicenseNumber { get; set; }
+
+        [LicenseImageValidation(ErrorMessage = "Invalid license image. Please upload a clear image, minimum size 300x200px, JPG/PNG format")]
+        public IFormFile? LicenseImage { get; set; }
+
+        public string? CurrentPassword { get; set; }
+
+        public string? NewPassword { get; set; }
+    }
+
     public class ChangeUserPasswordDto
     {
         [Required(ErrorMessage = "New password is required")]

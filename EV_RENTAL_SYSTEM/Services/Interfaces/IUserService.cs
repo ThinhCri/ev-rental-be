@@ -9,6 +9,7 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<UserListResponseDto> SearchUsersAsync(UserSearchDto searchDto);
         Task<UserResponseDto> CreateAsync(CreateUserDto createDto);
         Task<UserResponseDto> UpdateAsync(int id, UpdateUserDto updateDto);
+        Task<UserResponseDto> UpdateProfileAsync(int userId, UpdateUserProfileDto updateDto);
         Task<UserResponseDto> DeleteAsync(int id);
         Task<UserResponseDto> ChangePasswordAsync(int id, ChangeUserPasswordDto changePasswordDto);
         Task<UserResponseDto> UpdateStatusAsync(int id, string status);

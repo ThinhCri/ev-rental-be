@@ -14,13 +14,15 @@ namespace EV_RENTAL_SYSTEM.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
-        public AuthController(IAuthService authService, ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger, IUnitOfWork unitOfWork, IMapper mapper, IUserService userService)
         {
             _authService = authService;
             _logger = logger;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userService = userService;
         }
 
         [HttpPost("login")]
@@ -234,6 +236,36 @@ namespace EV_RENTAL_SYSTEM.Controllers
             {
                 _logger.LogError(ex, "Error occurred while retrieving order history for user");
                 return ErrorResponse("An error occurred while retrieving order history", 500);
+            }
+        }
+
+        [HttpPut("profile")]
+        [Authorize(Policy = "AuthenticatedUser")]
+        public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserProfileDto updateDto)
+        {
+            try
+            {
+                ModelState.Clear();
+                
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return Unauthorized(ErrorResponse("Invalid token"));
+                }
+
+                var result = await _userService.UpdateProfileAsync(userId.Value, updateDto);
+                
+                if (!result.Success)
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating profile");
+                return ErrorResponse("An error occurred while updating profile", 500);
             }
         }
 
