@@ -1893,6 +1893,27 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                     var user = await _unitOfWork.Users.GetByIdAsync(order.UserId);
                     if (user != null && !string.IsNullOrEmpty(user.Email))
                     {
+                        // Build vehicle information section
+                        var vehicleInfoHtml = "";
+                        if (rentalDto.Vehicles != null && rentalDto.Vehicles.Any())
+                        {
+                            foreach (var vehicle in rentalDto.Vehicles)
+                            {
+                                var plateNumbers = vehicle.LicensePlates != null && vehicle.LicensePlates.Any()
+                                    ? string.Join(", ", vehicle.LicensePlates.Select(lp => lp.PlateNumber))
+                                    : "N/A";
+                                
+                                vehicleInfoHtml += $@"
+                                    <div style='background-color: #ffffff; padding: 15px; border-left: 4px solid #3498db; margin: 10px 0; border-radius: 5px;'>
+                                        <h4 style='color: #2c3e50; margin-top: 0;'>{vehicle.BrandName} {vehicle.Model}</h4>
+                                        <p style='margin: 5px 0;'><strong>License Plate:</strong> {plateNumbers}</p>
+                                        <p style='margin: 5px 0;'><strong>Station:</strong> {vehicle.StationName ?? "N/A"}</p>
+                                        <p style='margin: 5px 0;'><strong>Seats:</strong> {vehicle.SeatNumber ?? 0}</p>
+                                        <p style='margin: 5px 0;'><strong>Price per Day:</strong> ${vehicle.PricePerDay:F2}</p>
+                                    </div>";
+                            }
+                        }
+
                         var emailSubject = "Vehicle Return Successful - Thank You!";
                         var emailBody = $@"
                             <html>
@@ -1901,11 +1922,52 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
                                     <h2 style='color: #2c3e50; text-align: center;'>Thank You for Using EV Rental System</h2>
                                     <h3 style='color: #34495e;'>Hello {user.FullName},</h3>
                                     <p>Your vehicle has been successfully returned. We appreciate your trust in our service!</p>
-                                    <div style='background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;'>
-                                        <p><strong>Order ID:</strong> #{orderId}</p>
-                                        <p><strong>Return Date:</strong> {DateTime.Now:dd/MM/yyyy HH:mm}</p>
-                                        <p><strong>Extra Fee:</strong> ${extraFee:F2}</p>
+                                    
+                                    <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;'>
+                                        <h3 style='color: #2c3e50; margin-top: 0; border-bottom: 2px solid #3498db; padding-bottom: 10px;'>Rental Information</h3>
+                                        
+                                        <div style='margin: 15px 0;'>
+                                            <p style='margin: 8px 0;'><strong>Rental Period:</strong> 
+                                                {(rentalDto.StartTime.HasValue ? rentalDto.StartTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")} 
+                                                - {(rentalDto.EndTime.HasValue ? rentalDto.EndTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")}
+                                            </p>
+                                            <p style='margin: 8px 0;'><strong>Total Rental Days:</strong> {rentalDto.TotalDays} {(rentalDto.TotalDays == 1 ? "day" : "days")}</p>
+                                            <p style='margin: 8px 0;'><strong>Return Date:</strong> {DateTime.Now:dd/MM/yyyy HH:mm}</p>
+                                        </div>
+
+                                        <h4 style='color: #34495e; margin-top: 20px; margin-bottom: 10px;'>Vehicle Details</h4>
+                                        {vehicleInfoHtml}
+
+                                        <h4 style='color: #34495e; margin-top: 20px; margin-bottom: 10px;'>Payment Summary</h4>
+                                        <table style='width: 100%; border-collapse: collapse; margin: 15px 0;'>
+                                            <tr style='background-color: #ecf0f1;'>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7;'><strong>Item</strong></td>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7; text-align: right;'><strong>Amount</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7;'>Daily Rate</td>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7; text-align: right;'>${rentalDto.DailyRate ?? 0:F2}</td>
+                                            </tr>
+                                            <tr style='background-color: #f8f9fa;'>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7;'>Rental Fee ({rentalDto.TotalDays} {(rentalDto.TotalDays == 1 ? "day" : "days")})</td>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7; text-align: right;'>${rentalDto.RentalFee ?? 0:F2}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7;'>Deposit Amount (10%)</td>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7; text-align: right;'>${rentalDto.DepositAmount ?? 0:F2}</td>
+                                            </tr>
+                                            {(rentalDto.ExtraFee > 0 ? $@"
+                                            <tr style='background-color: #fff3cd;'>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7;'><strong>Extra Fee</strong></td>
+                                                <td style='padding: 10px; border: 1px solid #bdc3c7; text-align: right;'><strong>${rentalDto.ExtraFee:F2}</strong></td>
+                                            </tr>" : "")}
+                                            <tr style='background-color: #3498db; color: white;'>
+                                                <td style='padding: 12px; border: 1px solid #2980b9;'><strong>Total Cost</strong></td>
+                                                <td style='padding: 12px; border: 1px solid #2980b9; text-align: right;'><strong>${((rentalDto.RentalFee ?? 0) + (rentalDto.ExtraFee ?? 0)):F2}</strong></td>
+                                            </tr>
+                                        </table>
                                     </div>
+                                    
                                     <p>We hope you enjoyed your rental experience. If you have any feedback, please don't hesitate to contact us.</p>
                                     <p style='text-align: center; margin-top: 30px;'>
                                         <a href='#' style='background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>Book Again</a>
