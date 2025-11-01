@@ -8,6 +8,8 @@ namespace EV_RENTAL_SYSTEM.Services.Interfaces
         Task<AuthResponseDto> RegisterAsync(RegisterRequestDto registerRequest);
         Task<bool> LogoutAsync(string token);
         Task<bool> ValidateTokenAsync(string token);
+        Task<AuthResponseDto> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto);
+        Task<AuthResponseDto> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
     }
 }
 

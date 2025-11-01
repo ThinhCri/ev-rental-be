@@ -269,5 +269,37 @@ namespace EV_RENTAL_SYSTEM.Controllers
             }
         }
 
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            var validationError = ValidateModelState();
+            if (validationError != null) return validationError;
+
+            var result = await _authService.ForgotPasswordAsync(forgotPasswordDto);
+            
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var validationError = ValidateModelState();
+            if (validationError != null) return validationError;
+
+            var result = await _authService.ResetPasswordAsync(resetPasswordDto);
+            
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
     }
 }

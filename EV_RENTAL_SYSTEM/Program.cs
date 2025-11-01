@@ -43,6 +43,9 @@ builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 builder.Services.AddScoped<ICloudService, CloudinaryService>();
 
+// Memory Cache
+builder.Services.AddMemoryCache();
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();

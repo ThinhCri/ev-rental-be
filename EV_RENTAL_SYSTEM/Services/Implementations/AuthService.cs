@@ -5,6 +5,7 @@ using EV_RENTAL_SYSTEM.Repositories.Interfaces;
 using EV_RENTAL_SYSTEM.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace EV_RENTAL_SYSTEM.Services.Implementations
 {
@@ -15,19 +16,25 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
         private readonly ICloudService _cloudService;
+        private readonly IEmailService _emailService;
+        private readonly IMemoryCache _memoryCache;
 
         public AuthService(
             IUnitOfWork unitOfWork,
             IJwtService jwtService,
             IMapper mapper,
             ILogger<AuthService> logger,
-            ICloudService cloudService)
+            ICloudService cloudService,
+            IEmailService emailService,
+            IMemoryCache memoryCache)
         {
             _unitOfWork = unitOfWork;
             _jwtService = jwtService;
             _mapper = mapper;
             _logger = logger;
             _cloudService = cloudService;
+            _emailService = emailService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto loginRequest)
@@ -240,6 +247,120 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             {
                 _logger.LogError(ex, "Error occurred during token validation");
                 return Task.FromResult(false);
+            }
+        }
+
+        public async Task<AuthResponseDto> ForgotPasswordAsync(ForgotPasswordDto forgotPasswordDto)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByEmailAsync(forgotPasswordDto.Email);
+                if (user == null)
+                {
+                    return new AuthResponseDto
+                    {
+                        Success = true,
+                        Message = "If email exists, OTP has been sent."
+                    };
+                }
+
+                var otp = new Random().Next(100000, 999999).ToString();
+                var cacheKey = $"reset_password_{forgotPasswordDto.Email.ToLower()}";
+                var cacheOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(55)
+                };
+
+                _memoryCache.Set(cacheKey, otp, cacheOptions);
+
+                var emailSubject = "Password Reset OTP - EV Rental System";
+                var emailBody = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                        <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;'>
+                            <h2 style='color: #2c3e50; text-align: center;'>Password Reset Request</h2>
+                            <h3 style='color: #34495e;'>Hello {user.FullName},</h3>
+                            <p>You have requested to reset your password. Please use the following OTP code:</p>
+                            <div style='background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center;'>
+                                <h1 style='color: #3498db; font-size: 32px; margin: 0; letter-spacing: 5px;'>{otp}</h1>
+                            </div>
+                            <p><strong>This OTP will expire in 5 minutes.</strong></p>
+                            <p>If you did not request this password reset, please ignore this email.</p>
+                            <p style='text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 30px;'>
+                                Best regards,<br>
+                                <strong>EV Rental System Team</strong>
+                            </p>
+                        </div>
+                    </body>
+                    </html>";
+
+                await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
+
+                _logger.LogInformation("Password reset OTP sent to {Email}", user.Email);
+
+                return new AuthResponseDto
+                {
+                    Success = true,
+                    Message = "OTP has been sent to your email."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during forgot password for email: {Email}", forgotPasswordDto.Email);
+                return new AuthResponseDto
+                {
+                    Success = false,
+                    Message = "An error occurred. Please try again."
+                };
+            }
+        }
+
+        public async Task<AuthResponseDto> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
+        {
+            try
+            {
+                var user = await _unitOfWork.Users.GetByEmailAsync(resetPasswordDto.Email);
+                if (user == null)
+                {
+                    return new AuthResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid email or OTP."
+                    };
+                }
+
+                var cacheKey = $"reset_password_{resetPasswordDto.Email.ToLower()}";
+                if (!_memoryCache.TryGetValue(cacheKey, out string? cachedOtp) || cachedOtp != resetPasswordDto.Otp)
+                {
+                    return new AuthResponseDto
+                    {
+                        Success = false,
+                        Message = "Invalid or expired OTP."
+                    };
+                }
+
+                user.Password = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
+                await _unitOfWork.Users.UpdateAsync(user);
+                await _unitOfWork.SaveChangesAsync();
+
+                _memoryCache.Remove(cacheKey);
+
+                _logger.LogInformation("Password reset successfully for {Email}", user.Email);
+
+                return new AuthResponseDto
+                {
+                    Success = true,
+                    Message = "Password has been reset successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during reset password for email: {Email}", resetPasswordDto.Email);
+                return new AuthResponseDto
+                {
+                    Success = false,
+                    Message = "An error occurred. Please try again."
+                };
             }
         }
 
