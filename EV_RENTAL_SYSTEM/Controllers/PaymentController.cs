@@ -1,3 +1,4 @@
+using EV_RENTAL_SYSTEM.Models;
 using EV_RENTAL_SYSTEM.Models.DTOs;
 using EV_RENTAL_SYSTEM.Models.VnPay;
 using EV_RENTAL_SYSTEM.Repositories.Interfaces;
@@ -144,8 +145,37 @@ namespace EV_RENTAL_SYSTEM.Controllers
         {
             try
             {
-                var payments = await _unitOfWork.Payments.GetPaymentsWithPaginationAsync(pageNumber, pageSize);
-                var totalCount = await _unitOfWork.Payments.GetTotalPaymentCountAsync();
+                var userId = GetCurrentUserId();
+                if (userId == null)
+                {
+                    return ErrorResponse("User not authenticated", 401);
+                }
+
+                var userRole = GetCurrentUserRole();
+                IEnumerable<Payment> payments;
+                int totalCount;
+
+                if (userRole == "Admin")
+                {
+                    payments = await _unitOfWork.Payments.GetPaymentsWithPaginationAsync(pageNumber, pageSize);
+                    totalCount = await _unitOfWork.Payments.GetTotalPaymentCountAsync();
+                }
+                else
+                {
+                    var user = await _unitOfWork.Users.GetByIdAsync(userId.Value);
+                    if (user == null)
+                    {
+                        return ErrorResponse("User not found", 404);
+                    }
+
+                    if (user.StationId == null)
+                    {
+                        return ErrorResponse("Staff is not assigned to any station", 400);
+                    }
+
+                    payments = await _unitOfWork.Payments.GetPaymentsByStationIdWithPaginationAsync(user.StationId.Value, pageNumber, pageSize);
+                    totalCount = await _unitOfWork.Payments.GetTotalPaymentCountByStationIdAsync(user.StationId.Value);
+                }
 
                 var paymentDtos = payments.Select(p => new PaymentDto
                 {

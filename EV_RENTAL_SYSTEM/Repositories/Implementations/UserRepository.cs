@@ -29,7 +29,7 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
                 .Include(u => u.Role)
                 .Include(u => u.Station)
                 .Include(u => u.Licenses)
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == email.ToLower());
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()

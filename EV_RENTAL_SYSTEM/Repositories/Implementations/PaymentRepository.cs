@@ -66,6 +66,30 @@ namespace EV_RENTAL_SYSTEM.Repositories.Implementations
         {
             return await _context.Payments.CountAsync();
         }
+
+        public async Task<IEnumerable<Payment>> GetPaymentsByStationIdWithPaginationAsync(int stationId, int pageNumber, int pageSize)
+        {
+            return await _context.Payments
+                .Include(p => p.Contract)
+                .ThenInclude(c => c.Order)
+                .ThenInclude(o => o.User)
+                .Include(p => p.Contract)
+                .ThenInclude(c => c.Order)
+                .ThenInclude(o => o.OrderLicensePlates)
+                .ThenInclude(olp => olp.LicensePlate)
+                .Where(p => p.Contract.Order.OrderLicensePlates.Any(olp => olp.LicensePlate.StationId == stationId))
+                .OrderByDescending(p => p.PaymentDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetTotalPaymentCountByStationIdAsync(int stationId)
+        {
+            return await _context.Payments
+                .Where(p => p.Contract.Order.OrderLicensePlates.Any(olp => olp.LicensePlate.StationId == stationId))
+                .CountAsync();
+        }
     }
 }
 
