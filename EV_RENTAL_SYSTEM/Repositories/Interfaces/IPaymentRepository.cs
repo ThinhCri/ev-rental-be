@@ -9,7 +9,9 @@ namespace EV_RENTAL_SYSTEM.Repositories.Interfaces
         Task<Payment?> GetPaymentByContractIdAsync(int contractId);
         Task<Payment?> GetPaymentByTransactionIdAsync(string transactionId);
         Task<IEnumerable<Payment>> GetPaymentsWithPaginationAsync(int pageNumber, int pageSize);
+        Task<IEnumerable<Payment>> GetPaymentsByStationIdWithPaginationAsync(int stationId, int pageNumber, int pageSize);
         Task<int> GetTotalPaymentCountAsync();
+        Task<int> GetTotalPaymentCountByStationIdAsync(int stationId);
     }
 }
 
