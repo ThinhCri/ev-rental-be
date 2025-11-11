@@ -142,9 +142,9 @@ builder.Services.AddSwaggerGen(c =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontEnd", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://ev-rental-station.vercel.app")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -164,7 +164,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseStaticFiles(); // Serve static files (ảnh upload)
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontEnd");
 
 app.UseAuthentication();
 app.UseAuthorization();
