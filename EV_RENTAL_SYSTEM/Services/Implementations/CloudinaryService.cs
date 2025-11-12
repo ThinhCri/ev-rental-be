@@ -25,10 +25,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             if (file == null || file.Length == 0)
                 throw new Exception("File erorr .");
 
+            var uniqueId = Guid.NewGuid().ToString();
+            var publicId = $"ImgCar/{uniqueId}";
+
             var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.FileName, file.OpenReadStream()),
-                Folder = "ImgCar"
+                Folder = "ImgCar",
+                PublicId = publicId,
+                Overwrite = false,
+                UniqueFilename = true
             };
 
             var result = await _cloudinary.UploadAsync(uploadParams);
@@ -43,10 +49,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             if (file == null || file.Length == 0)
                 throw new Exception("File error.");
 
+            var uniqueId = Guid.NewGuid().ToString();
+            var publicId = $"ImgLicense/{uniqueId}";
+
             var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.FileName, file.OpenReadStream()),
-                Folder = "ImgLicense"
+                Folder = "ImgLicense",
+                PublicId = publicId,
+                Overwrite = false,
+                UniqueFilename = true
             };
 
             var result = await _cloudinary.UploadAsync(uploadParams);
@@ -61,10 +73,16 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             if (file == null || file.Length == 0)
                 throw new Exception("File error.");
 
+            var uniqueId = Guid.NewGuid().ToString();
+            var publicId = $"VehicleConditions/{uniqueId}";
+
             var uploadParams = new ImageUploadParams
             {
                 File = new FileDescription(file.FileName, file.OpenReadStream()),
-                Folder = "VehicleConditions"
+                Folder = "VehicleConditions",
+                PublicId = publicId,
+                Overwrite = false,
+                UniqueFilename = true
             };
 
             var result = await _cloudinary.UploadAsync(uploadParams);
@@ -82,41 +100,67 @@ namespace EV_RENTAL_SYSTEM.Services.Implementations
             try
             {
                 var uri = new Uri(imageUrl);
-                var pathSegments = uri.AbsolutePath.Split('/');
+                var pathSegments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                
+                string? publicId = null;
 
                 var carFolderIndex = Array.IndexOf(pathSegments, "ImgCar");
+                var licenseFolderIndex = Array.IndexOf(pathSegments, "ImgLicense");
+                var vehicleFolderIndex = Array.IndexOf(pathSegments, "VehicleConditions");
+
                 if (carFolderIndex != -1 && carFolderIndex + 1 < pathSegments.Length)
                 {
-                    var publicId = $"ImgCar/{Path.GetFileNameWithoutExtension(pathSegments[carFolderIndex + 1])}";
-                    var deleteParams = new DeletionParams(publicId);
-                    var result = await _cloudinary.DestroyAsync(deleteParams);
-                    return result.Result == "ok";
+                    var fileName = pathSegments[carFolderIndex + 1];
+                    if (fileName.StartsWith("v") && carFolderIndex + 2 < pathSegments.Length)
+                    {
+                        publicId = $"ImgCar/{pathSegments[carFolderIndex + 2]}";
+                    }
+                    else
+                    {
+                        publicId = $"ImgCar/{Path.GetFileNameWithoutExtension(fileName)}";
+                    }
                 }
-
-                var licenseFolderIndex = Array.IndexOf(pathSegments, "ImgLicense");
-                if (licenseFolderIndex != -1 && licenseFolderIndex + 1 < pathSegments.Length)
+                else if (licenseFolderIndex != -1 && licenseFolderIndex + 1 < pathSegments.Length)
                 {
-                    var publicId = $"ImgLicense/{Path.GetFileNameWithoutExtension(pathSegments[licenseFolderIndex + 1])}";
-                    var deleteParams = new DeletionParams(publicId);
-                    var result = await _cloudinary.DestroyAsync(deleteParams);
-                    return result.Result == "ok";
+                    var fileName = pathSegments[licenseFolderIndex + 1];
+                    if (fileName.StartsWith("v") && licenseFolderIndex + 2 < pathSegments.Length)
+                    {
+                        publicId = $"ImgLicense/{pathSegments[licenseFolderIndex + 2]}";
+                    }
+                    else
+                    {
+                        publicId = $"ImgLicense/{Path.GetFileNameWithoutExtension(fileName)}";
+                    }
                 }
-
-                var vehicleFolderIndex = Array.IndexOf(pathSegments, "VehicleConditions");
-                if (vehicleFolderIndex != -1 && vehicleFolderIndex + 1 < pathSegments.Length)
+                else if (vehicleFolderIndex != -1 && vehicleFolderIndex + 1 < pathSegments.Length)
                 {
-                    var publicId = $"VehicleConditions/{Path.GetFileNameWithoutExtension(pathSegments[vehicleFolderIndex + 1])}";
-                    var deleteParams = new DeletionParams(publicId);
-                    var result = await _cloudinary.DestroyAsync(deleteParams);
-                    return result.Result == "ok";
+                    var fileName = pathSegments[vehicleFolderIndex + 1];
+                    if (fileName.StartsWith("v") && vehicleFolderIndex + 2 < pathSegments.Length)
+                    {
+                        publicId = $"VehicleConditions/{pathSegments[vehicleFolderIndex + 2]}";
+                    }
+                    else
+                    {
+                        publicId = $"VehicleConditions/{Path.GetFileNameWithoutExtension(fileName)}";
+                    }
+                }
+                else
+                {
+                    var lastSegment = pathSegments.LastOrDefault();
+                    if (!string.IsNullOrEmpty(lastSegment))
+                    {
+                        publicId = Path.GetFileNameWithoutExtension(lastSegment);
+                    }
                 }
 
-                var fileName = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
-                if (string.IsNullOrEmpty(fileName)) return false;
+                if (string.IsNullOrEmpty(publicId))
+                    return false;
 
-                var deleteParamsFallback = new DeletionParams(fileName);
-                var resultFallback = await _cloudinary.DestroyAsync(deleteParamsFallback);
-                return resultFallback.Result == "ok";
+                publicId = Path.GetFileNameWithoutExtension(publicId);
+
+                var deleteParams = new DeletionParams(publicId);
+                var result = await _cloudinary.DestroyAsync(deleteParams);
+                return result.Result == "ok";
             }
             catch (Exception ex)
             {

@@ -1,0 +1,12 @@
+[
+  {
+    "ContainingType": "RentalCar.Controllers.LoginController",
+    "Method": "GetAll",
+    "RelativePath": "api/Login",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]
